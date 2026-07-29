@@ -1,0 +1,22 @@
+.
+├── CMakeLists.txt
+├── Communicate_DB.json
+├── directory_tree.txt
+├── export_code.sh
+├── Fr_Light.cpp
+├── Fr_Light.h
+├── HIPNUC_CH10X.cpp
+├── HIPNUC_CH10X.h
+├── HIPNUC_CH10X_Remote.cpp
+├── HIPNUC_CH10X_Remote.h
+├── HIPNUC_CH10X.ui
+├── Images
+│   ├── icon.ico
+│   └── Logo.jpg
+├── main.cpp
+├── resource.qrc
+├── stuqss.css
+├── Variable.cpp
+└── Variable.h
+
+2 directories, 18 files

@@ -1,0 +1,67 @@
+{
+    "configurations": [
+        {
+            "name": "Jetson Thor (CUDA 13.0 + Qt5 + 海康SDK)",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/cuda-13.0/include",
+                "/usr/include/aarch64-linux-gnu/qt5",
+                "/usr/include/aarch64-linux-gnu/qt5/QtCore",
+                "/usr/include/aarch64-linux-gnu/qt5/QtGui",
+                "/usr/include/aarch64-linux-gnu/qt5/QtWidgets",
+                "/usr/include/aarch64-linux-gnu/qt5/QtNetwork",
+                "/usr/include/aarch64-linux-gnu/qt5/QtCharts",
+                "/usr/include/aarch64-linux-gnu/qt5/QtConcurrent",
+                "/usr/include/aarch64-linux-gnu/qt5/QtOpenGL",
+                "/usr/include/aarch64-linux-gnu/qt5/QtPrintSupport",
+                "/usr/include/aarch64-linux-gnu/qt5/QtWebSockets",
+                "/usr/include/aarch64-linux-gnu/qt5/QtSerialBus",
+                "/opt/hikvision_sdk_arm64/incCn",
+                "/usr/include/Zivid",
+                "/usr/local/include/librealsense2",
+                "/usr/include/opencv4",
+                "/usr/include/pcl-1.14",
+                "/usr/include/vtk-9.1",
+                "/usr/include/eigen3",
+                "/usr/include/boost"
+            ],
+            "defines": [
+                "QT_CORE_LIB",
+                "QT_GUI_LIB",
+                "QT_WIDGETS_LIB",
+                "QT_NETWORK_LIB",
+                "QT_CHARTS_LIB",
+                "QT_CONCURRENT_LIB",
+                "QT_OPENGL_LIB",
+                "QT_PRINTSUPPORT_LIB",
+                "QT_WEBSOCKETS_LIB",
+                "VTK_MAJOR_VERSION=9",
+                "PCL_NO_MPI",
+                "LINUX_DEFINE",
+                "_LINUX_",
+                "HC_NET_SDK",
+                "CUDA_VERSION=13.0",
+                "NDEBUG"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-arm64",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "/usr/include",
+                    "/usr/local/cuda-13.0/include",
+                    "/opt/hikvision_sdk_arm64/incCn"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "forcedInclude": [
+                "/opt/hikvision_sdk_arm64/incCn/HCNetSDK.h"
+            ]
+        }
+    ],
+    "version": 4
+}

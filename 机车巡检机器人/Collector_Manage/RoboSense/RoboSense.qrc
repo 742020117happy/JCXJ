@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/c_RoboSense">
+        <file>Images/icon.ico</file>
+        <file>Images/Logo.jpg</file>
+    </qresource>
+</RCC>

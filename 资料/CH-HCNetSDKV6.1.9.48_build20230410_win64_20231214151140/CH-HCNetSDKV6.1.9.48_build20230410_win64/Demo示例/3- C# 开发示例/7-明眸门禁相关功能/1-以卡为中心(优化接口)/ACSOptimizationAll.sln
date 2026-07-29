@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceManagement", "FaceManagement\FaceManagement\FaceManagement.csproj", "{183A2A3E-0416-49FA-8840-1F3D196C7969}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FingerPrintManagement", "FingerPrintManagement\FingerPrintManagement\FingerPrintManagement.csproj", "{5E32F073-F131-4EDD-9661-08F70F4A5998}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetACSEvent", "GetACSEvent\GetACSEvent\GetACSEvent.csproj", "{9D3A5024-0415-4DE6-A2C0-22411D6E695C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlDoor", "ControlDoor\ControlDoor\ControlDoor.csproj", "{95B6C31C-D679-4774-9188-0E431E5894B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanTemplate", "PlanTemplate\PlanTemplate\PlanTemplate.csproj", "{F4425AA2-AAA4-4224-8030-B31A751C96B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardManagement", "CardManagement\CardManagement\CardManagement.csproj", "{834BDA92-987F-4752-87DC-08828024A181}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeleteFace", "DeleteFace\DeleteFace\DeleteFace.csproj", "{040E6AB6-B6F2-48FB-AB7F-43787F6163E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{183A2A3E-0416-49FA-8840-1F3D196C7969}.Debug|x64.ActiveCfg = Debug|x64
+		{183A2A3E-0416-49FA-8840-1F3D196C7969}.Debug|x64.Build.0 = Debug|x64
+		{183A2A3E-0416-49FA-8840-1F3D196C7969}.Release|x64.ActiveCfg = Release|x64
+		{183A2A3E-0416-49FA-8840-1F3D196C7969}.Release|x64.Build.0 = Release|x64
+		{5E32F073-F131-4EDD-9661-08F70F4A5998}.Debug|x64.ActiveCfg = Debug|x64
+		{5E32F073-F131-4EDD-9661-08F70F4A5998}.Debug|x64.Build.0 = Debug|x64
+		{5E32F073-F131-4EDD-9661-08F70F4A5998}.Release|x64.ActiveCfg = Release|x64
+		{5E32F073-F131-4EDD-9661-08F70F4A5998}.Release|x64.Build.0 = Release|x64
+		{9D3A5024-0415-4DE6-A2C0-22411D6E695C}.Debug|x64.ActiveCfg = Debug|x64
+		{9D3A5024-0415-4DE6-A2C0-22411D6E695C}.Debug|x64.Build.0 = Debug|x64
+		{9D3A5024-0415-4DE6-A2C0-22411D6E695C}.Release|x64.ActiveCfg = Release|x64
+		{9D3A5024-0415-4DE6-A2C0-22411D6E695C}.Release|x64.Build.0 = Release|x64
+		{95B6C31C-D679-4774-9188-0E431E5894B9}.Debug|x64.ActiveCfg = Debug|x64
+		{95B6C31C-D679-4774-9188-0E431E5894B9}.Debug|x64.Build.0 = Debug|x64
+		{95B6C31C-D679-4774-9188-0E431E5894B9}.Release|x64.ActiveCfg = Release|x64
+		{95B6C31C-D679-4774-9188-0E431E5894B9}.Release|x64.Build.0 = Release|x64
+		{F4425AA2-AAA4-4224-8030-B31A751C96B9}.Debug|x64.ActiveCfg = Debug|x64
+		{F4425AA2-AAA4-4224-8030-B31A751C96B9}.Debug|x64.Build.0 = Debug|x64
+		{F4425AA2-AAA4-4224-8030-B31A751C96B9}.Release|x64.ActiveCfg = Release|x64
+		{F4425AA2-AAA4-4224-8030-B31A751C96B9}.Release|x64.Build.0 = Release|x64
+		{834BDA92-987F-4752-87DC-08828024A181}.Debug|x64.ActiveCfg = Debug|x64
+		{834BDA92-987F-4752-87DC-08828024A181}.Debug|x64.Build.0 = Debug|x64
+		{834BDA92-987F-4752-87DC-08828024A181}.Release|x64.ActiveCfg = Release|x64
+		{834BDA92-987F-4752-87DC-08828024A181}.Release|x64.Build.0 = Release|x64
+		{040E6AB6-B6F2-48FB-AB7F-43787F6163E0}.Debug|x64.ActiveCfg = Debug|x64
+		{040E6AB6-B6F2-48FB-AB7F-43787F6163E0}.Debug|x64.Build.0 = Debug|x64
+		{040E6AB6-B6F2-48FB-AB7F-43787F6163E0}.Release|x64.ActiveCfg = Release|x64
+		{040E6AB6-B6F2-48FB-AB7F-43787F6163E0}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,2411 @@
+========================================================================
+Project: Collector_Manage
+Export Time: Thu Jun 18 10:00:40 AM CST 2026
+Total Files: 9
+========================================================================
+
+==================== HEADER FILES (.h) ====================
+
+########################################################################
+FILE: ./Fr_Light.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_Fr_Light : public QWidget {
+	Q_OBJECT
+
+public:
+	enum State {
+		Default,
+		Error,
+		Working,
+		Null
+	};
+	explicit c_Fr_Light(QWidget * parent = nullptr);
+	virtual ~c_Fr_Light();
+
+	public slots:
+	void Set_Working();
+	void Set_Default();
+	void Set_Error();
+	void Set_Null();
+	void Set_State(const bool state);
+	void Set_Radius(int value);
+	bool Get_State();
+
+signals:
+	void Working_State(bool state);
+	void Default_State(bool state);
+	void Error_State(bool state);
+
+protected:
+	void paintEvent(QPaintEvent *);
+
+private:
+	int m_Radius = 50;
+	State m_State = Default;
+	QColor m_Default_Color;
+	QColor m_Error_Color;
+	QColor m_Working_Color;
+	QColor m_Null_Color;
+};
+
+
+########################################################################
+FILE: ./HIPNUC_CH10X.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+#include "HIPNUC_CH10X_Remote.h"
+#include "ui_HIPNUC_CH10X.h" // Qt UIC 自动生成
+
+#include <QSocketNotifier>
+#include <QFile>
+
+class c_HIPNUC_CH10X : public QWidget {
+    Q_OBJECT
+public:
+    explicit c_HIPNUC_CH10X(QStringList info, QWidget *parent = nullptr);
+    virtual ~c_HIPNUC_CH10X() override;
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void showEvent(QShowEvent* event) override;
+
+private slots:
+    void System_Scan();
+    void Init();
+    void Refresh_Ports(); // 刷新可用串口列表
+    void readMessage(QString cmd);
+    void Write_Communicate_DB(QString key, int value);
+    void Write_Communicate_DB(QString key, QString value);
+
+private:
+    Ui::HIPNUC_CH10X ui; // 必须与 .ui 文件中的 <class> 标签一致
+    bool m_Scan = false;
+    bool m_Initialized = false;
+    QString m_DB_Path;
+    
+    c_HIPNUC_CH10X_Remote *m_Remote;
+    QThread *m_Remote_Thread;
+    
+    QFile m_file;
+    QSocketNotifier *m_pNotifier;
+    char m_arrRecv[128];
+};
+
+########################################################################
+FILE: ./HIPNUC_CH10X_Remote.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_HIPNUC_CH10X_Remote : public c_Object 
+{
+    Q_OBJECT
+
+public:
+    explicit c_HIPNUC_CH10X_Remote(QObject *parent = nullptr);
+    ~c_HIPNUC_CH10X_Remote();
+
+    void Init();
+    void Connect();
+    void Disconnect();
+    void Set_High_Performance_Mode();
+
+signals:
+    void Status(const QString& msg);
+
+private slots:
+    void onReadyRead();
+
+private:
+    // ================= 协议解析 =================
+    void crc16_update(uint16_t *currentCrc, const uint8_t *src, uint32_t lengthInBytes);
+    bool parseFrame(const uint8_t* data, int size);
+    
+    // ================= 惯导里程计与 KF 解算 =================
+    void Update_IMU_Odom(const s_CH10X_DataPayload& data);
+    double computeVariance(const std::deque<double>& window);
+    double wrapToPi(double angle); 
+
+    // ================= 串口与缓冲 =================
+    QSerialPort* m_serialPort;
+    QByteArray m_buffer;
+
+    // ================= 简化卡尔曼滤波 (KF) 状态 =================
+    Eigen::Vector2d m_vel_state; // 状态: [vx, vy] 单位: m/s
+    Eigen::Matrix2d m_P;         // 协方差: 单位 (m/s)^2
+    
+    // ================= 运动学积分变量 =================
+    double m_last_time_s = 0.0;
+    double m_filtered_acc_n[2] = {0.0, 0.0}; // 单位: m/s^2
+    double m_pos_enu[2] = {0.0, 0.0};        // 单位: m
+    
+    // ================= 静止检测 (ZUPT) 滑动窗口 =================
+    static const int WINDOW_SIZE = 30; 
+    std::deque<double> m_acc_window[2];  // 单位: m/s^2
+    std::deque<double> m_gyro_window[3]; // 单位: rad/s
+    bool m_is_static = false;
+
+    // ================= 🌟 严格 SI 单位参数标定 =================
+    double m_alpha_acc = 0.1;             // 低通滤波系数 (无量纲)
+    
+    // 静止检测阈值
+    double m_acc_var_thresh = 0.01;       // 加速度方差阈值, 单位: (m/s^2)^2 [对应标准差 0.1 m/s^2]
+    double m_gyro_var_thresh = 0.0001;    // 角速度方差阈值, 单位: (rad/s)^2 [对应标准差 0.01 rad/s ≈ 0.57°/s]
+    double m_acc_static_thresh = 0.2;     // 加速度幅值阈值, 单位: m/s^2
+    
+    // KF 噪声协方差参数
+    double m_R_acc = 0.05;                // 加速度积分观测噪声, 单位: (m/s)^2 [对应标准差 0.22 m/s]
+    double m_R_zupt = 0.0001;             // 零速观测噪声, 单位: (m/s)^2 [对应标准差 0.01 m/s]
+    double m_Q_process = 0.01;            // 过程噪声(加速度方差), 单位: (m/s^2)^2 [对应标准差 0.1 m/s^2]
+    
+    double m_base_damping = 0.5;          // 基础速度阻尼, 单位: 1/s (Hz) [时间常数 2s]
+
+    // ================= 降采样与发布 =================
+    int m_send_counter = 0;
+    int m_downsample_rate = 20;           // 200Hz / 20 = 10Hz
+};
+
+########################################################################
+FILE: ./Variable.h
+########################################################################
+
+﻿#pragma once 
+
+#include <math.h>
+#include <time.h>
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstdio>
+#include <fcntl.h>
+#include <memory>
+#include <cstring> 
+#include <algorithm> 
+#include <cmath>     
+
+#include <QApplication>
+#include <QByteArray>
+#include <QCloseEvent>
+#include <QColor>
+#include <QDateTime>
+#include <QDebug>
+#include <QDir>
+#include <QSize>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileDialog>
+#include <QHostAddress>
+#include <QImage>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeyEvent>
+#include <QMainWindow>
+#include <QMap>
+#include <QMessageBox>
+#include <QMetaType>
+#include <QMutex>
+#include <QObject>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPaintDevice> 
+#include <QPen>       
+#include <QProcess>
+#include <QRegularExpression>
+#include <QScopedPointer>
+#include <QSettings>
+#include <QSharedMemory>
+#include <QSocketNotifier>
+#include <QStandardPaths>
+#include <QStackedWidget>
+#include <QString>
+#include <QTextStream>
+#include <QDataStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QVariant>
+#include <QVector>
+#include <QWidget>
+#include <QSocketNotifier>
+
+#include <QAbstractSocket>
+#include <QNetworkAccessManager>
+#include <QNetworkInterface>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket> 
+#include <QUrlQuery>
+#include <QtNetwork>
+#include <QtWebSockets/qwebsocket.h>
+#include <QtWebSockets/qwebsocketserver.h>
+#include <QConicalGradient>
+#include <QPolarChart>
+#include <QScatterSeries>
+#include <QtCharts>
+
+#include <QSerialPort> // 引入 Qt 串口模块
+#include <QSerialPortInfo>
+
+#include <QtConcurrent/QtConcurrent>
+
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkRenderingOpenGL2);   
+VTK_MODULE_INIT(vtkInteractionStyle);  
+
+#include <vtkRenderer.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <QVTKOpenGLNativeWidget.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/common/common.h>
+#include <boost/thread/thread.hpp>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/crop_box.h>  
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/frustum_culling.h>
+#include <pcl/segmentation/sac_segmentation.h> 
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/common/common.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/search/kdtree.h>  
+#include <pcl/surface/convex_hull.h>
+
+#include <Eigen/Geometry>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include <boost/thread/thread.hpp>
+
+#include "librealsense2/rs.hpp"
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <Zivid/Zivid.h>
+#include <Zivid/Camera.h>
+
+#include <HCNetSDK.h>
+#include <LinuxPlayM4.h>
+
+using namespace std;
+using namespace pcl;
+using namespace rs2;
+using namespace cv;
+using namespace Zivid;
+
+#if defined(_MSC_VER)
+    #define PACKED_STRUCT __pragma(pack(push, 1)) struct
+    #define PACKED_END __pragma(pack(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+    #if defined(__aarch64__) || defined(__arm64__)
+        #define PACKED_STRUCT struct __attribute__((packed, aligned(1)))
+        #define PACKED_END
+    #else
+        #define PACKED_STRUCT struct __attribute__((packed))
+        #define PACKED_END
+    #endif
+#else
+    #error "Unsupported compiler - Jetson Thor requires GCC/Clang"
+#endif
+
+PACKED_STRUCT s_Timestamp {
+    /* 0-5字节: 秒计数（6字节大端序） */
+    uint8_t seconds[6];
+    /* 6-9字节: 微秒计数（4字节大端序） */
+    uint8_t microseconds[4];
+}PACKED_END;
+// MSOP帧头结构体（32字节）
+PACKED_STRUCT s_MSOPHeader {
+    /* 0-3字节: 同步头（4字节，固定值 0x55AA5AA5） */
+    uint32_t sync;
+    /* 4-5字节: 包序列号（2字节） */
+    uint16_t pktCnt;
+    /* 6-7字节: 协议版本号（2字节） */
+    uint16_t ver;
+    /* 8字节: 回波模式（1字节） */
+    uint8_t returnMode;
+    /* 9字节: 时间同步模式（1字节） */
+    uint8_t timeMode;
+    /* 10-19字节: 时间戳 */
+    s_Timestamp timesTamp;
+    /* 20字节: 帧同步状态（1字节） */
+    uint8_t frameSync;
+    /* 21-29字节: 预留字段（9字节） */
+    uint8_t res0[9];
+    /* 30字节: 雷达类型标识（1字节） */
+    uint8_t lidarType;
+    /* 31字节: 芯片温度原始值（1字节） */
+    int8_t lidarTmp;
+}PACKED_END;
+// MSOP数据块结构体（12字节）
+PACKED_STRUCT s_DataBlock {
+    /* 0-1字节: 时间偏移量（2字节，无符号） */
+    uint16_t timeOffset;
+    /* 2-3字节: 径向距离（2字节，无符号） */
+    uint16_t radius;
+    /* 4-5字节: 单位方向向量X分量（2字节，有符号） */
+    int16_t dirVectorX;
+    /* 6-7字节: 单位方向向量Y分量（2字节，有符号） */
+    int16_t dirVectorY;
+    /* 8-9字节: 单位方向向量Z分量（2字节，有符号） */
+    int16_t dirVectorZ;
+    /* 10字节: 反射强度（1字节，无符号） */
+    uint8_t intensity;
+    /* 11字节: 点属性（1字节，使用联合体解析） */
+    uint8_t pointAttr;
+}PACKED_END;
+// MSOP帧尾结构体（16字节）
+PACKED_STRUCT s_MSOPTrailer {
+    /* 0-3字节: 预留字段（4字节） */
+    uint8_t res1[4];
+    /* 4-5字节: 数据长度（2字节，固定值 0x04B0 = 1200） */
+    uint16_t dataLength;
+    /* 6-7字节: 计数器（2字节） */
+    uint16_t counter;
+    /* 8-11字节: 数据ID（4字节，固定值 0x00000E5C） */
+    uint32_t dataId;
+    /* 12-15字节: CRC32校验码（4字节） */
+    uint32_t crc32;
+}PACKED_END;
+// MSOP完整MSOP包结构体（1200字节定长）
+PACKED_STRUCT s_MSOPPacket {
+    s_MSOPHeader header;
+    s_DataBlock blocks[96];
+    s_MSOPTrailer trailer;
+}PACKED_END;
+// DIFOP帧头结构体 (8字节) - 位于包偏移0~7字节
+PACKED_STRUCT s_DIFOPHeader {
+    /* [0-3] 主识别头 (4字节) */
+    uint32_t sync1;
+    /* [4-7] 次识别头 (4字节) */
+    uint32_t sync2;
+}PACKED_END;
+// 网络地址结构体 (辅助类型) - 用于IP/MAC地址封装
+PACKED_STRUCT s_IPv4Address {
+    uint8_t bytes[4];
+}PACKED_END;
+PACKED_STRUCT s_MACAddress {
+    uint8_t bytes[6];
+}PACKED_END;
+// 固件版本结构体 (3字节) - 位于包偏移16~18字节
+PACKED_STRUCT s_FirmwareVersion {
+    uint8_t major;           // 主版本号
+    uint8_t minor;           // 次版本号
+    uint8_t patch;           // 修订版本号
+}PACKED_END;
+// 完整DIFOP包结构体 (256字节定长) - 严格对应手册4.3.2节
+PACKED_STRUCT s_DIFOPPacket {
+    /* [0-7] DIFOP帧头 (8字节) */
+    s_DIFOPHeader header;
+    /* [8-15] 预留字段 (8字节) */
+    uint8_t res0[8];
+    /* [16-18] 固件版本号 (3字节) */
+    s_FirmwareVersion swVersion;
+    /* [19] 预留字段 (1字节) */
+    uint8_t res1;
+    /* [20-25] 设备序列号 (6字节) - ASCII编码 */
+    uint8_t sn[6];              // 例如: "E1R001"
+    /* [26-43] 预留字段 (18字节) */
+    uint8_t res2[18];
+    /* [44-47] 本地IP地址 (4字节) - 雷达本机IP */
+    s_IPv4Address localIp;
+    /* [48-51] 子网掩码 (4字节) */
+    s_IPv4Address netMask;
+    /* [52-57] MAC地址 (6字节) */
+    s_MACAddress macAddress;
+    /* [58-61] MSOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address msopRemoteIp;
+    /* [62-63] MSOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t msopLocalPort;
+    /* [64-65] MSOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t msopRemotePort;
+    /* [66-69] DIFOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address difopRemoteIp;
+    /* [70-71] DIFOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t difopLocalPort;
+    /* [72-73] DIFOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t difopRemotePort;
+    /* [74-98] 预留字段 (25字节) */
+    uint8_t res3[25];
+    /* [99] 帧率设置 (1字节) */
+    uint8_t frequencySetting; // 0x0A = 10Hz (E1R默认)
+    /* [100] 回波模式 (1字节) - 与MSOP协议一致 */
+    uint8_t returnMode;       // 0x04 = StrongestWave (默认)
+    /* [101] 时间同步模式 (1字节) */
+    uint8_t timeSyncMode;     // 0x00=Internal, 0x02=E2E L2, 0x03=gPTP
+    /* [102] 时间同步状态 (1字节) */
+    uint8_t timeSyncStatus;   // 0x00=failed, 0x01=success, 0x02=timeout
+    /* [103-112] 时间状态 (10字节) - 与MSOP Timestamp格式相同 */
+    s_Timestamp timeStatus;
+    /* [113] 物理层工作模式 (1字节) */
+    uint8_t phyMode;          // 0x00=auto, 0x01=master, 0x02=slave
+    /* [114-255] 预留字段 (142字节) */
+    uint8_t res4[142];
+}PACKED_END;
+
+//EIR雷达
+struct s_RoboSense_DB {
+    bool MSOP_connected = false;
+    bool DIFOP_connected = false;
+    bool device_Status = false;
+
+    QString device_name;
+
+    QString Local_Ip;
+    int Local_MSOP_Port;
+    int Local_DIFOP_Port;
+    QString E1R_IP;
+    int  E1R_MSOP_Port;
+    int E1R_DIFOP_Port;
+
+    int8_t lidarTmp;
+};
+//D555相机
+struct s_RealSense_DB {
+    bool device_connected = false; //相机连接状态
+    bool device_Status = false;
+    QString device_name;
+    QString serial; //相机序列号
+
+    QString Local_Ip;
+    int Local_Port;
+
+    QString Device_IP;
+    int  Device_Port;
+};
+//Zivid相机
+struct s_Zivid_Camera_DB {
+    bool camera_connected = false;    //相机连接状态
+    QString device_name;
+    QString camera_serial;    //相机序列号
+
+    QString server_ip;
+    quint16 server_port;
+
+    qint64 settingTime = 0;        //捕获耗时
+    qint64 captureTime = 0;        //捕获耗时
+    qint64 save2DTime = 0;        //捕获耗时
+    qint64 save3DTime = 0;        //捕获耗时
+  
+    QString image_name;            //基础路径
+    QString save_path;     //当前保存路径
+
+    QString system_status;         //系统状态
+    QDateTime last_operation_time; //最后操作时间
+};
+//服务
+struct s_Server_DB {
+    bool server_connected = false;    //连接状态
+    QString camera_num;  //相机编号
+    QString track;       // 股道号
+    QString date;        // 年月日
+    QString time;       // 时分
+    QString trainType;  // 车型车号
+    QString taskID;     // 任务编号
+    QString basePath;   // 保存路径
+};
+// 服务状态数据库结构
+struct s_Transmission_DB {
+	bool Tran = false;// 传输状态
+	bool Connected = false;// 连接状态
+	bool Start = false;// 开始状态
+	bool Finish = true;// 完成状态
+	bool Cancel = false;// 取消状态
+	bool Error = false;
+	QString device_name = "机车巡检机器人图像采集-上传软件-v1.0";  // 设备名称
+	QString Server_Ip = "192.168.0.1";// 服务器IP
+	int Server_Port = 8888;// 服务器端口
+    QString Client_Ip;
+	int Client_Port;
+	QString Save_Path;    
+    QStringList buffer;
+	QStringList Tran_buffer;
+	QStringList Retran_buffer;
+	QStringList Received_Buffer; 
+};
+// 监控相机
+struct s_Hikvision_DB {
+    bool Connected = false;
+    qint32 lRealPlayHandle = -1;
+    qint32 lUserID = -1;
+    qint32 lPort = -1;
+    qint32 num = 0;
+    long long FPS = 0;
+    HWND winId;
+    QString device_name;
+    QString Device_Ip = "192.168.11.20";
+    quint16 Device_port = 8000;
+    QString	name = "admin";
+    QString	key = "bjtds2024";
+    QString Local_Ip = "192.168.0.107";
+    quint16 Local_port = 36788;
+};
+
+//DIFOP解析联合体
+union s_DIFOPPacketUnion {
+    /* 原始字节数组 (256字节) - 用于接收UDP数据 */
+    uint8_t raw[256];
+    /* 结构化视图 - 与raw共享同一内存区域 */
+    s_DIFOPPacket data;
+};
+
+// MSOP数据解析联合体
+union s_MSOPPacketUnion {
+    /* 成员1: 原始字节数组（1200字节）- 用于接收网络数据 */
+    uint8_t raw[1200];
+    /* 成员2: 结构化视图 - 与raw共享同一块内存 */
+    s_MSOPPacket data;
+};
+
+// ============================================================================
+// ✅ 修正：CH10X 0x91 (IMUSOL) 数据域结构体 (严格 76 字节，小端序)
+// 严格对齐手册 6.2.1 节表格：Tag(1) + ID(1) + Reserved(1) + Temp(1) + Pressure(4) + Timestamp(4) + Acc(12) + Gyro(12) + Mag(12) + Euler(12) + Quat(16) = 76
+// ============================================================================
+PACKED_STRUCT s_CH10X_DataPayload {
+    uint8_t  tag;          // 1 byte: 数据包标签 (0x91)
+    uint8_t  id;           // 1 byte: 用户自定义 ID
+    uint8_t  reserved;     // 1 byte: 保留字段 (手册规定偏移2)
+    int8_t   temperature;  // 1 byte: 模块平均温度 (°C) (手册规定偏移3)
+    float    pressure;     // 4 bytes: 气压 (Pa)
+    uint32_t timestamp;    // 4 bytes: 时间戳 (ms)
+    float    acc[3];       // 12 bytes: 加速度 (X, Y, Z)
+    float    gyro[3];      // 12 bytes: 角速度 (X, Y, Z)
+    float    mag[3];       // 12 bytes: 磁强度 (X, Y, Z)
+    float    euler[3];     // 12 bytes: 欧拉角 (Roll, Pitch, Yaw)
+    float    quat[4];      // 16 bytes: 四元数 (W, X, Y, Z)
+    // 注意：移除了末尾的 padding，以上字段总和正好是 76 字节
+} PACKED_END;
+
+// CH10X 全局状态数据库
+struct s_HIPNUC_CH10X_DB {
+    bool connected = false;
+    QString device_name = "CH10X_IMU";
+    QString port_name = "/dev/ttyUSB0";
+    // ✅ 修正：CH104-USB 默认波特率为 115200 (如需 400Hz 高频输出，请先用 AT 指令修改设备波特率，再在此处同步修改)
+    int baud_rate = 115200; 
+    
+    // 实时解析数据
+    uint32_t timestamp = 0;
+    float acc[3] = {0};
+    float gyro[3] = {0};
+    float mag[3] = {0};
+    float euler[3] = {0}; // [0]=Roll, [1]=Pitch, [2]=Yaw
+    float quat[4] = {0};  // [0]=W, [1]=X, [2]=Y, [3]=Z
+    
+    // 状态统计
+    qint64 last_update_time = 0;
+    int fps_count = 0;
+    int current_fps = 0;
+};
+
+struct s_IMU_Odom {
+    double x = 0.0;         // 东向位置 (m)
+    double y = 0.0;         // 北向位置 (m)
+    double vx = 0.0;        // 东向速度 (m/s)
+    double vy = 0.0;        // 北向速度 (m/s)
+    double yaw = 0.0;       // 航向角 (rad)
+    uint32_t timestamp = 0; // 时间戳 (ms)
+    bool is_static = false; // 静止状态标志 (供主进程 EKF 调整协方差使用)
+};
+
+class c_Object : public QObject
+{
+    Q_OBJECT
+public:
+    explicit c_Object(QObject* parent = Q_NULLPTR);
+    virtual ~c_Object();
+
+  	union dataConverter {
+		float floatValue;     // 浮点数
+		quint32 DWord;
+		struct {
+			quint16 low16Bits;
+			quint16 high16Bits;
+		}Word;
+	};
+
+    void BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits);
+	void FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits);
+	void IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits);
+	void BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits);
+
+    bool QtPing(const QString ip);
+    bool msleep(const int mSec);
+    QString TCP_Status(int State);
+    QString Modbus_Status(int State);
+    QString CanOpen(int State);
+    QString Hikvision_Status(DWORD state);
+
+signals:
+    void Status(QString state);
+
+};
+
+class c_Variable : public c_Object
+{
+	Q_OBJECT
+public:
+	static c_Variable& getInstance();
+	//成员变量
+	static QJsonObject     g_Communicate_DB ;
+	static s_HIPNUC_CH10X_DB g_HIPNUC_CH10X;
+    static s_IMU_Odom g_IMU_Odom; 
+
+    void writeMessage(int style, QString message);
+    
+private:
+	explicit c_Variable(QObject * parent = Q_NULLPTR);
+	virtual ~c_Variable();
+
+	// 禁止复制
+	c_Variable(const c_Variable &other) = delete;
+	c_Variable& operator=(const c_Variable &other) = delete;
+
+	static QMutex g_mutex;
+	static QScopedPointer<c_Variable> g_instance;
+	friend struct QScopedPointerDeleter<c_Variable>;
+};
+
+
+
+==================== SOURCE FILES (.cpp) ====================
+
+########################################################################
+FILE: ./Fr_Light.cpp
+########################################################################
+
+﻿#include "Fr_Light.h"
+
+c_Fr_Light::c_Fr_Light(QWidget * parent) :QWidget(parent)
+{
+	m_Working_Color = QColor("green");
+	m_Default_Color = QColor("red");
+	m_Error_Color = QColor("yellow");
+	m_Null_Color = QColor("gray");
+}
+
+c_Fr_Light::~c_Fr_Light()
+{
+	
+}
+
+void c_Fr_Light::Set_Working()
+{
+	if (m_State == Working) { return; }//如果状态未改变则立即退出
+	m_State = Working;
+	update();
+	emit Working_State(true);
+}
+bool c_Fr_Light::Get_State()
+{
+	if (m_State == Working) { return true; }
+	else { return false; }
+}
+void c_Fr_Light::Set_Default()
+{
+	if (m_State == Default) { return; }	  //如果状态未改变则立即退出
+	m_State = Default;
+	update();
+	emit Default_State(true);
+}
+void c_Fr_Light::Set_Error()
+{
+	if (m_State == Error) { return; }	   //如果状态未改变则立即退出
+	m_State = Error;
+	update();
+	emit Error_State(true);
+}
+void c_Fr_Light::Set_Null()
+{
+	if (m_State == Null){ return; }
+	m_State = Null;
+	update();
+}
+void c_Fr_Light::Set_State(const bool state)
+{
+	if (state) {
+		Set_Working();
+	}
+	else {
+		Set_Default();
+	}
+}
+void c_Fr_Light::Set_Radius(int value)
+{
+	m_Radius = value;
+	update();
+}
+void c_Fr_Light::paintEvent(QPaintEvent*) {
+	int side = qMin(width(), height());
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.translate(width() / 2, height() / 2);
+	painter.scale(side / 100.0, side / 100.0);
+	QColor color;
+	switch (m_State) {
+	case Default:
+		color = m_Default_Color;
+		break;
+	case Working:
+		color = m_Working_Color;
+		break;
+	case Error:
+		color = m_Error_Color;
+		break;
+	default:
+		color = m_Null_Color;
+		break;
+	}
+	QRadialGradient radial(0, 0, m_Radius, 0, 0);    //设置圆的原点和焦点在中心,半径50
+	radial.setSpread(QGradient::PadSpread);
+	radial.setColorAt(1, color);
+	painter.setPen(Qt::transparent);
+	painter.setBrush(radial);
+	painter.drawEllipse(-50, -50, 100, 100);
+}
+
+########################################################################
+FILE: ./HIPNUC_CH10X.cpp
+########################################################################
+
+﻿#include "HIPNUC_CH10X.h"
+
+c_HIPNUC_CH10X::c_HIPNUC_CH10X(QStringList info, QWidget *parent) : QWidget(parent) {
+    ui.setupUi(this);
+    
+    // 加载样式表
+    QFile File(QDir::currentPath() + "/stuqss.css");
+    if (File.open(QIODevice::ReadOnly)) {
+        this->setStyleSheet(File.readAll());
+        File.close();
+    }
+    
+    // 解析命令行参数 (设备名称)
+    if (!info.isEmpty() && info.size() > 1) {
+        c_Variable::getInstance().g_HIPNUC_CH10X.device_name = info.at(1);
+        this->setWindowFlags(Qt::Widget);
+        this->setAttribute(Qt::WA_NativeWindow);
+        this->setWindowFlags(Qt::FramelessWindowHint);
+        this->setWindowTitle(c_Variable::getInstance().g_HIPNUC_CH10X.device_name);
+        m_DB_Path = QDir::currentPath() + "/" + c_Variable::getInstance().g_HIPNUC_CH10X.device_name + ".json";
+    } else {
+        m_DB_Path = QDir::currentPath() + "/HIPNUC_CH10X.json";
+    }
+    
+    // 加载 JSON 配置
+    QFile DbFile(m_DB_Path);
+    if (DbFile.open(QFile::ReadOnly | QIODevice::Text)) {
+        QJsonParseError parseError;
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(DbFile.readAll(), &parseError);
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        DbFile.close();
+    }
+    
+    // 监听 stdin (主进程通信)
+    m_file.open(stdin, QIODevice::ReadOnly | QIODevice::Text);
+    m_pNotifier = new QSocketNotifier(m_file.handle(), QSocketNotifier::Read, this);
+    QObject::connect(m_pNotifier, &QSocketNotifier::activated, this, [=](int iHandle){
+        if(m_file.handle() == iHandle){
+            int iRet = read(m_file.handle(), m_arrRecv, sizeof(m_arrRecv));
+            m_arrRecv[iRet] = 0;
+            readMessage(QString("%1").arg(m_arrRecv));
+        }
+    });
+    
+    // 通知主进程嵌入窗口
+    c_Variable::getInstance().writeMessage(1, QString("Run&%1").arg(this->winId()));
+    m_Scan = true;
+    this->show();
+}
+
+c_HIPNUC_CH10X::~c_HIPNUC_CH10X() {}
+
+void c_HIPNUC_CH10X::readMessage(QString message) {
+    c_Variable::getInstance().writeMessage(2, "收到主进程指令: " + message);
+    if (message == "Connect") ui.CH10X_Connect->click();
+    if (message == "Disconnect") ui.CH10X_Disconnect->click();
+    if (message == "Close_Device") this->close();
+}
+
+void c_HIPNUC_CH10X::Refresh_Ports() {
+    ui.Device_Port->clear();
+    const auto infos = QSerialPortInfo::availablePorts();
+    for (const QSerialPortInfo &info : infos) {
+        ui.Device_Port->addItem(info.systemLocation());
+    }
+    if (ui.Device_Port->count() == 0) {
+        ui.Device_Port->addItem("/dev/ttyUSB0");
+    }
+}
+
+void c_HIPNUC_CH10X::Init() {
+    m_Remote = new c_HIPNUC_CH10X_Remote;
+    m_Remote_Thread = new QThread;
+    m_Remote->moveToThread(m_Remote_Thread);
+    
+    Refresh_Ports();
+
+    QObject::connect(m_Remote_Thread, &QThread::started, m_Remote, &c_HIPNUC_CH10X_Remote::Init);
+    QObject::connect(m_Remote_Thread, &QThread::finished, m_Remote, &c_HIPNUC_CH10X_Remote::deleteLater);
+    
+    // 绑定 UI 按钮
+    QObject::connect(ui.CH10X_Connect, &QPushButton::clicked, m_Remote, &c_HIPNUC_CH10X_Remote::Connect);
+    QObject::connect(ui.CH10X_Disconnect, &QPushButton::clicked, m_Remote, &c_HIPNUC_CH10X_Remote::Disconnect);
+    QObject::connect(ui.Refresh_Ports, &QPushButton::clicked, this, &c_HIPNUC_CH10X::Refresh_Ports);
+    QObject::connect(ui.Set_High_Performance_Mode, &QPushButton::clicked, m_Remote, &c_HIPNUC_CH10X_Remote::Set_High_Performance_Mode);
+
+    // 绑定日志
+    QObject::connect(m_Remote, &c_HIPNUC_CH10X_Remote::Status, this, [=](QString cmd) {
+        c_Variable::getInstance().writeMessage(2, cmd);
+    });
+    
+    // 绑定配置保存
+    QObject::connect(ui.Device_Port, &QComboBox::currentTextChanged, this, [=](QString val){
+        c_Variable::getInstance().g_HIPNUC_CH10X.port_name = val;
+        Write_Communicate_DB("Device_Port", val);
+    });
+    QObject::connect(ui.Baud_Rate, &QComboBox::currentTextChanged, this, [=](QString rate){
+        c_Variable::getInstance().g_HIPNUC_CH10X.baud_rate = rate.toInt();
+        Write_Communicate_DB("Baud_Rate", rate.toInt());
+    });
+    
+    // 从全局变量或 JSON 加载配置
+    c_Variable::getInstance().g_HIPNUC_CH10X.port_name = c_Variable::getInstance().g_Communicate_DB.value("Device_Port").toString();
+    c_Variable::getInstance().g_HIPNUC_CH10X.baud_rate = c_Variable::getInstance().g_Communicate_DB.value("Baud_Rate").toInt();
+    
+    // ✅ 修正：使用 findText 而不是 findData，因为 addItem 时没有传入 userData
+    int baudIdx = ui.Baud_Rate->findText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.baud_rate));
+    if (baudIdx >= 0) {
+        ui.Baud_Rate->setCurrentIndex(baudIdx);
+    }
+    
+    int portIdx = ui.Device_Port->findText(c_Variable::getInstance().g_HIPNUC_CH10X.port_name);
+    if (portIdx >= 0) {
+        ui.Device_Port->setCurrentIndex(portIdx);
+    }
+    
+    m_Remote_Thread->start();
+}
+
+void c_HIPNUC_CH10X::System_Scan() {
+    ui.CH10X_Connected->Set_State(c_Variable::getInstance().g_HIPNUC_CH10X.connected);
+    ui.CH10X_Connect->setDisabled(c_Variable::getInstance().g_HIPNUC_CH10X.connected);
+    ui.CH10X_Disconnect->setEnabled(c_Variable::getInstance().g_HIPNUC_CH10X.connected);
+    
+    static qint64 lastTime = QDateTime::currentMSecsSinceEpoch();
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (now - lastTime >= 1000) {
+        c_Variable::getInstance().g_HIPNUC_CH10X.current_fps = c_Variable::getInstance().g_HIPNUC_CH10X.fps_count;
+        c_Variable::getInstance().g_HIPNUC_CH10X.fps_count = 0;
+        lastTime = now;
+    }
+    
+    static bool heartbeat = false;
+    if (c_Variable::getInstance().g_HIPNUC_CH10X.connected && (now - c_Variable::getInstance().g_HIPNUC_CH10X.last_update_time < 2000)) {
+        heartbeat = !heartbeat;
+        ui.CH10X_Heartbeat->Set_State(heartbeat);
+    } else {
+        ui.CH10X_Heartbeat->Set_State(false);
+    }
+    
+    // 注意：手册中 euler 顺序为 [0]=Roll, [1]=Pitch, [2]=Yaw
+    ui.Euler_Roll->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.euler[0], 'f', 2));
+    ui.Euler_Pitch->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.euler[1], 'f', 2));
+    ui.Euler_Yaw->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.euler[2], 'f', 2));
+    ui.Acc_X->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.acc[0], 'f', 3));
+    ui.Acc_Y->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.acc[1], 'f', 3));
+    ui.Acc_Z->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.acc[2], 'f', 3));
+    ui.Gyro_X->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.gyro[0], 'f', 2));
+    ui.Gyro_Y->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.gyro[1], 'f', 2));
+    ui.Gyro_Z->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.gyro[2], 'f', 2));
+    ui.Quat_W->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.quat[0], 'f', 4));
+    ui.Quat_X->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.quat[1], 'f', 4));
+    ui.Quat_Y->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.quat[2], 'f', 4));
+    ui.Quat_Z->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.quat[3], 'f', 4));
+    ui.FPS_Display->setText(QString::number(c_Variable::getInstance().g_HIPNUC_CH10X.current_fps));
+
+    ui.IMU_Odom_x->setText(QString::number(c_Variable::getInstance().g_IMU_Odom.x, 'f', 3));
+    ui.IMU_Odom_y->setText(QString::number(c_Variable::getInstance().g_IMU_Odom.y, 'f', 3));
+    ui.IMU_Odom_vx->setText(QString::number(c_Variable::getInstance().g_IMU_Odom.vx, 'f', 3));
+    ui.IMU_Odom_vy->setText(QString::number(c_Variable::getInstance().g_IMU_Odom.vy, 'f', 2));
+    ui.IMU_Odom_tamp->setText(QString::number(c_Variable::getInstance().g_IMU_Odom.timestamp));
+    ui.IMU_Odom_static->Set_State(c_Variable::getInstance().g_IMU_Odom.is_static);
+
+    
+    QTimer::singleShot(100, this, [this]() {
+        if (m_Scan) System_Scan();
+    });
+}
+
+void c_HIPNUC_CH10X::Write_Communicate_DB(QString key, int value) {
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+    QFile File(m_DB_Path);
+    if (File.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        File.write(QJsonDocument(c_Variable::getInstance().g_Communicate_DB).toJson());
+        File.close();
+    }
+}
+
+void c_HIPNUC_CH10X::Write_Communicate_DB(QString key, QString value) {
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+    QFile File(m_DB_Path);
+    if (File.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        File.write(QJsonDocument(c_Variable::getInstance().g_Communicate_DB).toJson());
+        File.close();
+    }
+}
+
+void c_HIPNUC_CH10X::closeEvent(QCloseEvent* event) {
+    m_Scan = false;
+    if (m_Remote_Thread && m_Remote_Thread->isRunning()) {
+        m_Remote_Thread->requestInterruption();
+        m_Remote_Thread->quit();
+        m_Remote_Thread->wait();
+    }
+    c_Variable::getInstance().writeMessage(1, "Stop");
+    event->accept();
+}
+
+void c_HIPNUC_CH10X::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_F6) {
+        QFile File(QDir::currentPath() + "/stuqss.css");
+        if (File.open(QIODevice::ReadOnly)) {
+            this->setStyleSheet(File.readAll());
+            File.close();
+        }
+    }
+    QWidget::keyPressEvent(event);
+}
+
+void c_HIPNUC_CH10X::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    if (m_Initialized) return;
+    m_Initialized = true;
+    QTimer::singleShot(200, this, &c_HIPNUC_CH10X::Init);
+    QTimer::singleShot(300, this, &c_HIPNUC_CH10X::System_Scan);
+}
+
+########################################################################
+FILE: ./HIPNUC_CH10X_Remote.cpp
+########################################################################
+
+﻿#include "HIPNUC_CH10X_Remote.h"
+#include <QtMath>
+#include <QDateTime>
+#include <cmath>
+
+c_HIPNUC_CH10X_Remote::c_HIPNUC_CH10X_Remote(QObject *parent) : c_Object(parent), m_serialPort(nullptr) {}
+c_HIPNUC_CH10X_Remote::~c_HIPNUC_CH10X_Remote() { Disconnect(); }
+
+void c_HIPNUC_CH10X_Remote::Init() {
+    emit Status("CH10X 惯导后台线程已启动");
+    if (!m_serialPort) {
+        m_serialPort = new QSerialPort(this);
+        QObject::connect(m_serialPort, &QSerialPort::readyRead, this, &c_HIPNUC_CH10X_Remote::onReadyRead);
+        QObject::connect(m_serialPort, &QSerialPort::errorOccurred, this, [this](QSerialPort::SerialPortError error) {
+            if (error == QSerialPort::ResourceError) { emit Status("⚠️ 串口拔出"); Disconnect(); }
+        });
+    }
+    m_vel_state.setZero();
+    m_P = Eigen::Matrix2d::Identity() * 10.0; 
+    QTimer::singleShot(10, this, &c_HIPNUC_CH10X_Remote::Connect);
+}
+
+void c_HIPNUC_CH10X_Remote::Connect() {
+    auto& config = c_Variable::getInstance().g_HIPNUC_CH10X;
+    if (config.connected) return;
+    if (m_serialPort->isOpen()) m_serialPort->close();
+    m_serialPort->setPortName(config.port_name);
+    m_serialPort->setBaudRate(config.baud_rate);
+    m_serialPort->setDataBits(QSerialPort::Data8);
+    m_serialPort->setParity(QSerialPort::NoParity);
+    m_serialPort->setStopBits(QSerialPort::OneStop);
+    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+    if (m_serialPort->open(QIODevice::ReadWrite)) {
+        config.connected = true; m_buffer.clear();
+        emit Status(QString("✅ 串口打开成功: %1 @ %2").arg(config.port_name).arg(config.baud_rate));
+    } else {
+        config.connected = false;
+        emit Status(QString("❌ 串口打开失败: %1").arg(m_serialPort->errorString()));
+    }
+}
+
+void c_HIPNUC_CH10X_Remote::Disconnect() {
+    if (m_serialPort && m_serialPort->isOpen()) m_serialPort->close();
+    c_Variable::getInstance().g_HIPNUC_CH10X.connected = false;
+}
+
+void c_HIPNUC_CH10X_Remote::crc16_update(uint16_t *currentCrc, const uint8_t *src, uint32_t lengthInBytes) {
+    uint32_t crc = *currentCrc;
+    for (uint32_t j = 0; j < lengthInBytes; ++j) {
+        uint32_t byte = src[j]; crc ^= byte << 8;
+        for (int i = 0; i < 8; ++i) { uint32_t temp = crc << 1; if (crc & 0x8000) temp ^= 0x1021; crc = temp; }
+    }
+    *currentCrc = crc;
+}
+
+void c_HIPNUC_CH10X_Remote::onReadyRead() {
+    m_buffer.append(m_serialPort->readAll());
+    if (m_buffer.size() > 8192) { m_buffer.clear(); return; }
+    while (m_buffer.size() >= 6) {
+        int headerIdx = m_buffer.indexOf("\x5A\xA5");
+        if (headerIdx < 0) { if (m_buffer.endsWith('\x5A')) m_buffer = m_buffer.right(1); else m_buffer.clear(); break; }
+        if (headerIdx > 0) m_buffer.remove(0, headerIdx);
+        if (m_buffer.size() < 6) break;
+        uint16_t payloadLen = (uint8_t)m_buffer.at(2) | ((uint8_t)m_buffer.at(3) << 8);
+        int totalLen = 6 + payloadLen;
+        if (m_buffer.size() < totalLen) break;
+        uint16_t recvCrc = (uint8_t)m_buffer.at(4) | ((uint8_t)m_buffer.at(5) << 8);
+        uint16_t calcCrc = 0;
+        crc16_update(&calcCrc, reinterpret_cast<const uint8_t*>(m_buffer.constData()), 4);
+        crc16_update(&calcCrc, reinterpret_cast<const uint8_t*>(m_buffer.constData()) + 6, payloadLen);
+        if (calcCrc == recvCrc) {
+            const uint8_t* frameData = reinterpret_cast<const uint8_t*>(m_buffer.constData()) + 6;
+            int subPos = 0;
+            while (subPos < payloadLen) {
+                uint8_t tag = frameData[subPos];
+                if (tag == 0x91 && subPos + 76 <= payloadLen) { parseFrame(frameData + subPos, 76); subPos += 76; }
+                else break;
+            }
+            m_buffer.remove(0, totalLen);
+        } else { m_buffer.remove(0, 2); }
+    }
+}
+
+bool c_HIPNUC_CH10X_Remote::parseFrame(const uint8_t* data, int size) {
+    if (size < 76) return false;
+    s_CH10X_DataPayload payload;
+    std::memcpy(&payload, data, sizeof(s_CH10X_DataPayload));
+    auto& g_imu = c_Variable::getInstance().g_HIPNUC_CH10X;
+    g_imu.timestamp = payload.timestamp;
+    for(int i = 0; i < 3; ++i) {
+        g_imu.acc[i] = payload.acc[i]; g_imu.gyro[i] = payload.gyro[i];
+        g_imu.mag[i] = payload.mag[i]; g_imu.euler[i] = payload.euler[i];
+    }
+    for(int i = 0; i < 4; ++i) g_imu.quat[i] = payload.quat[i];
+    g_imu.last_update_time = QDateTime::currentMSecsSinceEpoch();
+    g_imu.fps_count++;
+    Update_IMU_Odom(payload);
+    return true;
+}
+
+void c_HIPNUC_CH10X_Remote::Set_High_Performance_Mode() {
+    if (!m_serialPort || !m_serialPort->isOpen()) return;
+    auto safeWrite = [this](int delayMs, const char* cmd, const QString& msg) {
+        QTimer::singleShot(delayMs, this, [this, cmd, msg]() {
+            if (m_serialPort && m_serialPort->isOpen()) { m_serialPort->write(cmd); emit Status(msg); }
+        });
+    };
+    safeWrite(0, "AT+EOUT=0\r\n", "📤 AT+EOUT=0");
+    safeWrite(500, "AT+MODE=0\r\n", "📤 AT+MODE=0 (6轴)");
+    safeWrite(1000, "AT+ODR=200\r\n", "📤 AT+ODR=200");
+    safeWrite(1500, "AT+BAUD=921600\r\n", "📤 AT+BAUD=921600");
+    safeWrite(2000, "AT+RST\r\n", "📤 AT+RST");
+}
+
+double c_HIPNUC_CH10X_Remote::computeVariance(const std::deque<double>& window) {
+    if (window.size() < 2) return 0.0;
+    double sum = 0.0, sq_sum = 0.0;
+    for (double v : window) { sum += v; sq_sum += v * v; }
+    double mean = sum / window.size();
+    return (sq_sum / window.size()) - (mean * mean);
+}
+
+double c_HIPNUC_CH10X_Remote::wrapToPi(double angle) {
+    while (angle > M_PI) angle -= 2.0 * M_PI;
+    while (angle < -M_PI) angle += 2.0 * M_PI;
+    return angle;
+}
+
+// ============================================================================
+// 🌟 核心：2D 惯导里程计解算 (简化 KF + 坐标系转换 + 严格 SI 单位)
+// ============================================================================
+void c_HIPNUC_CH10X_Remote::Update_IMU_Odom(const s_CH10X_DataPayload& data) {
+    // 1. 时间差计算 (单位: 秒)
+    double current_time_s = data.timestamp / 1000.0;
+    if (m_last_time_s == 0.0) {
+        m_last_time_s = current_time_s;
+        return;
+    }
+    double dt = current_time_s - m_last_time_s;
+    if (dt <= 0.0 || dt > 0.1) { m_last_time_s = current_time_s; return; }
+    if (dt > 0.05) dt = 0.05; // 限制最大 dt 防止丢帧导致发散
+    m_last_time_s = current_time_s;
+
+    // 2. 四元数归一化与加速度旋转 (Body RFU -> ENU)
+    double qw = data.quat[0], qx = data.quat[1], qy = data.quat[2], qz = data.quat[3];
+    double norm = sqrt(qw*qw + qx*qx + qy*qy + qz*qz);
+    if (norm < 1e-6) return;
+    qw /= norm; qx /= norm; qy /= norm; qz /= norm;
+
+    const double G_TO_MSS = 9.80665;
+    double acc_bx = data.acc[0] * G_TO_MSS; // 单位: m/s^2
+    double acc_by = data.acc[1] * G_TO_MSS;
+    double acc_bz = data.acc[2] * G_TO_MSS;
+
+    // 仅计算 ENU 系下的 X(东), Y(北) 轴加速度 (Z轴重力不影响 X/Y)
+    double ax_n = (1 - 2*(qy*qy + qz*qz))*acc_bx + 2*(qx*qy - qw*qz)*acc_by + 2*(qx*qz + qw*qy)*acc_bz;
+    double ay_n = 2*(qx*qy + qw*qz)*acc_bx + (1 - 2*(qx*qx + qz*qz))*acc_by + 2*(qy*qz - qw*qx)*acc_bz;
+
+    // 3. 一阶低通滤波 (抑制高频振动，单位: m/s^2)
+    m_filtered_acc_n[0] = m_alpha_acc * ax_n + (1.0 - m_alpha_acc) * m_filtered_acc_n[0];
+    m_filtered_acc_n[1] = m_alpha_acc * ay_n + (1.0 - m_alpha_acc) * m_filtered_acc_n[1];
+
+    // 4. 滑动窗口更新 (用于静止检测)
+    m_acc_window[0].push_back(m_filtered_acc_n[0]); m_acc_window[1].push_back(m_filtered_acc_n[1]);
+    const double DEG_TO_RAD = M_PI / 180.0;
+    m_gyro_window[0].push_back(data.gyro[0] * DEG_TO_RAD); // 单位: rad/s
+    m_gyro_window[1].push_back(data.gyro[1] * DEG_TO_RAD); 
+    m_gyro_window[2].push_back(data.gyro[2] * DEG_TO_RAD);
+    
+    if ((int)m_acc_window[0].size() > WINDOW_SIZE) {
+        m_acc_window[0].pop_front(); m_acc_window[1].pop_front();
+        m_gyro_window[0].pop_front(); m_gyro_window[1].pop_front(); m_gyro_window[2].pop_front();
+    }
+
+    // 5. 鲁棒静止检测 (ZUPT) - 引入速度阈值打破“匀速=静止”的物理盲区
+    double acc_var = computeVariance(m_acc_window[0]) + computeVariance(m_acc_window[1]); // (m/s^2)^2
+    double gyro_var = computeVariance(m_gyro_window[0]) + computeVariance(m_gyro_window[1]) + computeVariance(m_gyro_window[2]); // (rad/s)^2
+    double acc_mag = sqrt(m_filtered_acc_n[0]*m_filtered_acc_n[0] + m_filtered_acc_n[1]*m_filtered_acc_n[1]); // m/s^2
+    
+    double vel_mag = sqrt(m_vel_state(0)*m_vel_state(0) + m_vel_state(1)*m_vel_state(1)); // m/s
+    bool is_moving = (vel_mag > 0.05); // 速度 > 0.05 m/s 强制认为在运动
+    
+    // 综合判定：不运动 且 加速度/角速度噪声极小
+    m_is_static = (!is_moving && acc_var < m_acc_var_thresh && gyro_var < m_gyro_var_thresh && acc_mag < m_acc_static_thresh);
+
+    // ======================================================================
+    // 6. 简化卡尔曼滤波 (状态: 2维速度, 观测: 加速度积分 / 零速)
+    // ======================================================================
+    Eigen::Matrix2d I = Eigen::Matrix2d::Identity();
+    
+    // [预测步] 状态保持 + 自适应阻尼衰减
+    // 阻尼系数根据加速度幅值自适应：加速时阻尼趋近0，匀速/静止时阻尼增大
+    double adaptive_damping = m_base_damping * std::exp(-acc_mag / 1.0); // exp参数无量纲化
+    double lambda = 1.0 - adaptive_damping * dt;
+    
+    Eigen::Vector2d vel_pred;
+    vel_pred << lambda * m_vel_state(0), lambda * m_vel_state(1);
+    
+    // 过程噪声 Q (单位: (m/s)^2) -> 加速度方差 * dt^2
+    Eigen::Matrix2d Q = Eigen::Matrix2d::Identity() * (m_Q_process * dt * dt);
+    Eigen::Matrix2d P_pred = m_P + Q;
+
+    // [更新步] 根据静止状态选择观测模型
+    Eigen::Vector2d z;
+    double R_obs;
+    
+    if (m_is_static) {
+        // 观测 1：零速修正 (ZUPT)
+        z << 0.0, 0.0;
+        R_obs = m_R_zupt; // 极小，强力拉回 0
+    } else {
+        // 观测 2：加速度积分作为观测量 (运动学预测)
+        z << m_vel_state(0) + m_filtered_acc_n[0] * dt,
+             m_vel_state(1) + m_filtered_acc_n[1] * dt;
+        R_obs = m_R_acc; 
+    }
+
+    // 卡尔曼增益 K = P_pred * (P_pred + R)^-1 (因为观测矩阵 H = I)
+    Eigen::Matrix2d S = P_pred + Eigen::Matrix2d::Identity() * R_obs;
+    Eigen::Matrix2d K = P_pred * S.inverse();
+
+    // 状态更新 (单位: m/s)
+    m_vel_state = vel_pred + K * (z - vel_pred);
+    // 协方差更新 (单位: (m/s)^2)
+    m_P = (I - K) * P_pred;
+
+    // 7. 位置积分 (使用 KF 滤波后的速度)
+    // 静止时 m_vel_state 被 KF 强力拉回 0，位置自然被“钉住”，无需额外写死逻辑
+    m_pos_enu[0] += m_vel_state(0) * dt; // 单位: m
+    m_pos_enu[1] += m_vel_state(1) * dt; // 单位: m
+
+    // ======================================================================
+    // 8. 坐标系转换：ENU (东,北,天) -> 地图系 (X右, Y下)
+    // ======================================================================
+    double map_x = m_pos_enu[0];         // 单位: m
+    double map_y = -m_pos_enu[1];        // 北向转南向(下)，单位: m
+    double map_vx = m_vel_state(0);      // 单位: m/s
+    double map_vy = -m_vel_state(1);     // 单位: m/s
+    
+    // 航向角转换：ENU 的 Yaw(0指北) -> 地图系的 Yaw(0指右)
+    // 公式：yaw_map = yaw_enu - 90度 (pi/2)
+    double yaw_enu = data.euler[2] * DEG_TO_RAD;
+    double map_yaw = wrapToPi(yaw_enu - M_PI / 2.0); // 单位: rad
+
+    // 9. 降采样发布 (10Hz)
+    if (++m_send_counter >= m_downsample_rate) {
+        m_send_counter = 0;
+        auto& g_odom = c_Variable::getInstance().g_IMU_Odom;
+        
+        // 写入转换后的地图系坐标
+        g_odom.x = map_x;       // 米 (m)
+        g_odom.y = map_y;       // 米 (m)
+        g_odom.vx = map_vx;     // 米/秒 (m/s)
+        g_odom.vy = map_vy;     // 米/秒 (m/s)
+        g_odom.yaw = map_yaw;   // 弧度 (rad)
+        g_odom.timestamp = data.timestamp;
+        g_odom.is_static = m_is_static;
+
+        QString odom_str = QString("IMU_ODOM&%1&%2&%3&%4&%5&%6&%7")
+            .arg(map_x, 0, 'f', 3).arg(map_y, 0, 'f', 3)
+            .arg(map_vx, 0, 'f', 3).arg(map_vy, 0, 'f', 3)
+            .arg(map_yaw, 0, 'f', 4).arg(data.timestamp).arg(m_is_static ? 1 : 0);
+            
+        c_Variable::getInstance().writeMessage(1, odom_str);
+    }
+}
+
+########################################################################
+FILE: ./main.cpp
+########################################################################
+
+#include <QApplication>
+#include "HIPNUC_CH10X.h"
+
+int main(int argc, char *argv[]) {
+    QApplication a(argc, argv);
+    c_HIPNUC_CH10X w(a.arguments());
+    return a.exec();
+}
+
+########################################################################
+FILE: ./Variable.cpp
+########################################################################
+
+﻿#include "Variable.h"
+
+
+c_Object::c_Object(QObject* parent) : QObject(parent)
+{
+
+}
+c_Object::~c_Object()
+{
+   
+}
+bool c_Object::msleep(const int mSec)
+{
+    QEventLoop loop;
+    QTimer::singleShot(mSec, &loop, &QEventLoop::quit);
+    loop.exec();
+    return true;
+}
+bool c_Object::QtPing(const QString ip)
+{
+    QProcess cmd;
+    QStringList arguments;
+    
+    // 1. 参数配置
+    // -c 1: 只发 1 个包
+    // -W 2: 超时 2 秒 (防止网络不通时挂起太久)
+    // -s 1: 包大小 (保持你原有的设置)
+    arguments << "-c" << "1" << "-W" << "2" << "-s" << "1" << ip;
+
+    // 2. 启动进程 (直接传参，不调用 shell)
+    cmd.start("ping", arguments);
+
+    // 3. 等待结束 
+    // 总超时 = Ping 超时 * 次数 + 缓冲。这里设为 3000ms 足够覆盖 -W 2
+    if (!cmd.waitForFinished(3000)) {
+        cmd.kill(); // 如果超时，强制杀死进程
+        emit Status(ip + " Ping 超时");
+        return false;
+    }
+
+    // 4. 获取结果 (使用 exitCode 判断，比解析字符串更可靠)
+    int exitCode = cmd.exitCode();
+    // 可选：打印日志调试
+
+    if (exitCode == 0) {
+        emit Status(ip + " Ping 通");
+        return true;
+    } else {
+        emit Status(ip + " Ping 不通");
+        return false;
+    }
+}
+QString c_Object::TCP_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "连接被对等方拒绝（或超时）";
+	case 1:return "远程主机关闭了连接。请注意，客户端套接字（即此套接字）将在发送远程关闭通知后关闭";
+	case 2:return "找不到主机地址";
+	case 3:return "套接字操作失败，因为应用程序缺少所需的权限";
+	case 4:return "本地系统资源不足（例如，套接字过多）";
+	case 5:return "套接字操作超时";
+	case 6:return "数据报大于操作系统的限制（可低至8192字节）";
+	case 7:return "网络发生错误（例如，网络电缆意外插拔）";
+	case 8:return "为QAbstractSocket:：bind（）指定的地址已在使用中，并被设置为独占";
+	case 9:return "为QAbstractSocket:：bind（）指定的地址不属于主机";
+	case 10:return "本地操作系统不支持请求的套接字操作（例如，缺少IPv6支持）";
+	case 11:return "仅由QAbstractSocketEngine使用，上次尝试的操作尚未完成（仍在后台进行）";
+	case 12:return "套接字正在使用代理，代理需要身份验证";
+	case 13:return "SSL/TLS握手失败，因此连接已关闭（仅在QSslSocket中使用）";
+	case 14:return "无法联系代理服务器，因为与该服务器的连接被拒绝";
+	case 15:return "与代理服务器的连接意外关闭（在与最终对等方建立连接之前）";
+	case 16:return "与代理服务器的连接超时，或者代理服务器在身份验证阶段停止响应。";
+	case 17:return "找不到使用setProxy（）设置的代理地址（或应用程序代理）";
+	case 18:return "与代理服务器的连接协商失败，因为无法理解来自代理服务器的响应";
+	case 19:return "当套接字处于不允许的状态时，尝试了一个操作";
+	case 20:return "正在使用的SSL库报告了一个内部错误。这可能是由于库的安装错误或配置错误造成的";
+	case 21:return "提供了无效数据（证书、密钥、密码等），其使用导致SSL库中出现错误";
+	case 22:return "发生临时错误（例如，操作将被阻塞，套接字为非阻塞）";
+	case 23:return "套接字未连接";
+	case 24:return "套接字正在执行主机名查找";
+	case 25:return "套接字已开始建立连接";
+	case 26:return "建立了一个连接";
+	case 27:return "套接字绑定到一个地址和端口";
+	case 28:return "套接字即将关闭（数据可能仍在等待写入）";
+	case 29:return "套接字监听状态（仅供内部使用）";
+	case -1:return "发生了一个无法识别的错误";
+	default:return "无状态";
+	}
+}
+QString c_Object::Modbus_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "已连接";
+	case 1:return "读取操作期间发生错误";
+	case 2:return "写入操作期间发生错误";
+	case 3:return "尝试打开后端时出错";
+	case 4:return "尝试设置配置参数时出错";
+	case 5:return "I/O期间发生超时。I/O操作未在给定的时间范围内完成";
+	case 6:return "发生Modbus特定协议错误";
+	case 7:return "由于设备断开连接，回复被中止";
+	case 8:return "发生未知错误";
+	case 9:return "设备已断开连接";
+	case 10:return "正在连接设备";
+	case 11:return "设备正在关闭";
+	default:return "无状态";
+	}
+}
+QString c_Object::CanOpen(int State)
+{
+	switch (State) {
+	case 0x0000:return "正常";
+	case 0x0001:return "DCBUS 过压";
+	case 0x0002:return "DCBUS 欠压";
+	case 0x0004:return "电机过流";
+	case 0x0008:return "编码器故障";
+	case 0x0010:return "控制电源欠压";
+	case 0x0020:return "驱动过热";
+	case 0x0040:return "电机过热";
+	case 0x0080:return "电机过载报警";
+	case 0x0100:return "霍尔信号异常";
+	case 0x0200:return "编码器短线故障";
+	case 0x0400:return "电机过速";
+	case 0x0800:return "指令超差错误";
+	case 0x1000:return "存储参数校验错误";
+	case 0x2000:return "功率模块过流（硬件）";
+	case 0x4000:return "电机制动过载错误";
+	case 0x8001:return "电机自学习错误";
+	case 0x8002:return "电流检测基准错误";
+	case 0x8004:return "电机缺相报警";
+	case 0x8005:return "通讯超时";
+	default:return "未知错误";
+	}
+}
+QString c_Object::Hikvision_Status(DWORD state)
+{
+    switch (state){
+    case EXCEPTION_EXCHANGE:return "用户交互时异常";
+    case EXCEPTION_AUDIOEXCHANGE:return "语音对讲异常";
+    case EXCEPTION_ALARM:return "报警异常";
+    case EXCEPTION_PREVIEW:return "网络预览异常";
+    case EXCEPTION_SERIAL:return "透明通道异常";
+    case EXCEPTION_RECONNECT:return "预览时重连";
+    case EXCEPTION_ALARMRECONNECT:return "报警时重连";
+    case EXCEPTION_SERIALRECONNECT:return "透明通道重连";
+    case SERIAL_RECONNECTSUCCESS:return "透明通道重连成功";
+    case EXCEPTION_PLAYBACK:return "回放异常";
+    case EXCEPTION_DISKFMT:return "硬盘格式化";
+    case EXCEPTION_PASSIVEDECODE:return "被动解码异常";
+    case EXCEPTION_EMAILTEST:return "邮件测试异常";
+    case EXCEPTION_BACKUP:return "备份异常";
+    case PREVIEW_RECONNECTSUCCESS:return "预览时重连成功";
+    case ALARM_RECONNECTSUCCESS:return "报警时重连成功";
+    case RESUME_EXCHANGE:return "用户交互恢复";
+    case NETWORK_FLOWTEST_EXCEPTION:return "网络流量检测异常";
+    case EXCEPTION_PICPREVIEWRECONNECT:return "图片预览重连";
+    case PICPREVIEW_RECONNECTSUCCESS:return "图片预览重连成功";
+    case EXCEPTION_PICPREVIEW:return "图片预览异常";
+    case EXCEPTION_MAX_ALARM_INFO:return "报警信息缓存已达上限";
+    case EXCEPTION_LOST_ALARM:return "报警丢失";
+    case EXCEPTION_PASSIVETRANSRECONNECT:return "被动转码重连";
+    case PASSIVETRANS_RECONNECTSUCCESS:return "被动转码重连成功";
+    case EXCEPTION_PASSIVETRANS:return "被动转码异常";
+    case SUCCESS_PUSHDEVLOGON:return "推模式设备注册成功";
+    case EXCEPTION_RELOGIN:return "用户重登陆";
+    case RELOGIN_SUCCESS:return "用户重登陆成功";
+    case EXCEPTION_PASSIVEDECODE_RECONNNECT:return "被动解码重连";
+    case EXCEPTION_CLUSTER_CS_ARMFAILED:return "集群报警异常";
+    case EXCEPTION_RELOGIN_FAILED:return "重登陆失败，停止重登陆";
+    case EXCEPTION_PREVIEW_RECONNECT_CLOSED:return "关闭预览重连功能";
+    case EXCEPTION_ALARM_RECONNECT_CLOSED:return "关闭报警重连功能";
+    case EXCEPTION_SERIAL_RECONNECT_CLOSED:return "关闭透明通道重连功能";
+    case EXCEPTION_PIC_RECONNECT_CLOSED:return "关闭回显重连功能";
+    case EXCEPTION_PASSIVE_DECODE_RECONNECT_CLOSED:return "关闭被动解码重连功能";
+    case EXCEPTION_PASSIVE_TRANS_RECONNECT_CLOSED:return "关闭被动转码重连功能 ";
+    case EXCEPTION_VIDEO_DOWNLOAD:return "录像下载异常";
+    default:return "未知异常";
+    }
+}
+
+void c_Object::BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits)
+{
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = second16Bits;
+	unionConverter.Word.low16Bits = first16Bits;
+	// 返回浮点数
+	floatValue = unionConverter.floatValue;
+}
+void c_Object::FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits)
+{
+	// 使用联合来存储浮点数和其对应的32位整数表示
+	dataConverter unionConverter;
+	unionConverter.floatValue = floatValue;
+	// 提取两个16位值的位信息
+	second16Bits = unionConverter.Word.high16Bits;
+	first16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits) {
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.DWord = intValue;
+	// 提取两个16位值的位信息
+	high16Bits = unionConverter.Word.high16Bits;
+	low16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits)
+{
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = high16Bits;
+	unionConverter.Word.low16Bits = low16Bits;
+	intValue = unionConverter.DWord;
+}
+
+
+QMutex c_Variable::g_mutex;
+QScopedPointer<c_Variable> c_Variable::g_instance;
+
+QJsonObject     c_Variable::g_Communicate_DB;
+s_HIPNUC_CH10X_DB c_Variable::g_HIPNUC_CH10X;
+s_IMU_Odom c_Variable::g_IMU_Odom;
+
+c_Variable::c_Variable(QObject * parent) : c_Object(parent)
+{
+	
+}
+
+c_Variable::~c_Variable()
+{
+	
+}
+
+c_Variable& c_Variable::getInstance()
+{
+	if (g_instance.isNull()) {
+		QMutexLocker locker(&g_mutex);
+		if (g_instance.isNull()) {
+			g_instance.reset(new c_Variable());
+		}
+	}
+	return *g_instance.data();
+}
+
+void c_Variable::writeMessage(int style, QString message)
+{
+    msleep(10);
+	if (style == 1)
+    {
+        QTextStream stream(stdout);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stdout);
+    }
+    if (style == 2)
+    {
+        QTextStream stream(stderr);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stderr);
+    }
+}
+
+==================== QDesigner FILES (.ui) ====================
+
+########################################################################
+FILE: ./HIPNUC_CH10X.ui
+########################################################################
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HIPNUC_CH10X</class>
+ <widget class="QWidget" name="HIPNUC_CH10X">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1432</width>
+    <height>674</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CH10X IMU Control</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QGroupBox" name="groupBox_Connection">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>连接配置</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_Conn">
+      <item>
+       <widget class="QLabel" name="label_Port">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>串口:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="Device_Port">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>/dev/ttyUSB0</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_Baud">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>波特率:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="Baud_Rate">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>115200</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>921600</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>460800</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="Refresh_Ports">
+        <property name="text">
+         <string>刷新</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="c_Fr_Light" name="CH10X_Connected" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="CH10X_Connect">
+        <property name="text">
+         <string>连接惯导</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="CH10X_Disconnect">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>断开惯导</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="groupBox_Status">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>运行状态</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_Status">
+      <item>
+       <widget class="QLabel" name="label_Heartbeat">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>数据心跳:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="c_Fr_Light" name="CH10X_Heartbeat" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_FPS">
+        <property name="text">
+         <string>帧率 (Hz):</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="FPS_Display">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="Set_High_Performance_Mode">
+        <property name="text">
+         <string>高性能</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_GyroY_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>静止状态：</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="c_Fr_Light" name="IMU_Odom_static" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QGroupBox" name="groupBox_Euler">
+         <property name="title">
+          <string>姿态角 (Euler / °)</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_Euler">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_Roll">
+            <property name="text">
+             <string>Roll:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_Yaw">
+            <property name="text">
+             <string>Yaw:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="Euler_Roll">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_Pitch">
+            <property name="text">
+             <string>Pitch:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="Euler_Pitch">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="Euler_Yaw">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_Acc">
+         <property name="title">
+          <string>加速度 (Acc / m/s²)</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_Acc">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_AccX">
+            <property name="text">
+             <string>X:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="Acc_X">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_AccY">
+            <property name="text">
+             <string>Y:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="Acc_Y">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_AccZ">
+            <property name="text">
+             <string>Z:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="Acc_Z">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_GyroQuat">
+       <property name="title">
+        <string>角速度 (°/s) &amp; 四元数</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_GyroQuat">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_GyroX">
+          <property name="text">
+           <string>Gyro X:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="Gyro_X">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_GyroY">
+          <property name="text">
+           <string>Gyro Y:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="Gyro_Y">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_GyroZ">
+          <property name="text">
+           <string>Gyro Z:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="Gyro_Z">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_QuatW">
+          <property name="text">
+           <string>Quat W:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="Quat_W">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_QuatX">
+          <property name="text">
+           <string>Quat X:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="Quat_X">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_QuatY">
+          <property name="text">
+           <string>Quat Y:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="Quat_Y">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_QuatZ">
+          <property name="text">
+           <string>Quat Z:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="Quat_Z">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_GyroQuat_2">
+       <property name="title">
+        <string>惯导里程计</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_GyroQuat_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_GyroX_2">
+          <property name="text">
+           <string> X:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_GyroZ_2">
+          <property name="text">
+           <string>vx:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="IMU_Odom_vx">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="IMU_Odom_x">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_QuatW_2">
+          <property name="text">
+           <string>vy:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_GyroY_2">
+          <property name="text">
+           <string> Y:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_QuatX_2">
+          <property name="text">
+           <string>tamp:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="IMU_Odom_y">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="IMU_Odom_vy">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="IMU_Odom_tamp">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>c_Fr_Light</class>
+   <extends>QWidget</extends>
+   <header>Fr_Light.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
+
+==================== Cmake FILES (.txt) ====================
+
+########################################################################
+FILE: ./CMakeLists.txt
+########################################################################
+
+cmake_minimum_required(VERSION 3.16)
+project(HIPNUC_CH10X_Manage VERSION 1.0.0 LANGUAGES C CXX CUDA)
+
+# ============================================================================
+# 策略与平台检测
+# ============================================================================
+if(POLICY CMP0144)
+    cmake_policy(SET CMP0144 OLD)
+endif()
+
+# 检测ARM64平台
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(ARM64 TRUE)
+    message(STATUS "✅ Detected ARM64 Linux platform (Jetson Thor)")
+endif()
+
+# ============================================================================
+# 构建配置
+# ============================================================================
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES 120 CACHE STRING "CUDA Architectures" FORCE)
+endif()
+
+if(DEFINED ENV{CUDA_HOME})
+    set(CUDA_HOME $ENV{CUDA_HOME})
+    set(CMAKE_CUDA_COMPILER ${CUDA_HOME}/bin/nvcc)
+endif()
+
+if(DEFINED ENV{OpenCV_DIR})
+    set(OpenCV_DIR $ENV{OpenCV_DIR})
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PCL_NO_MPI ON)
+
+# ============================================================================
+# 查找依赖包（保留完整重型依赖链）
+# ============================================================================
+# ⚠️ 关键：在此处添加了 SerialPort 以支持 CH10X 惯导串口通信
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network PrintSupport Charts WebSockets Concurrent OpenGL SerialPort)
+find_package(OpenCV REQUIRED)
+find_package(Zivid REQUIRED COMPONENTS Core Visualization)
+find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization filters kdtree search sample_consensus)
+find_package(VTK 9.1 REQUIRED COMPONENTS CommonCore CommonDataModel FiltersCore RenderingCore RenderingOpenGL2 GUISupportQt)
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# ============================================================================
+# librealsense2 配置（完善版，保持与其他模块一致）
+# ============================================================================
+find_package(realsense2 QUIET)
+if(realsense2_FOUND)
+    message(STATUS "✅ librealsense2 found via find_package: ${realsense2_VERSION}")
+    set(REALSENSE2_FOUND TRUE)
+    set(REALSENSE2_INCLUDE_DIRS ${realsense2_INCLUDE_DIRS})
+    set(REALSENSE2_LIBRARIES realsense2::realsense2)
+else()
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(REALSENSE2 QUIET realsense2)
+        if(REALSENSE2_FOUND)
+            message(STATUS "✅ librealsense2 found via pkg-config: ${REALSENSE2_VERSION}")
+            if(ARM64 AND NOT REALSENSE2_INCLUDE_DIRS)
+                set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            endif()
+        else()
+            message(WARNING "⚠️  librealsense2 not found (optional feature disabled)")
+        endif()
+    else()
+        message(WARNING "⚠️  pkg-config not found, cannot search for librealsense2")
+    endif()
+endif()
+
+if(REALSENSE2_FOUND AND ARM64)
+    if(NOT EXISTS "${REALSENSE2_INCLUDE_DIRS}/librealsense2/rs.hpp")
+        if(EXISTS "/usr/include/librealsense2/rs.hpp")
+            set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            message(STATUS "🔧 Fixed librealsense2 include path: ${REALSENSE2_INCLUDE_DIRS}")
+        endif()
+    endif()
+endif()
+
+# ============================================================================
+# 海康SDK路径配置（保持与您现有项目完全一致）
+# ============================================================================
+set(HIKVISION_SDK_ROOT "/opt/hikvision_sdk_arm64" CACHE PATH "Path to Hikvision SDK for ARM64")
+set(HIKVISION_INC_PATH "${HIKVISION_SDK_ROOT}/incCn")
+set(HIKVISION_LIB_PATH "${HIKVISION_SDK_ROOT}/MakeAll")
+set(HIKVISION_COMP_PATH "${HIKVISION_SDK_ROOT}/MakeAll/HCNetSDKCom")
+
+if(NOT EXISTS "${HIKVISION_INC_PATH}")
+    message(FATAL_ERROR "❌ Hikvision SDK include directory not found at ${HIKVISION_INC_PATH}")
+endif()
+if(NOT EXISTS "${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+    message(FATAL_ERROR "❌ Hikvision SDK core library not found at ${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+endif()
+
+# ============================================================================
+# 包含目录（严格顺序 + 重型库修复）
+# ============================================================================
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+    ${HIKVISION_INC_PATH}
+    ${PCL_INCLUDE_DIRS}
+    ${VTK_INCLUDE_DIRS}
+    ${ZIVID_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${REALSENSE2_INCLUDE_DIRS}
+)
+
+# ============================================================================
+# 源文件与头文件 (专为 CH10X 模块定制)
+# ============================================================================
+set(SOURCES
+    main.cpp
+    Variable.cpp
+    Fr_Light.cpp
+    HIPNUC_CH10X.cpp
+    HIPNUC_CH10X_Remote.cpp
+    HIPNUC_CH10X.ui
+)
+
+set(HEADERS
+    Variable.h
+    Fr_Light.h
+    HIPNUC_CH10X.h
+    HIPNUC_CH10X_Remote.h
+)
+
+# ============================================================================
+# 创建可执行文件
+# ============================================================================
+add_executable(hipnuc_ch10x_manage ${SOURCES} ${HEADERS})
+
+# ============================================================================
+# 链接库（保留完整重型依赖 + 核心 SerialPort）
+# ============================================================================
+target_link_libraries(hipnuc_ch10x_manage PRIVATE
+    # Qt5 (包含 SerialPort)
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport
+    Qt5::Charts Qt5::WebSockets Qt5::Concurrent Qt5::OpenGL Qt5::SerialPort
+    
+    # Zivid
+    Zivid::Core Zivid::Visualization
+    
+    # OpenCV
+    ${OpenCV_LIBS}
+    
+    # PCL + VTK
+    ${PCL_LIBRARIES}
+    ${VTK_LIBRARIES}
+    
+    # Boost
+    ${Boost_LIBRARIES}
+    
+    # librealsense2
+    ${REALSENSE2_LIBRARIES}
+    
+    # ========================================================================
+    # 海康SDK（严格按文档顺序，保持与您现有项目一致）
+    # ========================================================================
+    ${HIKVISION_LIB_PATH}/libhcnetsdk.so
+    ${HIKVISION_LIB_PATH}/libHCCore.so
+    ${HIKVISION_LIB_PATH}/libhpr.so
+    ${HIKVISION_LIB_PATH}/libPlayCtrl.so
+    ${HIKVISION_LIB_PATH}/libSuperRender.so
+    ${HIKVISION_LIB_PATH}/libAudioRender.so
+    ${HIKVISION_COMP_PATH}/libHCCoreDevCfg.so
+    ${HIKVISION_COMP_PATH}/libHCPreview.so
+    ${HIKVISION_COMP_PATH}/libHCPlayBack.so
+    ${HIKVISION_COMP_PATH}/libHCVoiceTalk.so
+    ${HIKVISION_COMP_PATH}/libHCAlarm.so
+    ${HIKVISION_COMP_PATH}/libHCDisplay.so
+    ${HIKVISION_COMP_PATH}/libHCIndustry.so
+    ${HIKVISION_COMP_PATH}/libHCGeneralCfgMgr.so
+    ${HIKVISION_COMP_PATH}/libStreamTransClient.so
+    ${HIKVISION_COMP_PATH}/libSystemTransform.so
+    ${HIKVISION_COMP_PATH}/libanalyzedata.so
+    ${HIKVISION_COMP_PATH}/libAudioIntercom.so
+    ${HIKVISION_COMP_PATH}/libiconv.so.2
+)
+
+# ============================================================================
+# RPATH与编译优化
+# ============================================================================
+set_target_properties(hipnuc_ch10x_manage PROPERTIES
+    BUILD_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    INSTALL_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    BUILD_RPATH_USE_ORIGIN ON
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_options(hipnuc_ch10x_manage PRIVATE
+    -O3 -mcpu=native
+    -Wall -Wextra
+    -Wno-unused-parameter -Wno-unused-variable -Wno-deprecated-declarations
+)
+
+# ============================================================================
+# 资源文件复制
+# ============================================================================
+add_custom_command(TARGET hipnuc_ch10x_manage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_CURRENT_SOURCE_DIR}/Communicate_DB.json
+    ${CMAKE_CURRENT_SOURCE_DIR}/stuqss.css
+    $<TARGET_FILE_DIR:hipnuc_ch10x_manage>/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/Images
+    $<TARGET_FILE_DIR:hipnuc_ch10x_manage>/Images
+    COMMENT "Copying resources to build directory"
+)
+
+# ============================================================================
+# 构建信息输出
+# ============================================================================
+message(STATUS "========================================")
+message(STATUS "✅ HIPNUC CH10X Module Configuration Summary")
+message(STATUS "========================================")
+message(STATUS "Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}")
+message(STATUS "OpenCV: ${OpenCV_VERSION}")
+message(STATUS "PCL: ${PCL_VERSION}")
+message(STATUS "VTK: ${VTK_VERSION}")
+message(STATUS "Zivid SDK: ${ZIVID_VERSION}")
+message(STATUS "librealsense2: ${REALSENSE2_VERSION} (${REALSENSE2_FOUND})")
+message(STATUS "Hikvision SDK: ${HIKVISION_SDK_ROOT}")
+message(STATUS "ARM64 Platform: ${ARM64}")
+message(STATUS "✅ Qt5 SerialPort: Enabled for CH10X IMU")
+message(STATUS "========================================")
+
+########################################################################
+FILE: ./directory_tree.txt
+########################################################################
+
+.
+├── CMakeLists.txt
+├── Communicate_DB.json
+├── directory_tree.txt
+├── export_code.sh
+├── Fr_Light.cpp
+├── Fr_Light.h
+├── HIPNUC_CH10X.cpp
+├── HIPNUC_CH10X.h
+├── HIPNUC_CH10X_Remote.cpp
+├── HIPNUC_CH10X_Remote.h
+├── HIPNUC_CH10X.ui
+├── Images
+│   ├── icon.ico
+│   └── Logo.jpg
+├── main.cpp
+├── resource.qrc
+├── stuqss.css
+├── Variable.cpp
+└── Variable.h
+
+2 directories, 18 files
+

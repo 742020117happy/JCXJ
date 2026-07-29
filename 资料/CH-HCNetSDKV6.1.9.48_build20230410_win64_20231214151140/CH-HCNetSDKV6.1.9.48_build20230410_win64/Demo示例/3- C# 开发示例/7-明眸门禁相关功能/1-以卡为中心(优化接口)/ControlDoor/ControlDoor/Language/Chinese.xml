@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ControlDoor Language="Chinese">
+    <Form>
+        <Name>ControlDoor</Name>
+        <Controls>
+          <Control name="btnLogin" text="登录"/>
+          <Control name="label1" text="远程控门"/>
+          <Control name="btnOpen" text="开门"/>
+          <Control name="btnClose" text="关门"/>
+          <Control name="btnStayOpen" text="常开"/>
+          <Control name="btnStayClose" text="常关"/>
+          <Control name="label10" text="打开门一段时间."/>
+          <Control name="label2" text="关闭门一段时间."/>
+          <Control name="label3" text="门保持关闭状态."/>
+          <Control name="label4" text="门保持开启状态."/>
+        </Controls>
+    </Form>
+    <Form>
+        <Name>AddDevice</Name>
+        <Controls>
+          <Control name="label1" text="登录设备"/>
+          <Control name="label2" text="IP地址："/>
+          <Control name="label4" text="用户名："/>
+          <Control name="label3" text="端口号："/>
+          <Control name="label5" text="密码："/>
+          <Control name="btnAdd" text="登录"/>
+          <Control name="btnCancel" text="取消"/>
+        </Controls>
+    </Form>
+</ControlDoor>

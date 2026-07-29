@@ -1,0 +1,8 @@
+{
+    "E1R_DIFOP_Port": 7788,
+    "E1R_IP": "192.168.3.30",
+    "E1R_MSOP_Port": 6699,
+    "Local_DIFOP_Port": 7701,
+    "Local_Ip": "192.168.3.35",
+    "Local_MSOP_Port": 6601
+}

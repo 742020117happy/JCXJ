@@ -1,0 +1,493 @@
+{
+    "information": {
+        "schemaUrl": "",
+        "schemaVersion": "23.0",
+        "fileVersion": "0.1",
+        "release": {
+            "title": "GXF Runtime 5.1.0",
+            "productDisplayName": "GXF Runtime",
+            "releaseRevision": 0,
+            "showInMainList": true,
+            "supportedHardware": {
+                "seriesIds": [
+                    "JETSON_AGX_THOR_TARGETS"
+                ]
+            },
+            "minSDKMVer": "2.4.0",
+            "serverType": [
+                "DEVZONE"
+            ],
+            "pidGroupId": "",
+            "devzoneProgramId": [
+                "874688"
+            ],
+            "IntHWSupport": false,
+            "hostOperatingSystemsSupportFor": {
+                "hostGroups": [
+                    "ubuntu24.04"
+                ],
+                "targetGroups": [
+                    "ubuntu22.04",
+                    "ubuntu24.04",
+                    "windows10",
+                    "windows11"
+                ]
+            },
+            "releaseNotes": {
+                "releaseNotesTooltip": "<div><span class=\"tooltip-title\">What's new in GXF Runtime 5.1.0:</span><ul><li></li></ul></div>",
+                "releaseNotesURL": "",
+                "releaseNotesDownload": false
+            },
+            "releaseMessage": "GXF Runtime and Graph Composer Installers, with the Reference Graphs - GXF reference graphs based on deepstream sdk's sample applications, and V4l2 Dependency - Dependencies for multimedia extensions.\n*Host components only supports in Ubuntu 22.04.",
+            "SDKsRelations": [
+                {
+                    "default": "off",
+                    "parent": {
+                        "title": "JetPack 7.0",
+                        "releaseRevision": 1,
+                        "showInMainList": true,
+                        "productCategory": "Jetson",
+                        "targetOS": "Linux",
+                        "releaseVersion": "7.0",
+                        "releaseEdition": ""
+                    },
+                    "depends": [],
+                    "conflicts": []
+                }
+            ],
+            "architectures": [
+                "x86_64",
+                "x86_64-wsl"
+            ],
+            "isAdditionalSDK": true,
+            "productCategory": "GXF",
+            "targetOS": "Linux",
+            "releaseVersion": "5.1.0",
+            "releaseEdition": "",
+            "installedOn": [
+                "target",
+                "host"
+            ],
+            "description": "GXF Runtime and Graph Composer Installers, with the Reference Graphs - GXF reference graphs based on deepstream sdk's sample applications, and V4l2 Dependency - Dependencies for multimedia extensions.\n*Host components only supports in Ubuntu 22.04.",
+            "canInstallStandAlone": false,
+            "id": "NV_JETPACK_ADDITIONAL_SDK_GFX",
+            "hasTargetComponents": true,
+            "hardwareConfiguration": [
+                "host",
+                "target"
+            ]
+        },
+        "targetAccessInfo": {
+            "user": "",
+            "password": "",
+            "host": "192.168.55.1",
+            "port": "22"
+        }
+    },
+    "compDirectory": "https://developer.nvidia.com/assets/embedded/secure/tools/files/jetpack-sdks/gxf-runtime-5.1.0/GXF_510_b9/",
+    "groups": [
+        "NV_GXF_HOST_GROUP",
+        {
+            "name": "GXF",
+            "groupType": "host",
+            "installedOn": "host",
+            "isVisible": true,
+            "description": "GXF Runtime and Graph Composer Installers, with the Reference Graphs - GXF reference graphs based on deepstream sdk's sample applications, and V4l2 Dependency - Dependencies for multimedia extensions.",
+            "selected": true,
+            "selectable": true,
+            "displayed": true,
+            "isVirtual": false,
+            "id": "NV_GXF_HOST_GROUP",
+            "versions": [
+                {
+                    "version": "5.1.0",
+                    "components": [
+                        {
+                            "id": "NV_GXF_RUNTIME_HOST_COMP",
+                            "version": "5.1.0"
+                        },
+                        {
+                            "id": "NV_GRAPH_COMPOSER_HOST_COMP",
+                            "version": "5.1.0"
+                        },
+                        {
+                            "id": "NV_REFERENCE_GRAPH_HOST_COMP",
+                            "version": "8.0"
+                        },
+                        {
+                            "id": "NV_V4l2_DEPENDENCY_HOST_COMP",
+                            "version": "8.0"
+                        }
+                    ]
+                }
+            ]
+        },
+        "NV_GXF_SBSA_TARGET_GROUP",
+        {
+            "name": "GXF",
+            "groupType": "target",
+            "installedOn": "target",
+            "description": "GXF Runtime.",
+            "selected": true,
+            "selectable": true,
+            "id": "NV_GXF_SBSA_TARGET_GROUP",
+            "versions": [
+                {
+                    "version": "5.1.0",
+                    "components": [
+                        {
+                            "id": "NV_GXF_RUNTIME_SBSA_TARGET_POST_INSTALL_COMP",
+                            "version": "5.1.0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "components": {
+        "NV_GXF_RUNTIME_HOST_COMP": {
+            "name": "GXF Runtime",
+            "isVisible": true,
+            "platforms": [
+                {
+                    "architectures": [
+                        "x86_64",
+                        "x86_64-wsl"
+                    ],
+                    "operatingSystems": [
+                        "ubuntu24.04"
+                    ],
+                    "supportedHardware": {
+                        "seriesIds": [
+                            "JETSON_AGX_THOR_TARGETS"
+                        ]
+                    },
+                    "installSizeMB": 544.17,
+                    "prerequisites": [
+                        {
+                            "prerequisiteID": "PREREQUISITE_APT_HOST"
+                        }
+                    ],
+                    "downloadFiles": [
+                        {
+                            "url": "./graph_composer-runtime-5.1.0_x86_64.deb",
+                            "fileName": "graph_composer-runtime-5.1.0_x86_64.deb",
+                            "size": 294896674,
+                            "checksum": "070259bde8e474a7724b0c67f4e9a150",
+                            "checksumType": "md5",
+                            "verifyChecksum": "yes",
+                            "packageInstallParameters": {
+                                "installEngineQueue": "default",
+                                "variables": [
+                                    {
+                                        "name": "ACCEPT_NVIDIA_SOFTWARE_DEVELOPMENT_KITS_EULA",
+                                        "value": "yes"
+                                    }
+                                ],
+                                "installType": "deb",
+                                "additionalParameters": {
+                                    "packagesInfo": [
+                                        {
+                                            "name": "graph-composer-runtime",
+                                            "version": "5.1.0"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "dependencies": [
+                {
+                    "type": "required",
+                    "id": "NV_CUDA_SBSA_HOST_COMP",
+                    "additionalSDKId": "BASE_SDK"
+                }
+            ],
+            "version": "5.1.0",
+            "selected": true,
+            "selectable": true,
+            "licenseIds": [
+                "NV_DEEPSTREAM_EMBEDDED_EULA"
+            ],
+            "id": "NV_GXF_RUNTIME_HOST_COMP",
+            "isDetectableInstall": true,
+            "isPartiallyDetectableInstall": false
+        },
+        "NV_GRAPH_COMPOSER_HOST_COMP": {
+            "name": "Graph Composer",
+            "isVisible": true,
+            "platforms": [
+                {
+                    "architectures": [
+                        "x86_64",
+                        "x86_64-wsl"
+                    ],
+                    "operatingSystems": [
+                        "ubuntu24.04"
+                    ],
+                    "supportedHardware": {
+                        "seriesIds": [
+                            "JETSON_AGX_THOR_TARGETS"
+                        ]
+                    },
+                    "installSizeMB": 844.32,
+                    "prerequisites": [
+                        {
+                            "prerequisiteID": "PREREQUISITE_APT_HOST"
+                        }
+                    ],
+                    "downloadFiles": [
+                        {
+                            "url": "./graph_composer-5.1.0_x86_64.deb",
+                            "fileName": "graph_composer-5.1.0_x86_64.deb",
+                            "size": 891586848,
+                            "checksum": "19946fe616a687a5adae46c46ade9325",
+                            "checksumType": "md5",
+                            "verifyChecksum": "yes",
+                            "packageInstallParameters": {
+                                "installEngineQueue": "default",
+                                "variables": [
+                                    {
+                                        "name": "ACCEPT_NVIDIA_SOFTWARE_DEVELOPMENT_KITS_EULA",
+                                        "value": "yes"
+                                    }
+                                ],
+                                "installType": "deb",
+                                "additionalParameters": {
+                                    "packagesInfo": [
+                                        {
+                                            "name": "graph-composer",
+                                            "version": "5.1.0"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "dependencies": [
+                {
+                    "type": "required",
+                    "id": "NV_GXF_RUNTIME_HOST_COMP"
+                }
+            ],
+            "version": "5.1.0",
+            "selected": true,
+            "selectable": true,
+            "licenseIds": [
+                "NV_DEEPSTREAM_EMBEDDED_EULA"
+            ],
+            "id": "NV_GRAPH_COMPOSER_HOST_COMP",
+            "isDetectableInstall": true,
+            "isPartiallyDetectableInstall": false
+        },
+        "NV_REFERENCE_GRAPH_HOST_COMP": {
+            "name": "Reference Graphs",
+            "isVisible": true,
+            "platforms": [
+                {
+                    "architectures": [
+                        "x86_64",
+                        "x86_64-wsl"
+                    ],
+                    "operatingSystems": [
+                        "ubuntu24.04"
+                    ],
+                    "supportedHardware": {
+                        "seriesIds": [
+                            "JETSON_AGX_THOR_TARGETS"
+                        ]
+                    },
+                    "installSizeMB": 0.8,
+                    "prerequisites": [
+                        {
+                            "prerequisiteID": "PREREQUISITE_APT_HOST"
+                        }
+                    ],
+                    "downloadFiles": [
+                        {
+                            "url": "./deepstream-reference-graphs-8.0.deb",
+                            "fileName": "deepstream-reference-graphs-8.0.deb",
+                            "size": 78294,
+                            "checksum": "a3c79b0ef65b0142a090bfb2fa023363",
+                            "checksumType": "md5",
+                            "verifyChecksum": "yes",
+                            "packageInstallParameters": {
+                                "installEngineQueue": "default",
+                                "installType": "deb",
+                                "additionalParameters": {
+                                    "packagesInfo": [
+                                        {
+                                            "name": "deepstream-reference-graphs-8.0",
+                                            "version": "8.0"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "dependencies": [
+                {
+                    "type": "required",
+                    "id": "NV_GXF_RUNTIME_HOST_COMP"
+                }
+            ],
+            "version": "8.0",
+            "selectable": true,
+            "licenseIds": [
+                "NV_DEEPSTREAM_EMBEDDED_EULA"
+            ],
+            "id": "NV_REFERENCE_GRAPH_HOST_COMP",
+            "isDetectableInstall": true,
+            "isPartiallyDetectableInstall": false
+        },
+        "NV_V4l2_DEPENDENCY_HOST_COMP": {
+            "name": "V4l2 Dependency",
+            "isVisible": true,
+            "platforms": [
+                {
+                    "architectures": [
+                        "x86_64",
+                        "x86_64-wsl"
+                    ],
+                    "operatingSystems": [
+                        "ubuntu24.04"
+                    ],
+                    "supportedHardware": {
+                        "seriesIds": [
+                            "JETSON_AGX_THOR_TARGETS"
+                        ]
+                    },
+                    "installSizeMB": 20.14,
+                    "prerequisites": [
+                        {
+                            "prerequisiteID": "PREREQUISITE_APT_HOST"
+                        }
+                    ],
+                    "downloadFiles": [
+                        {
+                            "url": "./nvv4l2_x86_ds-8.0.deb",
+                            "fileName": "nvv4l2_x86_ds-8.0.deb",
+                            "size": 10056620,
+                            "checksum": "54ecb9e52a85abd1f4e59fe8ec624c6a",
+                            "checksumType": "md5",
+                            "verifyChecksum": "yes",
+                            "packageInstallParameters": {
+                                "installEngineQueue": "default",
+                                "installType": "deb",
+                                "additionalParameters": {
+                                    "packagesInfo": [
+                                        {
+                                            "name": "nvv4l2",
+                                            "version": "8.1.0"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "dependencies": [
+                {
+                    "type": "required",
+                    "id": "NV_GXF_RUNTIME_HOST_COMP"
+                }
+            ],
+            "version": "8.0",
+            "selectable": true,
+            "licenseIds": [
+                "NV_DEEPSTREAM_EMBEDDED_EULA"
+            ],
+            "id": "NV_V4l2_DEPENDENCY_HOST_COMP",
+            "isDetectableInstall": true,
+            "isPartiallyDetectableInstall": false
+        },
+        "NV_GXF_RUNTIME_SBSA_TARGET_POST_INSTALL_COMP": {
+            "name": "GXF Runtime",
+            "isVisible": true,
+            "platforms": [
+                {
+                    "dependencies": [
+                        {
+                            "type": "required",
+                            "id": "NV_L4T_TENSORRT_SBSA_TARGET_POST_INSTALL_COMP",
+                            "additionalSDKId": "BASE_SDK"
+                        }
+                    ],
+                    "prerequisites": [
+                        {
+                            "prerequisiteID": "PREREQUISITE_DISK_SPACE_TARGET"
+                        },
+                        {
+                            "prerequisiteID": "PREREQUISITE_NETWORK_TARGET"
+                        },
+                        {
+                            "prerequisiteID": "PREREQUISITE_APT_TARGET"
+                        }
+                    ],
+                    "architectures": [
+                        "x86_64",
+                        "x86_64-wsl"
+                    ],
+                    "operatingSystems": [
+                        "ubuntu22.04",
+                        "ubuntu24.04",
+                        "windows10",
+                        "windows11"
+                    ],
+                    "supportedHardware": {
+                        "seriesIds": [
+                            "JETSON_AGX_THOR_TARGETS"
+                        ]
+                    },
+                    "installSizeMB": 458.5,
+                    "downloadFiles": [
+                        {
+                            "url": "./graph_composer-runtime-5.1.0_arm64.deb",
+                            "fileName": "graph_composer-runtime-5.1.0_arm64.deb",
+                            "size": 175265596,
+                            "checksum": "9c7eb5e9eae5ba1f96428d2db337ea8e",
+                            "checksumType": "md5",
+                            "verifyChecksum": "yes",
+                            "packageInstallParameters": {
+                                "installEngineQueue": "default",
+                                "installType": "target_deb",
+                                "additionalParameters": {
+                                    "packagesInfo": [
+                                        {
+                                            "name": "graph-composer-runtime",
+                                            "version": "5.1.0"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "version": "5.1.0",
+            "selected": true,
+            "selectable": true,
+            "licenseIds": [
+                "NV_DEEPSTREAM_EMBEDDED_EULA"
+            ],
+            "id": "NV_GXF_RUNTIME_SBSA_TARGET_POST_INSTALL_COMP",
+            "isDetectableInstall": true,
+            "isPartiallyDetectableInstall": false
+        }
+    },
+    "licenses": {
+        "NV_DEEPSTREAM_EMBEDDED_EULA": {
+            "name": "Software License Agreement for Nvidia Software Development Kits",
+            "url": "$compDirectory/EULA/NV_DEEPSTREAM_EMBEDDED_EULA.pdf",
+            "id": "NV_DEEPSTREAM_EMBEDDED_EULA"
+        }
+    },
+    "modals": []
+}

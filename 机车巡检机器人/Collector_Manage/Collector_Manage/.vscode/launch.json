@@ -1,0 +1,70 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug collector_manage (Release Build)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/collector_manage",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [
+                {
+                    "name": "CUDA_HOME",
+                    "value": "/usr/local/cuda-13.0"
+                },
+                {
+                    "name": "PATH",
+                    "value": "/usr/local/cuda-13.0/bin:/usr/lib/qt5/bin:${env:PATH}"
+                },
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/usr/local/cuda-13.0/lib64:/opt/hikvision_sdk_arm64/MakeAll:/opt/hikvision_sdk_arm64/MakeAll/HCNetSDKCom:${env:LD_LIBRARY_PATH}"
+                },
+                {
+                    "name": "OPENSSL_CONF",
+                    "value": "/opt/hikvision_sdk_arm64/openssl.cnf"
+                },
+                {
+                    "name": "QT_SELECT",
+                    "value": "5"
+                },
+                {
+                    "name": "QT_QPA_PLATFORM",
+                    "value": "xcb"
+                },
+                {
+                    "name": "QT_PLUGIN_PATH",
+                    "value": "/usr/lib/aarch64-linux-gnu/qt5/plugins"
+                },
+                {
+                    "name": "DISPLAY",
+                    "value": "${env:DISPLAY}"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set CUDA GDB initialization",
+                    "text": "set cuda memcheck on",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build Project (Release)",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "logging": {
+                "trace": false,
+                "traceResponse": false,
+                "engineLogging": false
+            },
+            "visualizerFile": "/home/nvidia/.config/Code/User/workspaceStorage/799ad245dedac61d82d695f3db0b2cca/tonka3000.qtvsctools/qt.natvis.xml"
+        }
+    ]
+}

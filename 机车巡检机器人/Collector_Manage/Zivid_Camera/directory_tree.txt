@@ -1,0 +1,24 @@
+.
+├── CMakeLists.txt
+├── Communicate_DB.json
+├── directory_tree.txt
+├── export_code.sh
+├── Fr_Light.cpp
+├── Fr_Light.h
+├── Images
+│   ├── icon.ico
+│   └── Logo.jpg
+├── main.cpp
+├── stuqss.css
+├── TCP_Client.cpp
+├── TCP_Client.h
+├── Variable.cpp
+├── Variable.h
+├── Zivid_Camera.cpp
+├── Zivid_Camera.h
+├── Zivid_Camera.qrc
+├── Zivid_Camera_Remote.cpp
+├── Zivid_Camera_Remote.h
+└── Zivid_Camera.ui
+
+2 directories, 20 files

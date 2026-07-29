@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration Language="Chinese">
+  <Form>
+    <Name>Configuration</Name>
+    <Controls>
+      <Control name="btnLogin" text="登录"/>
+      <Control name="btnRemoteCheck" text="远程校验"/>
+      <Control name="label1" text="门禁系统相关配置"/>
+      <Control name="BtnIsupConfig" text="网络中心参数配置"/>
+      <Control name="BtnWlanConfig" text="网络配置"/>
+      <Control name="BtnUploadConfig" text="上传中心参数配置"/>
+      <Control name="BtnDoorConfig" text="门参数配置"/>
+      <Control name="BtnTimeConfig" text="设备时间配置"/>
+      <Control name="BtnExit" text="退出"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>AddDevice</Name>
+    <Controls>
+      <Control name="label1" text="登录设备"/>
+      <Control name="label2" text="IP地址"/>
+      <Control name="label4" text="用户名"/>
+      <Control name="label3" text="端口号"/>
+      <Control name="label5" text="密码"/>
+      <Control name="btnAdd" text="登录"/>
+      <Control name="btnCancel" text="取消"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>RemoteCheck</Name>
+    <Controls>
+      <Control name="RemoteCheck" text="远程校验"/>
+      <Control name="label1" text="控制门使能:"/>
+      <Control name="label2" text="通道类型:"/>
+      <Control name="label3" text="通道ip:"/>
+      <Control name="btnGet" text="获取"/>
+      <Control name="btnSet" text="设置"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>IsupAddrConfigure</Name>
+    <Controls>
+      <Control name="IsupAddrConfigure" text="Isup地址配置"/>
+      <Control name="label1" text="中心组:"/>
+      <Control name="label2" text="地址类型:"/>
+      <Control name="label3" text="IP地址:"/>
+      <Control name="label4" text="端口:"/>
+      <Control name="label5" text="主域名:"/>
+      <Control name="label6" text="协议类型:"/>
+      <Control name="label7" text="Isup版本:"/>
+      <Control name="label8" text="Isup秘钥:"/>
+      <Control name="label9" text="账户:"/>
+      <Control name="btnGet" text="获取"/>
+      <Control name="btnSet" text="设置"/>
+    </Controls>
+  </Form>
+
+  <Form>
+    <Name>DoorConfig</Name>
+    <Controls>
+      <Control name="DoorConfig" text="门配置"/>
+      <Control name="label1" text="开门持续时间:"/>
+      <Control name="label2" text="门禁报警剩余时间:"/>
+      <Control name="label3" text="名字:"/>
+      <Control name="label4" text="门关联:"/>
+      <Control name="label5" text="退出类型:"/>
+      <Control name="label6" text="管理员密码:"/>
+      <Control name="btnUploadSet" text="设置"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>TimeConfig</Name>
+    <Controls>
+      <Control name="TimeConfig" text="时间配置"/>
+      <Control name="label1" text="设备日期:"/>
+      <Control name="label2" text="设备时间:"/>
+      <Control name="btnSet" text="设置"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>UploadModeConfig</Name>
+    <Controls>
+      <Control name="UploadModeConfig" text="上传中心配置"/>
+      <Control name="label3" text="中心组:"/>
+      <Control name="label4" text="主通道:"/>
+      <Control name="label5" text="子通道:"/>
+      <Control name="btnUploadSet" text="设置"/>
+    </Controls>
+  </Form>
+
+  <Form>
+    <Name>WlanConfig</Name>
+    <Controls>
+      <Control name="WlanConfig" text="网络配置"/>
+      <Control name="label1" text="DNS2地址:"/>
+      <Control name="label3" text="IP地址:"/>
+      <Control name="label4" text="子网掩码:"/>
+      <Control name="label5" text="默认网关:"/>
+      <Control name="label8" text="Mac地址:"/>
+      <Control name="label9" text="DNS1地址:"/>
+      <Control name="DHCPEnable" text="DHCP"/>
+      <Control name="DNSEnable" text="DNS"/>
+      <Control name="btnSave" text="保存"/>
+    </Controls>
+  </Form>
+</Configuration>

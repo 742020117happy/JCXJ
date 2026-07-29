@@ -1,0 +1,2000 @@
+========================================================================
+Project: Collector_Manage
+Export Time: Thu Jun 18 10:00:40 AM CST 2026
+Total Files: 9
+========================================================================
+
+==================== HEADER FILES (.h) ====================
+
+########################################################################
+FILE: ./Fr_Light.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_Fr_Light : public QWidget {
+	Q_OBJECT
+
+public:
+	enum State {
+		Default,
+		Error,
+		Working,
+		Null
+	};
+	explicit c_Fr_Light(QWidget * parent = nullptr);
+	virtual ~c_Fr_Light();
+
+	public slots:
+	void Set_Working();
+	void Set_Default();
+	void Set_Error();
+	void Set_Null();
+	void Set_State(const bool state);
+	void Set_Radius(int value);
+	bool Get_State();
+
+signals:
+	void Working_State(bool state);
+	void Default_State(bool state);
+	void Error_State(bool state);
+
+protected:
+	void paintEvent(QPaintEvent *);
+
+private:
+	int m_Radius = 50;
+	State m_State = Default;
+	QColor m_Default_Color;
+	QColor m_Error_Color;
+	QColor m_Working_Color;
+	QColor m_Null_Color;
+};
+
+
+########################################################################
+FILE: ./Hikvision.h
+########################################################################
+
+﻿#pragma once
+#include "Hikvision_Remote.h"
+#include "ui_Hikvision.h"
+
+class c_Hikvision : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit c_Hikvision(QStringList info, QWidget* parent = nullptr);
+	virtual ~c_Hikvision() override;
+
+
+protected:
+    void closeEvent(QCloseEvent* event) override;  
+    void keyPressEvent(QKeyEvent* event) override; 
+    void showEvent(QShowEvent* event) override;
+
+private slots:
+    void System_Scan();
+
+    void Camera_Init(); 
+    void Camera_DB();    
+    void Camera_Scan();  
+    void Camera_Delete();
+
+
+    void readMessage(QString cmd);
+   
+    void Write_Communicate_DB(QString key, int value);
+    void Write_Communicate_DB(QString key, QString value);
+    void Write_Communicate_DB(QString key, double value);
+
+private:
+    Ui_u_Hikvision ui;
+
+    bool m_Scan = false;  
+    bool m_Initialized = false;
+    QString m_DB_Path = "C:/ZividDebugLogs";    
+
+    c_Hikvision_Remote *m_Hikvision_Remote;
+    QThread *m_Hikvision_Remote_Thread;
+
+    QFile m_file;
+    QSocketNotifier *m_pNotifier;
+    char  m_arrRecv[128];
+};
+
+
+
+########################################################################
+FILE: ./Hikvision_Remote.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+
+class c_Hikvision_Remote : public c_Object
+{
+    Q_OBJECT
+
+public:
+    explicit c_Hikvision_Remote(QObject* parent = Q_NULLPTR);
+    virtual ~c_Hikvision_Remote();
+
+public slots:
+    void Connect();
+    void Disconnect();
+};
+
+
+
+
+########################################################################
+FILE: ./Variable.h
+########################################################################
+
+﻿#pragma once 
+
+#include <math.h>
+#include <time.h>
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstdio>
+#include <fcntl.h>
+#include <memory>
+
+#include <QApplication>
+#include <QByteArray>
+#include <QCloseEvent>
+#include <QColor>
+#include <QDateTime>
+#include <QDebug>
+#include <QDir>
+#include <QSize>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileDialog>
+#include <QHostAddress>
+#include <QImage>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeyEvent>
+#include <QMainWindow>
+#include <QMap>
+#include <QMessageBox>
+#include <QMetaType>
+#include <QMutex>
+#include <QObject>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPaintDevice> 
+#include <QPen>       
+#include <QProcess>
+#include <QRegularExpression>
+#include <QScopedPointer>
+#include <QSettings>
+#include <QSharedMemory>
+#include <QSocketNotifier>
+#include <QStandardPaths>
+#include <QStackedWidget>
+#include <QString>
+#include <QTextStream>
+#include <QDataStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QVariant>
+#include <QVector>
+#include <QWidget>
+#include <QSocketNotifier>
+
+#include <QAbstractSocket>
+#include <QNetworkAccessManager>
+#include <QNetworkInterface>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket> 
+#include <QUrlQuery>
+#include <QtNetwork>
+#include <QtWebSockets/qwebsocket.h>
+#include <QtWebSockets/qwebsocketserver.h>
+#include <QConicalGradient>
+#include <QPolarChart>
+#include <QScatterSeries>
+#include <QtCharts>
+
+#include <QtConcurrent/QtConcurrent>
+
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkRenderingOpenGL2);   
+VTK_MODULE_INIT(vtkInteractionStyle);  
+
+#include <vtkRenderer.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <QVTKOpenGLNativeWidget.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/common/common.h>
+#include <boost/thread/thread.hpp>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/crop_box.h>  
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/frustum_culling.h>
+#include <pcl/segmentation/sac_segmentation.h> 
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/common/common.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/search/kdtree.h>  
+#include <pcl/surface/convex_hull.h>
+
+#include <boost/thread/thread.hpp>
+
+#include "librealsense2/rs.hpp"
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <Zivid/Zivid.h>
+#include <Zivid/Camera.h>
+
+#include <HCNetSDK.h>
+#include <LinuxPlayM4.h>
+
+using namespace std;
+using namespace pcl;
+using namespace rs2;
+using namespace cv;
+using namespace Zivid;
+
+#if defined(_MSC_VER)
+    #define PACKED_STRUCT __pragma(pack(push, 1)) struct
+    #define PACKED_END __pragma(pack(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+    #if defined(__aarch64__) || defined(__arm64__)
+        #define PACKED_STRUCT struct __attribute__((packed, aligned(1)))
+        #define PACKED_END
+    #else
+        #define PACKED_STRUCT struct __attribute__((packed))
+        #define PACKED_END
+    #endif
+#else
+    #error "Unsupported compiler - Jetson Thor requires GCC/Clang"
+#endif
+
+PACKED_STRUCT s_Timestamp {
+    /* 0-5字节: 秒计数（6字节大端序） */
+    uint8_t seconds[6];
+    /* 6-9字节: 微秒计数（4字节大端序） */
+    uint8_t microseconds[4];
+}PACKED_END;
+// MSOP帧头结构体（32字节）
+PACKED_STRUCT s_MSOPHeader {
+    /* 0-3字节: 同步头（4字节，固定值 0x55AA5AA5） */
+    uint32_t sync;
+    /* 4-5字节: 包序列号（2字节） */
+    uint16_t pktCnt;
+    /* 6-7字节: 协议版本号（2字节） */
+    uint16_t ver;
+    /* 8字节: 回波模式（1字节） */
+    uint8_t returnMode;
+    /* 9字节: 时间同步模式（1字节） */
+    uint8_t timeMode;
+    /* 10-19字节: 时间戳 */
+    s_Timestamp timesTamp;
+    /* 20字节: 帧同步状态（1字节） */
+    uint8_t frameSync;
+    /* 21-29字节: 预留字段（9字节） */
+    uint8_t res0[9];
+    /* 30字节: 雷达类型标识（1字节） */
+    uint8_t lidarType;
+    /* 31字节: 芯片温度原始值（1字节） */
+    int8_t lidarTmp;
+}PACKED_END;
+// MSOP数据块结构体（12字节）
+PACKED_STRUCT s_DataBlock {
+    /* 0-1字节: 时间偏移量（2字节，无符号） */
+    uint16_t timeOffset;
+    /* 2-3字节: 径向距离（2字节，无符号） */
+    uint16_t radius;
+    /* 4-5字节: 单位方向向量X分量（2字节，有符号） */
+    int16_t dirVectorX;
+    /* 6-7字节: 单位方向向量Y分量（2字节，有符号） */
+    int16_t dirVectorY;
+    /* 8-9字节: 单位方向向量Z分量（2字节，有符号） */
+    int16_t dirVectorZ;
+    /* 10字节: 反射强度（1字节，无符号） */
+    uint8_t intensity;
+    /* 11字节: 点属性（1字节，使用联合体解析） */
+    uint8_t pointAttr;
+}PACKED_END;
+// MSOP帧尾结构体（16字节）
+PACKED_STRUCT s_MSOPTrailer {
+    /* 0-3字节: 预留字段（4字节） */
+    uint8_t res1[4];
+    /* 4-5字节: 数据长度（2字节，固定值 0x04B0 = 1200） */
+    uint16_t dataLength;
+    /* 6-7字节: 计数器（2字节） */
+    uint16_t counter;
+    /* 8-11字节: 数据ID（4字节，固定值 0x00000E5C） */
+    uint32_t dataId;
+    /* 12-15字节: CRC32校验码（4字节） */
+    uint32_t crc32;
+}PACKED_END;
+// MSOP完整MSOP包结构体（1200字节定长）
+PACKED_STRUCT s_MSOPPacket {
+    s_MSOPHeader header;
+    s_DataBlock blocks[96];
+    s_MSOPTrailer trailer;
+}PACKED_END;
+// DIFOP帧头结构体 (8字节) - 位于包偏移0~7字节
+PACKED_STRUCT s_DIFOPHeader {
+    /* [0-3] 主识别头 (4字节) */
+    uint32_t sync1;
+    /* [4-7] 次识别头 (4字节) */
+    uint32_t sync2;
+}PACKED_END;
+// 网络地址结构体 (辅助类型) - 用于IP/MAC地址封装
+PACKED_STRUCT s_IPv4Address {
+    uint8_t bytes[4];
+}PACKED_END;
+PACKED_STRUCT s_MACAddress {
+    uint8_t bytes[6];
+}PACKED_END;
+// 固件版本结构体 (3字节) - 位于包偏移16~18字节
+PACKED_STRUCT s_FirmwareVersion {
+    uint8_t major;           // 主版本号
+    uint8_t minor;           // 次版本号
+    uint8_t patch;           // 修订版本号
+}PACKED_END;
+// 完整DIFOP包结构体 (256字节定长) - 严格对应手册4.3.2节
+PACKED_STRUCT s_DIFOPPacket {
+    /* [0-7] DIFOP帧头 (8字节) */
+    s_DIFOPHeader header;
+    /* [8-15] 预留字段 (8字节) */
+    uint8_t res0[8];
+    /* [16-18] 固件版本号 (3字节) */
+    s_FirmwareVersion swVersion;
+    /* [19] 预留字段 (1字节) */
+    uint8_t res1;
+    /* [20-25] 设备序列号 (6字节) - ASCII编码 */
+    uint8_t sn[6];              // 例如: "E1R001"
+    /* [26-43] 预留字段 (18字节) */
+    uint8_t res2[18];
+    /* [44-47] 本地IP地址 (4字节) - 雷达本机IP */
+    s_IPv4Address localIp;
+    /* [48-51] 子网掩码 (4字节) */
+    s_IPv4Address netMask;
+    /* [52-57] MAC地址 (6字节) */
+    s_MACAddress macAddress;
+    /* [58-61] MSOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address msopRemoteIp;
+    /* [62-63] MSOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t msopLocalPort;
+    /* [64-65] MSOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t msopRemotePort;
+    /* [66-69] DIFOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address difopRemoteIp;
+    /* [70-71] DIFOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t difopLocalPort;
+    /* [72-73] DIFOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t difopRemotePort;
+    /* [74-98] 预留字段 (25字节) */
+    uint8_t res3[25];
+    /* [99] 帧率设置 (1字节) */
+    uint8_t frequencySetting; // 0x0A = 10Hz (E1R默认)
+    /* [100] 回波模式 (1字节) - 与MSOP协议一致 */
+    uint8_t returnMode;       // 0x04 = StrongestWave (默认)
+    /* [101] 时间同步模式 (1字节) */
+    uint8_t timeSyncMode;     // 0x00=Internal, 0x02=E2E L2, 0x03=gPTP
+    /* [102] 时间同步状态 (1字节) */
+    uint8_t timeSyncStatus;   // 0x00=failed, 0x01=success, 0x02=timeout
+    /* [103-112] 时间状态 (10字节) - 与MSOP Timestamp格式相同 */
+    s_Timestamp timeStatus;
+    /* [113] 物理层工作模式 (1字节) */
+    uint8_t phyMode;          // 0x00=auto, 0x01=master, 0x02=slave
+    /* [114-255] 预留字段 (142字节) */
+    uint8_t res4[142];
+}PACKED_END;
+
+//EIR雷达
+struct s_RoboSense_DB {
+    bool MSOP_connected = false;
+    bool DIFOP_connected = false;
+    bool device_Status = false;
+
+    QString device_name;
+
+    QString Local_Ip;
+    int Local_MSOP_Port;
+    int Local_DIFOP_Port;
+    QString E1R_IP;
+    int  E1R_MSOP_Port;
+    int E1R_DIFOP_Port;
+
+    int8_t lidarTmp;
+};
+//D555相机
+struct s_RealSense_DB {
+    bool device_connected = false; //相机连接状态
+    bool device_Status = false;
+    QString device_name;
+    QString serial; //相机序列号
+
+    QString Local_Ip;
+    int Local_Port;
+
+    QString Device_IP;
+    int  Device_Port;
+};
+//Zivid相机
+struct s_Zivid_Camera_DB {
+    bool camera_connected = false;    //相机连接状态
+    QString device_name;
+    QString camera_serial;    //相机序列号
+
+    QString server_ip;
+    quint16 server_port;
+
+    qint64 settingTime = 0;        //捕获耗时
+    qint64 captureTime = 0;        //捕获耗时
+    qint64 save2DTime = 0;        //捕获耗时
+    qint64 save3DTime = 0;        //捕获耗时
+  
+    QString image_name;            //基础路径
+    QString save_path;     //当前保存路径
+
+    QString system_status;         //系统状态
+    QDateTime last_operation_time; //最后操作时间
+};
+//服务
+struct s_Server_DB {
+    bool server_connected = false;    //连接状态
+    QString camera_num;  //相机编号
+    QString track;       // 股道号
+    QString date;        // 年月日
+    QString time;       // 时分
+    QString trainType;  // 车型车号
+    QString taskID;     // 任务编号
+    QString basePath;   // 保存路径
+};
+// 服务状态数据库结构
+struct s_Transmission_DB {
+	bool Tran = false;// 传输状态
+	bool Connected = false;// 连接状态
+	bool Start = false;// 开始状态
+	bool Finish = true;// 完成状态
+	bool Cancel = false;// 取消状态
+	bool Error = false;
+	QString device_name = "机车巡检机器人图像采集-上传软件-v1.0";  // 设备名称
+	QString Server_Ip = "192.168.0.1";// 服务器IP
+	int Server_Port = 8888;// 服务器端口
+    QString Client_Ip;
+	int Client_Port;
+	QString Save_Path;    
+    QStringList buffer;
+	QStringList Tran_buffer;
+	QStringList Retran_buffer;
+	QStringList Received_Buffer; 
+};
+// 监控相机
+struct s_Hikvision_DB {
+    bool Connected = false;
+    qint32 lRealPlayHandle = -1;
+    qint32 lUserID = -1;
+    qint32 lPort = -1;
+    qint32 num = 0;
+    long long FPS = 0;
+    HWND winId;
+    QString device_name;
+    QString Device_Ip = "192.168.11.20";
+    quint16 Device_port = 8000;
+    QString	name = "admin";
+    QString	key = "bjtds2024";
+    QString Local_Ip = "192.168.0.107";
+    quint16 Local_port = 36788;
+};
+
+//DIFOP解析联合体
+union s_DIFOPPacketUnion {
+    /* 原始字节数组 (256字节) - 用于接收UDP数据 */
+    uint8_t raw[256];
+    /* 结构化视图 - 与raw共享同一内存区域 */
+    s_DIFOPPacket data;
+};
+
+// MSOP数据解析联合体
+union s_MSOPPacketUnion {
+    /* 成员1: 原始字节数组（1200字节）- 用于接收网络数据 */
+    uint8_t raw[1200];
+    /* 成员2: 结构化视图 - 与raw共享同一块内存 */
+    s_MSOPPacket data;
+};
+
+
+class c_Object : public QObject
+{
+    Q_OBJECT
+public:
+    explicit c_Object(QObject* parent = Q_NULLPTR);
+    virtual ~c_Object();
+
+  	union dataConverter {
+		float floatValue;     // 浮点数
+		quint32 DWord;
+		struct {
+			quint16 low16Bits;
+			quint16 high16Bits;
+		}Word;
+	};
+
+    void BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits);
+	void FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits);
+	void IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits);
+	void BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits);
+
+    bool QtPing(const QString ip);
+    bool msleep(const int mSec);
+    QString TCP_Status(int State);
+    QString Modbus_Status(int State);
+    QString CanOpen(int State);
+    QString Hikvision_Status(DWORD state);
+
+signals:
+    void Status(QString state);
+
+};
+
+class c_Variable : public c_Object
+{
+	Q_OBJECT
+public:
+	static c_Variable& getInstance();
+	//成员变量
+	static QJsonObject     g_Communicate_DB ;
+	static s_Hikvision_DB  g_Hikvision_DB;
+
+    //Debug信息回调函数，只需要将str打印即可
+	static void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *pUser);
+	//输出事件回调函数，注意请不要在回调函数中进行耗时较长的操作
+	static void CALLBACK RealDataCallBack_V30(LONG lRealHandle, DWORD dwDataType, BYTE *pBuffer, DWORD dwBufSize, DWORD dwUser);
+	//数据解码回调函数，将YV_12格式的视频数据流转码为可供opencv处理的BGR类型的图片数据，并实时显示。
+    // PlayM4_SetDecCallBackEx(int nPort,void (CALLBACK* DecCBFun), char* pDest, int nDestSize);
+    static void CALLBACK DecCBFun(int nPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, void* nReserved1,int nReserved2); 
+
+    void writeMessage(int style, QString message);
+    
+private:
+	explicit c_Variable(QObject * parent = Q_NULLPTR);
+	virtual ~c_Variable();
+
+	// 禁止复制
+	c_Variable(const c_Variable &other) = delete;
+	c_Variable& operator=(const c_Variable &other) = delete;
+
+	static QMutex g_mutex;
+	static QScopedPointer<c_Variable> g_instance;
+	friend struct QScopedPointerDeleter<c_Variable>;
+};
+
+
+
+==================== SOURCE FILES (.cpp) ====================
+
+########################################################################
+FILE: ./Fr_Light.cpp
+########################################################################
+
+﻿#include "Fr_Light.h"
+
+c_Fr_Light::c_Fr_Light(QWidget * parent) :QWidget(parent)
+{
+	m_Working_Color = QColor("green");
+	m_Default_Color = QColor("red");
+	m_Error_Color = QColor("yellow");
+	m_Null_Color = QColor("gray");
+}
+
+c_Fr_Light::~c_Fr_Light()
+{
+	
+}
+
+void c_Fr_Light::Set_Working()
+{
+	if (m_State == Working) { return; }//如果状态未改变则立即退出
+	m_State = Working;
+	update();
+	emit Working_State(true);
+}
+bool c_Fr_Light::Get_State()
+{
+	if (m_State == Working) { return true; }
+	else { return false; }
+}
+void c_Fr_Light::Set_Default()
+{
+	if (m_State == Default) { return; }	  //如果状态未改变则立即退出
+	m_State = Default;
+	update();
+	emit Default_State(true);
+}
+void c_Fr_Light::Set_Error()
+{
+	if (m_State == Error) { return; }	   //如果状态未改变则立即退出
+	m_State = Error;
+	update();
+	emit Error_State(true);
+}
+void c_Fr_Light::Set_Null()
+{
+	if (m_State == Null){ return; }
+	m_State = Null;
+	update();
+}
+void c_Fr_Light::Set_State(const bool state)
+{
+	if (state) {
+		Set_Working();
+	}
+	else {
+		Set_Default();
+	}
+}
+void c_Fr_Light::Set_Radius(int value)
+{
+	m_Radius = value;
+	update();
+}
+void c_Fr_Light::paintEvent(QPaintEvent*) {
+	int side = qMin(width(), height());
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.translate(width() / 2, height() / 2);
+	painter.scale(side / 100.0, side / 100.0);
+	QColor color;
+	switch (m_State) {
+	case Default:
+		color = m_Default_Color;
+		break;
+	case Working:
+		color = m_Working_Color;
+		break;
+	case Error:
+		color = m_Error_Color;
+		break;
+	default:
+		color = m_Null_Color;
+		break;
+	}
+	QRadialGradient radial(0, 0, m_Radius, 0, 0);    //设置圆的原点和焦点在中心,半径50
+	radial.setSpread(QGradient::PadSpread);
+	radial.setColorAt(1, color);
+	painter.setPen(Qt::transparent);
+	painter.setBrush(radial);
+	painter.drawEllipse(-50, -50, 100, 100);
+}
+
+########################################################################
+FILE: ./Hikvision.cpp
+########################################################################
+
+﻿#include "Hikvision.h"
+
+c_Hikvision::c_Hikvision(QStringList info, QWidget *parent): QWidget(parent)
+{
+    ui.setupUi(this);
+    {
+    	QFile File;
+		File.setFileName(QDir::currentPath() + "/stuqss.css");
+		File.open(QIODevice::ReadOnly);
+
+		QString strQss = File.readAll();
+		this->setStyleSheet(strQss);
+
+		File.close();
+    }
+
+    if (!info.isEmpty() && info.size() > 1) {
+        c_Variable::getInstance().g_Hikvision_DB.device_name = info.at(1);
+
+        this->setWindowFlags(Qt::Widget);
+        this->setAttribute(Qt::WA_NativeWindow);  
+        this->setAttribute(Qt::WA_DontCreateNativeAncestors, false);
+
+        this->setWindowFlags(Qt::FramelessWindowHint);
+		this->setWindowTitle(c_Variable::getInstance().g_Hikvision_DB.device_name);
+        //打开文件
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/" + c_Variable::getInstance().g_Hikvision_DB.device_name + ".json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        //读取文件
+        QByteArray Data = File.readAll();
+        //转换JSON
+        QJsonParseError parseError;  // JSON解析错误
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);  // 解析JSON
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+    }
+	else{
+        //打开文件
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/Hikvision_Camera.json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        //读取文件
+        QByteArray Data = File.readAll();
+        //转换JSON
+        QJsonParseError parseError;  // JSON解析错误
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);  // 解析JSON
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+    }
+
+    m_file.open(stdin, QIODevice::ReadOnly | QIODevice::Text);
+    m_pNotifier = new QSocketNotifier(m_file.handle(), QSocketNotifier::Read, this);
+    QObject::connect(m_pNotifier, &QSocketNotifier::activated, this, [=](int iHandle){
+        if(m_file.handle() == iHandle){
+            int iRet = read(m_file.handle(), m_arrRecv, sizeof(m_arrRecv));
+            m_arrRecv[iRet] = 0;
+            c_Hikvision::readMessage(QString("%1").arg(m_arrRecv));
+        }
+    });
+
+    c_Variable::getInstance().writeMessage(1, QString("Run&%1").arg(this->winId()));
+
+    m_Scan = true;
+    this->show(); 
+}
+
+c_Hikvision::~c_Hikvision()
+{
+    
+}
+
+void c_Hikvision::readMessage(QString message)
+{
+    c_Variable::getInstance().writeMessage(2, message);
+    
+	if (message == "Connect") {
+        ui.Hikvision_Connect->clicked();
+    }
+    if (message == "Disconnect") {
+        ui.Hikvision_Disconnect->clicked();
+    }
+    if (message == "Close_Device") {this->close();}
+    if (message.split("&", Qt::SkipEmptyParts).isEmpty()) {return;}
+
+}
+
+void c_Hikvision::System_Scan()
+{
+      
+    c_Hikvision::Camera_Scan();  
+
+    m_Initialized = true;
+
+    QTimer::singleShot(100, this, [this]() {
+        if (m_Scan) System_Scan();
+    });
+}
+
+void c_Hikvision::Camera_Init()
+{
+    m_Hikvision_Remote = new c_Hikvision_Remote;
+    m_Hikvision_Remote_Thread = new QThread;
+    m_Hikvision_Remote->moveToThread(m_Hikvision_Remote_Thread);
+
+    QObject::connect(m_Hikvision_Remote_Thread, &QThread::started, m_Hikvision_Remote, &c_Hikvision_Remote::Connect);
+    QObject::connect(m_Hikvision_Remote_Thread, &QThread::finished, m_Hikvision_Remote, &c_Hikvision_Remote::deleteLater);
+
+    QObject::connect(ui.Hikvision_Connect, &QPushButton::clicked, m_Hikvision_Remote, &c_Hikvision_Remote::Connect);
+    QObject::connect(ui.Hikvision_Disconnect, &QPushButton::clicked, m_Hikvision_Remote, &c_Hikvision_Remote::Disconnect);
+
+    QObject::connect(m_Hikvision_Remote, &c_Hikvision_Remote::Status, this, [=](QString cmd) {
+        c_Variable::getInstance().writeMessage(2, cmd);
+    });
+    QObject::connect(&c_Variable::getInstance(), &c_Variable::Status, this, [=](QString cmd) {
+        c_Variable::getInstance().writeMessage(2, cmd);
+    });
+
+    c_Hikvision::Camera_DB();    
+    c_Hikvision::Camera_Scan(); 
+
+    m_Hikvision_Remote_Thread->start();
+
+}
+void c_Hikvision::Camera_DB()
+{
+    QObject::connect(ui.Device_Ip, &QLineEdit::textChanged, this, [=](QString ip){
+        c_Variable::getInstance().g_Hikvision_DB.Device_Ip = ip;
+        Write_Communicate_DB("Device_Ip", ip);
+    });
+    QObject::connect(ui.Device_port, &QLineEdit::textChanged, this, [=](QString port){
+        c_Variable::getInstance().g_Hikvision_DB.Device_port = static_cast<quint16>(port.toInt());
+        Write_Communicate_DB("Device_port", static_cast<quint16>(port.toInt()));
+    });
+    QObject::connect(ui.user_name, &QLineEdit::textChanged, this, [=](QString name){
+        c_Variable::getInstance().g_Hikvision_DB.name = name;
+        Write_Communicate_DB("user_name", name);
+
+    });
+    QObject::connect(ui.user_key, &QLineEdit::textChanged, this, [=](QString key){
+        c_Variable::getInstance().g_Hikvision_DB.key = key;
+         Write_Communicate_DB("user_key", key);
+
+    });
+
+    ui.Device_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("Device_Ip").toString());
+    ui.Device_port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Device_port").toInt()));
+    ui.user_name->setText(c_Variable::getInstance().g_Communicate_DB.value("user_name").toString());
+    ui.user_key->setText(c_Variable::getInstance().g_Communicate_DB.value("user_key").toString());
+}  
+void c_Hikvision::Camera_Scan()
+{
+    ui.Hikvision_Connect->setDisabled(c_Variable::getInstance().g_Hikvision_DB.Connected);
+    ui.Hikvision_Disconnect->setEnabled(c_Variable::getInstance().g_Hikvision_DB.Connected);
+    ui.Hikvision_lPort->setText(QString::number(c_Variable::getInstance().g_Hikvision_DB.lPort));
+    ui.Hikvision_lUserID->setText(QString::number(c_Variable::getInstance().g_Hikvision_DB.lUserID));
+    ui.Hikvision_Connected->Set_State(c_Variable::getInstance().g_Hikvision_DB.Connected);
+}
+void c_Hikvision::Camera_Delete()
+{
+    if (m_Hikvision_Remote_Thread->isRunning()) {
+        m_Hikvision_Remote_Thread->requestInterruption();
+        m_Hikvision_Remote_Thread->quit();
+        m_Hikvision_Remote_Thread->wait();
+    }
+}
+
+// 写入日志
+void c_Hikvision::Write_Communicate_DB(QString key, int value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_Hikvision::Write_Communicate_DB(QString key, QString value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+   
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_Hikvision::Write_Communicate_DB(QString key, double value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+// 窗口关闭事件
+void c_Hikvision::closeEvent(QCloseEvent* event) {
+    m_Scan = false;
+    m_Initialized = false;
+    // 释放资源
+    Camera_Delete();
+    c_Variable::getInstance().writeMessage(1, "Stop");
+    // 允许关闭
+    event->accept();
+}
+// 键盘事件 - F6加载样式表
+void c_Hikvision::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_F6) {
+        QFile File;
+        File.setFileName(QDir::currentPath() + "/stuqss.css");
+        File.open(QIODevice::ReadOnly);
+
+        QString strQss = File.readAll();
+        this->setStyleSheet(strQss);
+
+        File.close();
+    }
+
+    QWidget::keyPressEvent(event);
+}
+void c_Hikvision::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    if (m_Initialized) return;
+
+    c_Variable::getInstance().g_Hikvision_DB.winId = static_cast<HWND>(ui.Hikvision_Video->winId());  
+
+    QTimer::singleShot(200, this, &c_Hikvision::Camera_Init);
+    QTimer::singleShot(300, this, &c_Hikvision::System_Scan);
+}
+
+
+########################################################################
+FILE: ./Hikvision_Remote.cpp
+########################################################################
+
+﻿#include "Hikvision_Remote.h"
+
+/*************************************************************************************************************************************************
+**Function:构造函数
+*************************************************************************************************************************************************/
+c_Hikvision_Remote::c_Hikvision_Remote(QObject * parent) : c_Object(parent) {
+	
+}
+/*************************************************************************************************************************************************
+**Function:析构指针
+*************************************************************************************************************************************************/
+c_Hikvision_Remote::~c_Hikvision_Remote() {
+	//关闭预览
+    NET_DVR_StopRealPlay(c_Variable::getInstance().g_Hikvision_DB.lRealPlayHandle);
+	//注销用户
+    NET_DVR_Logout(c_Variable::getInstance().g_Hikvision_DB.lUserID);
+	//释放 SDK 资源
+	NET_DVR_Cleanup();
+}
+/*************************************************************************************************************************************************
+**Function:连接设备
+*************************************************************************************************************************************************/
+void c_Hikvision_Remote::Connect()
+{
+    if (c_Variable::getInstance().g_Hikvision_DB.Connected) {
+		return;
+	}
+    if(!QtPing(c_Variable::getInstance().g_Hikvision_DB.Device_Ip)){
+        c_Variable::getInstance().g_Hikvision_DB.Connected = false;
+        emit Status("监控相机未上电");
+        QTimer::singleShot(6000, this, &c_Hikvision_Remote::Connect);
+        return;
+    }
+	//注册设备登录参数，包括设备地址、登录用户、密码等
+    NET_DVR_DEVICEINFO_V30 struDeviceInfoV30;
+    NET_DVR_USER_LOGIN_INFO struLoginInfo;
+
+    // 初始化结构体
+    std::memset(&struLoginInfo, 0, sizeof(struLoginInfo));
+    struLoginInfo.bUseAsynLogin = 0; // 同步登录方式
+
+    // 安全地设置设备 IP 地址
+    QByteArray deviceIp = c_Variable::getInstance().g_Hikvision_DB.Device_Ip.toLatin1();
+    std::snprintf(struLoginInfo.sDeviceAddress, sizeof(struLoginInfo.sDeviceAddress), "%s", deviceIp.constData());
+
+    // 设置设备服务端口
+    struLoginInfo.wPort = c_Variable::getInstance().g_Hikvision_DB.Device_port;
+
+    // 安全地设置设备登录用户名
+    QByteArray userName = c_Variable::getInstance().g_Hikvision_DB.name.toLatin1();
+    std::snprintf(struLoginInfo.sUserName, sizeof(struLoginInfo.sUserName), "%s", userName.constData());
+
+    // 安全地设置设备登录密码
+    QByteArray password = c_Variable::getInstance().g_Hikvision_DB.key.toLatin1();
+    std::snprintf(struLoginInfo.sPassword, sizeof(struLoginInfo.sPassword), "%s", password.constData());
+    //初始化和线程绑定
+
+    if (!NET_DVR_Init()) {
+        emit Status("监控相机SDK 初始化失败！\n");
+        return;
+    }
+	//调试时使用，不需要可以不注册（可选）
+    NET_DVR_SetExceptionCallBack_V30(0, nullptr, c_Variable::getInstance().ExceptionCallBack, nullptr);
+	//设备信息, 输出参数
+    c_Variable::getInstance().g_Hikvision_DB.lUserID = NET_DVR_Login_V30(
+		struLoginInfo.sDeviceAddress,
+		struLoginInfo.wPort,
+		struLoginInfo.sUserName,
+		struLoginInfo.sPassword,
+		&struDeviceInfoV30);
+    if ( c_Variable::getInstance().g_Hikvision_DB.lUserID < 0) {
+        emit Status("监控相机地址:" + QString(struLoginInfo.sDeviceAddress));
+        emit Status("监控相机端口:"+ QString::number(struLoginInfo.wPort));
+        emit Status("登录用户名:"+ QString(struLoginInfo.sUserName));
+        emit Status("登录用密码:"+ QString(struLoginInfo.sPassword));
+        emit Status("监控相机：登陆错误代码:" + QString::number(NET_DVR_GetLastError()));
+        QTimer::singleShot(6000, this, &c_Hikvision_Remote::Connect);
+    }
+	else {
+		NET_DVR_CLIENTINFO ClientInfo;
+		ClientInfo.lChannel = 1; //Channel number 设备通道号
+        ClientInfo.hPlayWnd = 0;  //窗口为空，设备SDK不解码只取流
+		ClientInfo.lLinkMode = 0;    //Main Stream
+        ClientInfo.sMultiCastIP = nullptr;
+        c_Variable::getInstance().g_Hikvision_DB.lRealPlayHandle = NET_DVR_RealPlay_V30(c_Variable::getInstance().g_Hikvision_DB.lUserID, &ClientInfo, nullptr, nullptr, 0);
+        if (c_Variable::getInstance().g_Hikvision_DB.lRealPlayHandle < 0)
+		{
+            emit Status("监控相机：实时预览错误代码:" + QString::number(NET_DVR_GetLastError()));
+            NET_DVR_Logout(c_Variable::getInstance().g_Hikvision_DB.lUserID);
+			Disconnect();
+			return;
+		}
+		//回调解码
+        if (!NET_DVR_SetRealDataCallBack(c_Variable::getInstance().g_Hikvision_DB.lRealPlayHandle, c_Variable::getInstance().RealDataCallBack_V30, 0)) {
+            emit Status("监控相机：回调函数注册失败");
+			Disconnect();
+			return;
+		}
+		else {
+            c_Variable::getInstance().g_Hikvision_DB.Connected = true;
+            emit Status("监控相机：连接成功");
+		}
+	}
+}
+void c_Hikvision_Remote::Disconnect()
+{
+    NET_DVR_StopRealPlay(c_Variable::getInstance().g_Hikvision_DB.lRealPlayHandle);
+    NET_DVR_Logout(c_Variable::getInstance().g_Hikvision_DB.lUserID);
+	//释放 SDK 资源
+	NET_DVR_Cleanup();
+    c_Variable::getInstance().g_Hikvision_DB.lRealPlayHandle = -1;
+    c_Variable::getInstance().g_Hikvision_DB.lUserID = -1;
+    c_Variable::getInstance().g_Hikvision_DB.Connected = false;
+    emit Status("监控相机：断开连接成功");
+}
+
+
+
+########################################################################
+FILE: ./main.cpp
+########################################################################
+
+#include <QApplication>
+#include "Hikvision.h"
+
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    c_Hikvision w(a.arguments());
+    w.show();
+    return a.exec();
+}
+
+
+########################################################################
+FILE: ./Variable.cpp
+########################################################################
+
+﻿#include "Variable.h"
+
+
+c_Object::c_Object(QObject* parent) : QObject(parent)
+{
+
+}
+c_Object::~c_Object()
+{
+   
+}
+bool c_Object::msleep(const int mSec)
+{
+    QEventLoop loop;
+    QTimer::singleShot(mSec, &loop, &QEventLoop::quit);
+    loop.exec();
+    return true;
+}
+bool c_Object::QtPing(const QString ip)
+{
+    QProcess cmd;
+    QStringList arguments;
+    
+    // 1. 参数配置
+    // -c 1: 只发 1 个包
+    // -W 2: 超时 2 秒 (防止网络不通时挂起太久)
+    // -s 1: 包大小 (保持你原有的设置)
+    arguments << "-c" << "1" << "-W" << "2" << "-s" << "1" << ip;
+
+    // 2. 启动进程 (直接传参，不调用 shell)
+    cmd.start("ping", arguments);
+
+    // 3. 等待结束 
+    // 总超时 = Ping 超时 * 次数 + 缓冲。这里设为 3000ms 足够覆盖 -W 2
+    if (!cmd.waitForFinished(3000)) {
+        cmd.kill(); // 如果超时，强制杀死进程
+        emit Status(ip + " Ping 超时");
+        return false;
+    }
+
+    // 4. 获取结果 (使用 exitCode 判断，比解析字符串更可靠)
+    int exitCode = cmd.exitCode();
+    // 可选：打印日志调试
+
+    if (exitCode == 0) {
+        emit Status(ip + " Ping 通");
+        return true;
+    } else {
+        emit Status(ip + " Ping 不通");
+        return false;
+    }
+}
+QString c_Object::TCP_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "连接被对等方拒绝（或超时）";
+	case 1:return "远程主机关闭了连接。请注意，客户端套接字（即此套接字）将在发送远程关闭通知后关闭";
+	case 2:return "找不到主机地址";
+	case 3:return "套接字操作失败，因为应用程序缺少所需的权限";
+	case 4:return "本地系统资源不足（例如，套接字过多）";
+	case 5:return "套接字操作超时";
+	case 6:return "数据报大于操作系统的限制（可低至8192字节）";
+	case 7:return "网络发生错误（例如，网络电缆意外插拔）";
+	case 8:return "为QAbstractSocket:：bind（）指定的地址已在使用中，并被设置为独占";
+	case 9:return "为QAbstractSocket:：bind（）指定的地址不属于主机";
+	case 10:return "本地操作系统不支持请求的套接字操作（例如，缺少IPv6支持）";
+	case 11:return "仅由QAbstractSocketEngine使用，上次尝试的操作尚未完成（仍在后台进行）";
+	case 12:return "套接字正在使用代理，代理需要身份验证";
+	case 13:return "SSL/TLS握手失败，因此连接已关闭（仅在QSslSocket中使用）";
+	case 14:return "无法联系代理服务器，因为与该服务器的连接被拒绝";
+	case 15:return "与代理服务器的连接意外关闭（在与最终对等方建立连接之前）";
+	case 16:return "与代理服务器的连接超时，或者代理服务器在身份验证阶段停止响应。";
+	case 17:return "找不到使用setProxy（）设置的代理地址（或应用程序代理）";
+	case 18:return "与代理服务器的连接协商失败，因为无法理解来自代理服务器的响应";
+	case 19:return "当套接字处于不允许的状态时，尝试了一个操作";
+	case 20:return "正在使用的SSL库报告了一个内部错误。这可能是由于库的安装错误或配置错误造成的";
+	case 21:return "提供了无效数据（证书、密钥、密码等），其使用导致SSL库中出现错误";
+	case 22:return "发生临时错误（例如，操作将被阻塞，套接字为非阻塞）";
+	case 23:return "套接字未连接";
+	case 24:return "套接字正在执行主机名查找";
+	case 25:return "套接字已开始建立连接";
+	case 26:return "建立了一个连接";
+	case 27:return "套接字绑定到一个地址和端口";
+	case 28:return "套接字即将关闭（数据可能仍在等待写入）";
+	case 29:return "套接字监听状态（仅供内部使用）";
+	case -1:return "发生了一个无法识别的错误";
+	default:return "无状态";
+	}
+}
+QString c_Object::Modbus_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "已连接";
+	case 1:return "读取操作期间发生错误";
+	case 2:return "写入操作期间发生错误";
+	case 3:return "尝试打开后端时出错";
+	case 4:return "尝试设置配置参数时出错";
+	case 5:return "I/O期间发生超时。I/O操作未在给定的时间范围内完成";
+	case 6:return "发生Modbus特定协议错误";
+	case 7:return "由于设备断开连接，回复被中止";
+	case 8:return "发生未知错误";
+	case 9:return "设备已断开连接";
+	case 10:return "正在连接设备";
+	case 11:return "设备正在关闭";
+	default:return "无状态";
+	}
+}
+QString c_Object::CanOpen(int State)
+{
+	switch (State) {
+	case 0x0000:return "正常";
+	case 0x0001:return "DCBUS 过压";
+	case 0x0002:return "DCBUS 欠压";
+	case 0x0004:return "电机过流";
+	case 0x0008:return "编码器故障";
+	case 0x0010:return "控制电源欠压";
+	case 0x0020:return "驱动过热";
+	case 0x0040:return "电机过热";
+	case 0x0080:return "电机过载报警";
+	case 0x0100:return "霍尔信号异常";
+	case 0x0200:return "编码器短线故障";
+	case 0x0400:return "电机过速";
+	case 0x0800:return "指令超差错误";
+	case 0x1000:return "存储参数校验错误";
+	case 0x2000:return "功率模块过流（硬件）";
+	case 0x4000:return "电机制动过载错误";
+	case 0x8001:return "电机自学习错误";
+	case 0x8002:return "电流检测基准错误";
+	case 0x8004:return "电机缺相报警";
+	case 0x8005:return "通讯超时";
+	default:return "未知错误";
+	}
+}
+QString c_Object::Hikvision_Status(DWORD state)
+{
+    switch (state){
+    case EXCEPTION_EXCHANGE:return "用户交互时异常";
+    case EXCEPTION_AUDIOEXCHANGE:return "语音对讲异常";
+    case EXCEPTION_ALARM:return "报警异常";
+    case EXCEPTION_PREVIEW:return "网络预览异常";
+    case EXCEPTION_SERIAL:return "透明通道异常";
+    case EXCEPTION_RECONNECT:return "预览时重连";
+    case EXCEPTION_ALARMRECONNECT:return "报警时重连";
+    case EXCEPTION_SERIALRECONNECT:return "透明通道重连";
+    case SERIAL_RECONNECTSUCCESS:return "透明通道重连成功";
+    case EXCEPTION_PLAYBACK:return "回放异常";
+    case EXCEPTION_DISKFMT:return "硬盘格式化";
+    case EXCEPTION_PASSIVEDECODE:return "被动解码异常";
+    case EXCEPTION_EMAILTEST:return "邮件测试异常";
+    case EXCEPTION_BACKUP:return "备份异常";
+    case PREVIEW_RECONNECTSUCCESS:return "预览时重连成功";
+    case ALARM_RECONNECTSUCCESS:return "报警时重连成功";
+    case RESUME_EXCHANGE:return "用户交互恢复";
+    case NETWORK_FLOWTEST_EXCEPTION:return "网络流量检测异常";
+    case EXCEPTION_PICPREVIEWRECONNECT:return "图片预览重连";
+    case PICPREVIEW_RECONNECTSUCCESS:return "图片预览重连成功";
+    case EXCEPTION_PICPREVIEW:return "图片预览异常";
+    case EXCEPTION_MAX_ALARM_INFO:return "报警信息缓存已达上限";
+    case EXCEPTION_LOST_ALARM:return "报警丢失";
+    case EXCEPTION_PASSIVETRANSRECONNECT:return "被动转码重连";
+    case PASSIVETRANS_RECONNECTSUCCESS:return "被动转码重连成功";
+    case EXCEPTION_PASSIVETRANS:return "被动转码异常";
+    case SUCCESS_PUSHDEVLOGON:return "推模式设备注册成功";
+    case EXCEPTION_RELOGIN:return "用户重登陆";
+    case RELOGIN_SUCCESS:return "用户重登陆成功";
+    case EXCEPTION_PASSIVEDECODE_RECONNNECT:return "被动解码重连";
+    case EXCEPTION_CLUSTER_CS_ARMFAILED:return "集群报警异常";
+    case EXCEPTION_RELOGIN_FAILED:return "重登陆失败，停止重登陆";
+    case EXCEPTION_PREVIEW_RECONNECT_CLOSED:return "关闭预览重连功能";
+    case EXCEPTION_ALARM_RECONNECT_CLOSED:return "关闭报警重连功能";
+    case EXCEPTION_SERIAL_RECONNECT_CLOSED:return "关闭透明通道重连功能";
+    case EXCEPTION_PIC_RECONNECT_CLOSED:return "关闭回显重连功能";
+    case EXCEPTION_PASSIVE_DECODE_RECONNECT_CLOSED:return "关闭被动解码重连功能";
+    case EXCEPTION_PASSIVE_TRANS_RECONNECT_CLOSED:return "关闭被动转码重连功能 ";
+    case EXCEPTION_VIDEO_DOWNLOAD:return "录像下载异常";
+    default:return "未知异常";
+    }
+}
+
+void c_Object::BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits)
+{
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = second16Bits;
+	unionConverter.Word.low16Bits = first16Bits;
+	// 返回浮点数
+	floatValue = unionConverter.floatValue;
+}
+void c_Object::FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits)
+{
+	// 使用联合来存储浮点数和其对应的32位整数表示
+	dataConverter unionConverter;
+	unionConverter.floatValue = floatValue;
+	// 提取两个16位值的位信息
+	second16Bits = unionConverter.Word.high16Bits;
+	first16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits) {
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.DWord = intValue;
+	// 提取两个16位值的位信息
+	high16Bits = unionConverter.Word.high16Bits;
+	low16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits)
+{
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = high16Bits;
+	unionConverter.Word.low16Bits = low16Bits;
+	intValue = unionConverter.DWord;
+}
+
+
+QMutex c_Variable::g_mutex;
+QScopedPointer<c_Variable> c_Variable::g_instance;
+
+QJsonObject     c_Variable::g_Communicate_DB;
+s_Hikvision_DB  c_Variable::g_Hikvision_DB;
+
+c_Variable::c_Variable(QObject * parent) : c_Object(parent)
+{
+	
+}
+
+c_Variable::~c_Variable()
+{
+	
+}
+
+c_Variable& c_Variable::getInstance()
+{
+	if (g_instance.isNull()) {
+		QMutexLocker locker(&g_mutex);
+		if (g_instance.isNull()) {
+			g_instance.reset(new c_Variable());
+		}
+	}
+	return *g_instance.data();
+}
+
+void c_Variable::writeMessage(int style, QString message)
+{
+    msleep(10);
+	if (style == 1)
+    {
+        QTextStream stream(stdout);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stdout);
+    }
+    if (style == 2)
+    {
+        QTextStream stream(stderr);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stderr);
+    }
+}
+
+/*************************************************************************************************************************************************
+**Function:状态回调
+*************************************************************************************************************************************************/
+void c_Variable::ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *pUser)
+{
+    Q_UNUSED(lUserID);
+    Q_UNUSED(lHandle);
+    Q_UNUSED(pUser);
+    emit c_Variable::getInstance().Status(g_Hikvision_DB.device_name + "：" + c_Variable::getInstance().Hikvision_Status(dwType));
+}
+/*************************************************************************************************************************************************
+**Function:数据解码回调函数，将YV_12格式的视频数据流转码为可供opencv处理的BGR类型的图片数据，并实时显示。
+*************************************************************************************************************************************************/
+void c_Variable::DecCBFun(int nPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, void* nReserved1,int nReserved2)
+{
+    Q_UNUSED(nPort);Q_UNUSED(nSize);Q_UNUSED(nReserved1);Q_UNUSED(nReserved2);Q_UNUSED(pFrameInfo);
+}
+/*************************************************************************************************************************************************
+**Function:事件回调
+*************************************************************************************************************************************************/
+void c_Variable::RealDataCallBack_V30(LONG lRealHandle, DWORD dwDataType, BYTE *pBuffer, DWORD dwBufSize, DWORD dwUser)
+{
+    Q_UNUSED(dwUser);
+    if (lRealHandle == g_Hikvision_DB.lRealPlayHandle) {
+		switch (dwDataType) {
+		case NET_DVR_SYSHEAD: {
+            if (!PlayM4_GetPort(&g_Hikvision_DB.lPort)) {
+                emit c_Variable::getInstance().Status("监控相机：获取播放库未使用的通道号失败");
+				break;
+			}
+            if (!PlayM4_SetStreamOpenMode(g_Hikvision_DB.lPort, STREAME_REALTIME)) {
+                emit c_Variable::getInstance().Status("监控相机：设置实时流播放模式失败");
+				break;
+			}
+            if (!PlayM4_OpenStream(g_Hikvision_DB.lPort, pBuffer, dwBufSize, 1024 * 1024)) {
+                emit c_Variable::getInstance().Status("监控相机：打开流接口失败");
+				break;
+			}
+            if (!PlayM4_SetDecCallBackEx(g_Hikvision_DB.lPort, DecCBFun, nullptr, 0)) {
+                emit c_Variable::getInstance().Status("监控相机：设置解码回调函数(解码且显示)失败");
+				break;
+			}
+            if (!PlayM4_Play(g_Hikvision_DB.lPort, g_Hikvision_DB.winId)) {
+                emit c_Variable::getInstance().Status("监控相机：打开视屏解码失败");
+				break;
+			}
+			else {
+                emit c_Variable::getInstance().Status("监控相机：打开视屏解码成功");
+				break;
+			}
+		}
+		case NET_DVR_STREAMDATA: {
+            if (dwBufSize > 0 && g_Hikvision_DB.lPort != -1) {
+                if (!PlayM4_InputData(g_Hikvision_DB.lPort, pBuffer, dwBufSize)) {
+                    emit c_Variable::getInstance().Status("监控相机：码流数据获取失败");
+				}
+			}
+			break;
+		}
+		default: {
+            emit c_Variable::getInstance().Status("监控相机：未知的数据类型");
+			break;
+		}
+		}
+	}
+}
+
+
+==================== QDesigner FILES (.ui) ====================
+
+########################################################################
+FILE: ./Hikvision.ui
+########################################################################
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>u_Hikvision</class>
+ <widget class="QWidget" name="u_Hikvision">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>797</width>
+    <height>615</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_18">
+     <item>
+      <widget class="QLabel" name="label_35">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>地址：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="Device_Ip">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_36">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>端口：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="Device_port">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_32">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>通道号：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="Hikvision_lPort">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>60</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="c_Fr_Light" name="Hikvision_Connected" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_305"/>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="Hikvision_Connect">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>监控相机开</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_21">
+     <item>
+      <widget class="QLabel" name="label_37">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>用户：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="user_name">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_38">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>密码：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="user_key">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_34">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>用户号：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="Hikvision_lUserID">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>60</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="1">
+    <widget class="QPushButton" name="Hikvision_Disconnect">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>监控相机关</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QWidget" name="Hikvision_Video" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>576</width>
+       <height>324</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>c_Fr_Light</class>
+   <extends>QWidget</extends>
+   <header>Fr_Light.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
+
+==================== Cmake FILES (.txt) ====================
+
+########################################################################
+FILE: ./CMakeLists.txt
+########################################################################
+
+cmake_minimum_required(VERSION 3.16)
+project(Hikvision_Manage VERSION 1.0.0 LANGUAGES C CXX CUDA)
+
+# ============================================================================
+# 策略与平台检测
+# ============================================================================
+if(POLICY CMP0144)
+    cmake_policy(SET CMP0144 OLD)
+endif()
+
+# 检测ARM64平台
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(ARM64 TRUE)
+    message(STATUS "✅ Detected ARM64 Linux platform (Jetson)")
+endif()
+
+# ============================================================================
+# 构建配置
+# ============================================================================
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES 120 CACHE STRING "CUDA Architectures" FORCE)
+endif()
+
+if(DEFINED ENV{CUDA_HOME})
+    set(CUDA_HOME $ENV{CUDA_HOME})
+    set(CMAKE_CUDA_COMPILER ${CUDA_HOME}/bin/nvcc)
+endif()
+if(DEFINED ENV{OpenCV_DIR})
+    set(OpenCV_DIR $ENV{OpenCV_DIR})
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PCL_NO_MPI ON)
+
+# ============================================================================
+# 查找依赖包（含完善版librealsense2配置）
+# ============================================================================
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network PrintSupport Charts WebSockets Concurrent OpenGL)
+find_package(OpenCV REQUIRED)
+find_package(Zivid REQUIRED COMPONENTS Core Visualization)
+find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization filters kdtree search sample_consensus)
+find_package(VTK 9.1 REQUIRED COMPONENTS CommonCore CommonDataModel FiltersCore RenderingCore RenderingOpenGL2 GUISupportQt)
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# ============================================================================
+# librealsense2 配置（完善版）
+# ============================================================================
+# 优先使用 find_package（现代CMake方式）
+find_package(realsense2 QUIET)
+if(realsense2_FOUND)
+    message(STATUS "✅ librealsense2 found via find_package: ${realsense2_VERSION}")
+    set(REALSENSE2_FOUND TRUE)
+    set(REALSENSE2_INCLUDE_DIRS ${realsense2_INCLUDE_DIRS})
+    set(REALSENSE2_LIBRARIES realsense2::realsense2)  # 使用导入目标
+else()
+    # 回退到 pkg-config（传统方式）
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(REALSENSE2 QUIET realsense2)
+        if(REALSENSE2_FOUND)
+            message(STATUS "✅ librealsense2 found via pkg-config: ${REALSENSE2_VERSION}")
+            # 修复pkg-config路径（Jetson常见问题）
+            if(ARM64 AND NOT REALSENSE2_INCLUDE_DIRS)
+                set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            endif()
+        else()
+            message(WARNING "⚠️  librealsense2 not found (optional feature disabled)")
+        endif()
+    else()
+        message(WARNING "⚠️  pkg-config not found, cannot search for librealsense2")
+    endif()
+endif()
+
+# 验证librealsense2路径（Jetson关键修复）
+if(REALSENSE2_FOUND AND ARM64)
+    if(NOT EXISTS "${REALSENSE2_INCLUDE_DIRS}/librealsense2/rs.hpp")
+        # 尝试备用路径
+        if(EXISTS "/usr/include/librealsense2/rs.hpp")
+            set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            message(STATUS "🔧 Fixed librealsense2 include path: ${REALSENSE2_INCLUDE_DIRS}")
+        endif()
+    endif()
+endif()
+
+# ============================================================================
+# 海康SDK路径配置
+# ============================================================================
+set(HIKVISION_SDK_ROOT "/opt/hikvision_sdk_arm64" CACHE PATH "Path to Hikvision SDK for ARM64")
+set(HIKVISION_INC_PATH "${HIKVISION_SDK_ROOT}/incCn")
+set(HIKVISION_LIB_PATH "${HIKVISION_SDK_ROOT}/MakeAll")
+set(HIKVISION_COMP_PATH "${HIKVISION_SDK_ROOT}/MakeAll/HCNetSDKCom")
+
+if(NOT EXISTS "${HIKVISION_INC_PATH}")
+    message(FATAL_ERROR "❌ Hikvision SDK include directory not found at ${HIKVISION_INC_PATH}")
+endif()
+if(NOT EXISTS "${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+    message(FATAL_ERROR "❌ Hikvision SDK core library not found at ${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+endif()
+
+# ============================================================================
+# 包含目录（严格顺序 + librealsense2修复）
+# ============================================================================
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+    ${HIKVISION_INC_PATH}
+    ${PCL_INCLUDE_DIRS}
+    ${VTK_INCLUDE_DIRS}
+    ${ZIVID_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${REALSENSE2_INCLUDE_DIRS} 
+)
+
+# ============================================================================
+# 源文件
+# ============================================================================
+set(SOURCES
+    resource.qrc  
+    Fr_Light.cpp    
+    Hikvision.cpp  
+    Hikvision_Remote.cpp  
+    Hikvision.ui      
+    main.cpp  
+    Variable.cpp
+)
+
+set(HEADERS
+    Hikvision.h           
+    Hikvision_Remote.h
+    Fr_Light.h 
+    Variable.h
+)
+
+# ============================================================================
+# 创建可执行文件
+# ============================================================================
+add_executable(hikvision_manage ${SOURCES} ${HEADERS})
+
+# ============================================================================
+# 链接库（含librealsense2完善配置）
+# ============================================================================
+target_link_libraries(hikvision_manage PRIVATE
+    # Qt5
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport
+    Qt5::Charts Qt5::WebSockets Qt5::Concurrent Qt5::OpenGL
+    
+    # Zivid
+    Zivid::Core Zivid::Visualization
+    
+    # OpenCV
+    ${OpenCV_LIBS}
+    
+    # PCL + VTK
+    ${PCL_LIBRARIES}
+    ${VTK_LIBRARIES}
+    
+    # Boost
+    ${Boost_LIBRARIES}
+    
+    # ============================================================================
+    # librealsense2（完善配置）
+    # ============================================================================
+    ${REALSENSE2_LIBRARIES}  # 自动处理导入目标或库列表
+    
+    # ============================================================================
+    # 海康SDK（严格按文档顺序）
+    # ============================================================================
+    ${HIKVISION_LIB_PATH}/libhcnetsdk.so
+    ${HIKVISION_LIB_PATH}/libHCCore.so
+    ${HIKVISION_LIB_PATH}/libhpr.so
+    ${HIKVISION_LIB_PATH}/libPlayCtrl.so
+    ${HIKVISION_LIB_PATH}/libSuperRender.so
+    ${HIKVISION_LIB_PATH}/libAudioRender.so
+    ${HIKVISION_COMP_PATH}/libHCCoreDevCfg.so
+    ${HIKVISION_COMP_PATH}/libHCPreview.so
+    ${HIKVISION_COMP_PATH}/libHCPlayBack.so
+    ${HIKVISION_COMP_PATH}/libHCVoiceTalk.so
+    ${HIKVISION_COMP_PATH}/libHCAlarm.so
+    ${HIKVISION_COMP_PATH}/libHCDisplay.so
+    ${HIKVISION_COMP_PATH}/libHCIndustry.so
+    ${HIKVISION_COMP_PATH}/libHCGeneralCfgMgr.so
+    ${HIKVISION_COMP_PATH}/libStreamTransClient.so
+    ${HIKVISION_COMP_PATH}/libSystemTransform.so
+    ${HIKVISION_COMP_PATH}/libanalyzedata.so
+    ${HIKVISION_COMP_PATH}/libAudioIntercom.so
+    ${HIKVISION_COMP_PATH}/libiconv.so.2
+)
+
+# ============================================================================
+# RPATH与编译优化
+# ============================================================================
+set_target_properties(hikvision_manage PROPERTIES
+    BUILD_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    INSTALL_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    BUILD_RPATH_USE_ORIGIN ON
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_options(hikvision_manage PRIVATE
+    -O3 -mcpu=native
+    -Wall -Wextra
+    -Wno-unused-parameter -Wno-unused-variable -Wno-deprecated-declarations
+)
+
+# ============================================================================
+# 资源文件复制
+# ============================================================================
+add_custom_command(TARGET hikvision_manage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/Communicate_DB.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/stuqss.css
+        $<TARGET_FILE_DIR:hikvision_manage>/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Images
+        $<TARGET_FILE_DIR:hikvision_manage>/Images
+    COMMENT "Copying resources to build directory"
+)
+
+# ============================================================================
+# 构建信息输出
+# ============================================================================
+message(STATUS "========================================")
+message(STATUS "✅ Project Configuration Summary")
+message(STATUS "========================================")
+message(STATUS "Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}")
+message(STATUS "OpenCV: ${OpenCV_VERSION}")
+message(STATUS "PCL: ${PCL_VERSION}")
+message(STATUS "VTK: ${VTK_VERSION}")
+message(STATUS "Zivid SDK: ${ZIVID_VERSION}")
+message(STATUS "librealsense2: ${REALSENSE2_VERSION} (${REALSENSE2_FOUND})")
+message(STATUS "Hikvision SDK: ${HIKVISION_SDK_ROOT}")
+message(STATUS "ARM64 Platform: ${ARM64}")

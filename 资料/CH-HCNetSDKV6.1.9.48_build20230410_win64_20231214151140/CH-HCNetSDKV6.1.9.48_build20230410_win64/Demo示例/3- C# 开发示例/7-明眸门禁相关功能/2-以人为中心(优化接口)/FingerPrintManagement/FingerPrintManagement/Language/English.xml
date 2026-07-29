@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<FingerPrintMgr Language="English">
+    <Form>
+        <Name>FingerPrintMgr</Name>
+        <Controls>
+          <Control name="button1" text="Login"/>
+          <Control name="label1" text="Finger Print Management"/>
+          <Control name="label2" text="Card No"/>
+          <Control name="label6" text="Set/Get/Delete Finger Print Need"/>
+          <Control name="label4" text="Card Reader No"/>
+          <Control name="label3" text="Set/Get/Delete Finger Print Need"/>
+          <Control name="label5" text="Set/Get/Delete Finger Print Need"/>
+          <Control name="label7" text="Finger Print No"/>
+          <Control name="label8" text="Finger Data"/>
+          <Control name="btnBrowse" text="Browse"/>
+          <Control name="FingerID" text="FingerID"/>
+          <Control name="label9" text="Set Finger Print Need"/>
+          <Control name="btnSet" text="Set"/>
+          <Control name="btnGet" text="Get"/>
+          <Control name="btnDel" text="Delete"/>
+          <Control name="label10" text="Set Finger Print To Device"/>
+          <Control name="label11" text="Get Device Finger Print"/>
+          <Control name="label12" text="Delete Device Finger Print"/>
+          <Control name="btnCap" text="capture"/>
+        </Controls>
+    </Form>
+    <Form>
+        <Name>AddDev</Name>
+        <Controls>
+          <Control name="label1" text="Login Device"/>
+          <Control name="label2" text="Device Address"/>
+          <Control name="label4" text="User Name"/>
+          <Control name="label3" text="Port"/>
+          <Control name="label5" text="Password"/>
+          <Control name="button1" text="Add"/>
+          <Control name="button2" text="Cancel"/>
+        </Controls>
+    </Form>
+</FingerPrintMgr>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration Language="English">
+    <Form>
+        <Name>Configuration</Name>
+        <Controls>
+          <Control name="btnLogin" text="Login"/>
+          <Control name="btnRemoteCheck" text="RemoteCheck"/>
+          <Control name="label1" text="ACS Configuration"/>
+          <Control name="BtnIsupConfig" text="Isup Config"/>
+          <Control name="BtnWlanConfig" text="Wlan Config"/>
+          <Control name="BtnUploadConfig" text="Upload Config"/>
+          <Control name="BtnDoorConfig" text="Door Config"/>
+          <Control name="BtnTimeConfig" text="Time Config"/>
+          <Control name="BtnExit" text="EXIT"/>
+        </Controls>
+    </Form>
+    <Form>
+        <Name>AddDevice</Name>
+        <Controls>
+          <Control name="label1" text="Login Device"/>
+          <Control name="label2" text="Device Address"/>
+          <Control name="label4" text="User Name"/>
+          <Control name="label3" text="Port"/>
+          <Control name="label5" text="Password"/>
+          <Control name="btnAdd" text="Add"/>
+          <Control name="btnCancel" text="Cancel"/>
+        </Controls>
+    </Form>
+    <Form>
+      <Name>RemoteCheck</Name>
+      <Controls>
+        <Control name="RemoteCheck" text="Remote Check"/>
+        <Control name="label1" text="DoorEnabled:"/>
+        <Control name="label2" text="ChannelType:"/>
+        <Control name="label3" text="ChannelIp:"/>
+        <Control name="btnGet" text="GET"/>
+        <Control name="btnSet" text="SET"/>
+      </Controls>
+    </Form>
+  <Form>
+    <Name>IsupAddrConfigure</Name>
+    <Controls>
+      <Control name="label1" text="CenterGroup:"/>
+      <Control name="label2" text="AddressType:"/>
+      <Control name="label3" text="IPAddress:"/>
+      <Control name="label4" text="Port:"/>
+      <Control name="label5" text="DoMainName:"/>
+      <Control name="label6" text="ProtocolType:"/>
+      <Control name="label7" text="IsupVersion:"/>
+      <Control name="label8" text="IsupKey:"/>
+      <Control name="label9" text="Account:"/>
+      <Control name="btnGet" text="GET"/>
+      <Control name="btnSet" text="SET"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>DoorConfig</Name>
+    <Controls>
+      <Control name="label1" text="OpenDuration:"/>
+      <Control name="label2" text="DoorLeftOpenTimeoutAlarm:"/>
+      <Control name="label3" text="Name:"/>
+      <Control name="label4" text="DoorContact:"/>
+      <Control name="label5" text="ExitButtonType:"/>
+      <Control name="label6" text="SuperPasswd:"/>
+      <Control name="btnUploadSet" text="SET"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>TimeConfig</Name>
+    <Controls>
+      <Control name="label1" text="DeviceDate:"/>
+      <Control name="label2" text="DeviceTime:"/>
+      <Control name="btnSet" text="SET"/>
+    </Controls>
+  </Form>
+
+  <Form>
+    <Name>UploadModeConfig</Name>
+    <Controls>
+      <Control name="label3" text="GroupCenter:"/>
+      <Control name="label4" text="MainChannel:"/>
+      <Control name="label5" text="SubChannel:"/>
+      <Control name="btnUploadSet" text="SET"/>
+    </Controls>
+  </Form>
+  
+  <Form>
+    <Name>WlanConfig</Name>
+    <Controls>
+      <Control name="label1" text="DNS2 Addr:"/>
+      <Control name="label3" text="IPAddress:"/>
+      <Control name="label4" text="SubNetMask:"/>
+      <Control name="label5" text="DefaultGateWay:"/>
+      <Control name="label8" text="MacAddress:"/>
+      <Control name="label9" text="DNS1 Addr:"/>
+      <Control name="DHCPEnable" text="DHCP"/>
+      <Control name="DNSEnable" text="DNS"/>
+      <Control name="btnSave" text="SAVE"/>
+    </Controls>
+  </Form>
+</Configuration>

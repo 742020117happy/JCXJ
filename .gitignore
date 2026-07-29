@@ -1,0 +1,73 @@
+# NVIDIA SDK 大文件安装包
+*.deb
+*.tbz2
+*.tbz
+*.tar
+*.7z
+*.tar.gz
+*.zip
+
+# Windows 二进制可执行文件（非源码）
+*.exe
+*.dll
+*.lib
+*.so
+
+# 编译产物
+*.o
+*.obj
+*.sbr
+*.pdb
+*.ilk
+*.exp
+
+# IDE 和临时文件
+*.suo
+*.user
+*.ncb
+*.aps
+*.log
+*.tmp
+*.swp
+*.bak
+*~
+
+# Qt 编译产物
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# CMake 编译目录
+build/
+cmake-build-*/
+
+# 已编译的 demo 可执行文件
+ClientDemo.exe
+LidarAssistant
+LidarAssistant.exe
+RSView.exe
+
+# 大型二进制数据（点云缓存等）
+# Java 编译产物
+*.class
+*.jar
+*.war
+
+# 输出目录
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+# IntelliJ IDEA
+.idea/
+
+# 大型二进制数据（点云缓存等）
+*.bin
+*.dat
+!CH-HCNetSDK*/**/*.dat
+
+# 保留这些后缀的源码文件
+# 其他二进制文件如 .pcd .ply 等视需要添加

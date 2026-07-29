@@ -1,0 +1,117 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Project (Release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build",
+                "--config",
+                "Release",
+                "--",
+                "-j$(nproc)"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build",
+                "env": {
+                    "PATH": "/usr/local/cuda-13.0/bin:/usr/lib/qt5/bin:${env:PATH}",
+                    "LD_LIBRARY_PATH": "/usr/local/cuda-13.0/lib64:/opt/hikvision_sdk_arm64/MakeAll:/opt/hikvision_sdk_arm64/MakeAll/HCNetSDKCom:${env:LD_LIBRARY_PATH}",
+                    "OPENSSL_CONF": "/opt/hikvision_sdk_arm64/openssl.cnf",
+                    "CUDA_HOME": "/usr/local/cuda-13.0",
+                    "OpenCV_DIR": "/usr/lib/cmake/opencv4",
+                    "BOOST_ROOT": "/usr/include/boost",
+                    "EIGEN3_INCLUDE_DIR": "/usr/include/eigen3"
+                }
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "dependsOn": "Ensure Build Directory"
+        },
+        {
+            "label": "Ensure Build Directory",
+            "type": "shell",
+            "command": "mkdir",
+            "args": [
+                "-p",
+                "${workspaceFolder}/build"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "never",
+                "echo": false
+            }
+        },
+        {
+            "label": "Configure Project (First Time)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-S",
+                "${workspaceFolder}",
+                "-B",
+                "${workspaceFolder}/build",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DCMAKE_CUDA_ARCHITECTURES=120",
+                "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build",
+                "env": {
+                    "PATH": "/usr/local/cuda-13.0/bin:/usr/lib/qt5/bin:${env:PATH}",
+                    "LD_LIBRARY_PATH": "/usr/local/cuda-13.0/lib64:/opt/hikvision_sdk_arm64/MakeAll:/opt/hikvision_sdk_arm64/MakeAll/HCNetSDKCom:${env:LD_LIBRARY_PATH}",
+                    "OPENSSL_CONF": "/opt/hikvision_sdk_arm64/openssl.cnf"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Clean Build",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-rf",
+                "${workspaceFolder}/build/*"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Run Without Debugging",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/collector_manage",
+            "options": {
+                "cwd": "${workspaceFolder}/build",
+                "env": {
+                    "LD_LIBRARY_PATH": "/usr/local/cuda-13.0/lib64:/opt/hikvision_sdk_arm64/MakeAll:/opt/hikvision_sdk_arm64/MakeAll/HCNetSDKCom:${env:LD_LIBRARY_PATH}",
+                    "OPENSSL_CONF": "/opt/hikvision_sdk_arm64/openssl.cnf",
+                    "DISPLAY": "${env:DISPLAY}"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "dependsOn": "Build Project (Release)"
+        }
+    ]
+}

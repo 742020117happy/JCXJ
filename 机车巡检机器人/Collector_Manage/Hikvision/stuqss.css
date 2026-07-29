@@ -1,0 +1,54 @@
+QLabel {
+    border: 2px solid green; /* border: 宽度 线类型 颜色 */
+    border-radius: 4px;
+    padding: 2px; /* 边界都内部矩形的宽度 */
+}
+
+QLineEdit {
+    border: 2px solid gray;
+    border-radius: 10px;
+    padding: 0 8px;
+    background: white;
+    selection-background-color: darkgray;
+}
+
+QPushButton {
+	background-color: green;
+	color: white;
+}
+QPushButton::hover {
+	background-color: yellow;
+}
+QPushButton:disabled {
+	background-color: grey;
+}
+QPushButton::pressed {
+    background-color: red;
+}
+
+QProgressBar {
+    border-radius: 10px;
+    border: 2px solid grey;
+    text-align: center;
+}
+QProgressBar::chunk {
+    background-color: #CD96CD;
+    width: 5px;
+    margin: 0.5px;
+}
+
+QGroupBox {
+    font-size: 15px;
+    font-weight:bold;
+    font-family: "微软雅黑";
+    border: 1px solid black;
+    border-radius: 4px;
+    margin-top: 15px;
+    border-width: 2px;
+}
+QGroupBox::title {
+     background-color: orange;      /* 颜色 */
+     color: rgb(0, 0, 0);
+     subcontrol-origin: margin;     /* 位置 */
+     left: 10px;   
+}

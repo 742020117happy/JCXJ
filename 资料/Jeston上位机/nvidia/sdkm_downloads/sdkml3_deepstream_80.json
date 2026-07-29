@@ -1,0 +1,215 @@
+{
+    "information": {
+        "schemaUrl": "",
+        "schemaVersion": "23.0",
+        "fileVersion": "0.1",
+        "release": {
+            "title": "DeepStream 8.0",
+            "productDisplayName": "DeepStream",
+            "releaseRevision": 0,
+            "showInMainList": true,
+            "supportedHardware": {
+                "seriesIds": [
+                    "JETSON_AGX_THOR_TARGETS"
+                ]
+            },
+            "minSDKMVer": "2.4.0.13235",
+            "serverType": [
+                "DEVZONE"
+            ],
+            "pidGroupId": "",
+            "devzoneProgramId": [
+                "874688"
+            ],
+            "IntHWSupport": false,
+            "hostOperatingSystemsSupportFor": {
+                "hostGroups": [],
+                "targetGroups": [
+                    "ubuntu22.04",
+                    "ubuntu24.04",
+                    "windows10",
+                    "windows11"
+                ]
+            },
+            "releaseNotes": {
+                "releaseNotesTooltip": "<div><span class=\"tooltip-title\">What's new in DeepStream 8.0:</span><ul><li>Support for Blackwell GPUs and Jetson Thor with TAO 6.0 models</li><li>Inference Builder: open\u2011source tool for building inference microservices across AI frameworks</li><li>Pyservicemaker upgrades: prepare/activate APIs, configurable component selection, new sample apps</li><li>Enhanced Tracking: MaskTracker (SAM2\u2011based multi\u2011object tracker) and Multi\u2011View 3D Tracking (MV3DT) with single/multi\u2011view 3D pose estimation</li><li>Enhanced Support: nvvideoconvert for U16 formats, REST API for nvdsanalytics and nvtracker, Dynamic stream handling in demuxer, MediaExtractor on Jetson, nv3dsink on x86, and high\u2011quality pixel formats in nvvideotestsrc, nvdsudpsrc/nvdsudpsink for audio frame sizing & RTP timestamp</li><li>Additional Open\u2011sourced libraries and plugins</li></ul><a href=\"https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Release_notes.html#whats-new\" target=\"_blank\" class=\"tooltip-link\">Open Release Notes</a></div>",
+                "releaseNotesURL": "https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Release_notes.html#whats-new",
+                "releaseNotesDownload": false
+            },
+            "releaseMessage": "DeepStream SDK provides a complete streaming analytics toolkit for situational awareness through computer vision, intelligent video analytics (IVA) and multi-sensor processing.",
+            "SDKsRelations": [
+                {
+                    "default": "off",
+                    "parent": {
+                        "title": "JetPack 7.0",
+                        "releaseRevision": 1,
+                        "showInMainList": true,
+                        "productCategory": "Jetson",
+                        "targetOS": "Linux",
+                        "releaseVersion": "7.0",
+                        "releaseEdition": ""
+                    },
+                    "depends": [],
+                    "conflicts": []
+                },
+                {
+                    "default": "off",
+                    "parent": {
+                        "title": "JetPack 7.1",
+                        "releaseRevision": 0,
+                        "showInMainList": true,
+                        "productCategory": "Jetson",
+                        "targetOS": "Linux",
+                        "releaseVersion": "7.1",
+                        "releaseEdition": ""
+                    },
+                    "depends": [],
+                    "conflicts": []
+                }
+            ],
+            "architectures": [
+                "x86_64",
+                "x86_64-wsl"
+            ],
+            "isAdditionalSDK": true,
+            "productCategory": "DeepStream",
+            "targetOS": "Linux",
+            "releaseVersion": "8.0",
+            "releaseEdition": "",
+            "installedOn": [
+                "target"
+            ],
+            "description": "DeepStream SDK provides a complete streaming analytics toolkit for situational awareness through computer vision, intelligent video analytics (IVA) and multi-sensor processing.",
+            "canInstallStandAlone": false,
+            "id": "NV_JETPACK_ADDITIONAL_SDK_DEEPSTREAM",
+            "hasTargetComponents": true,
+            "hardwareConfiguration": [
+                "host",
+                "target"
+            ]
+        },
+        "targetAccessInfo": {
+            "user": "",
+            "password": "",
+            "host": "192.168.55.1",
+            "port": "22"
+        }
+    },
+    "compDirectory": "https://developer.nvidia.com/assets/embedded/secure/tools/files/jetpack-sdks/deepstream-8.0/DeepStream_80_b38/",
+    "groups": [
+        "NV_DEEPSTREAM_SBSA_TARGET_GROUP",
+        {
+            "name": "DeepStream",
+            "groupType": "target",
+            "installedOn": "target",
+            "description": "DeepStream SDK provides a complete streaming analytics toolkit for situational awareness through computer vision, intelligent video analytics (IVA) and multi-sensor processing.",
+            "selected": true,
+            "selectable": true,
+            "displayed": true,
+            "isVirtual": false,
+            "id": "NV_DEEPSTREAM_SBSA_TARGET_GROUP",
+            "versions": [
+                {
+                    "version": "8.0",
+                    "components": [
+                        {
+                            "id": "NV_DEEPSTREAM_SBSA_TARGET_POST_INSTALL_COMP",
+                            "version": "8.0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "components": {
+        "NV_DEEPSTREAM_SBSA_TARGET_POST_INSTALL_COMP": {
+            "name": "DeepStream",
+            "isVisible": true,
+            "platforms": [
+                {
+                    "supportedHardware": {
+                        "deviceIds": [],
+                        "seriesIds": [
+                            "JETSON_AGX_THOR_INTERNAL_TARGETS",
+                            "JETSON_AGX_THOR_TARGETS"
+                        ],
+                        "excludedDeviceIds": []
+                    },
+                    "prerequisites": [
+                        {
+                            "prerequisiteID": "PREREQUISITE_DISK_SPACE_TARGET"
+                        },
+                        {
+                            "prerequisiteID": "PREREQUISITE_NETWORK_TARGET"
+                        },
+                        {
+                            "prerequisiteID": "PREREQUISITE_APT_TARGET"
+                        }
+                    ],
+                    "architectures": [
+                        "x86_64",
+                        "x86_64-wsl"
+                    ],
+                    "operatingSystems": [
+                        "ubuntu22.04",
+                        "ubuntu24.04",
+                        "windows10",
+                        "windows11"
+                    ],
+                    "installSizeMB": 765.22,
+                    "downloadFiles": [
+                        {
+                            "url": "./deepstream-8.0_8.0.0-1_arm64.deb",
+                            "fileName": "deepstream-8.0_8.0.0-1_arm64.deb",
+                            "size": 635275692,
+                            "checksum": "98262eeff17341bb988dfe378e0d7132",
+                            "checksumType": "md5",
+                            "verifyChecksum": "yes",
+                            "packageInstallParameters": {
+                                "installEngineQueue": "default",
+                                "installType": "target_deb",
+                                "additionalParameters": {
+                                    "packagesInfo": [
+                                        {
+                                            "name": "deepstream-8.0",
+                                            "version": "8.0.0-1"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "dependencies": [
+                {
+                    "type": "required",
+                    "id": "NV_L4T_TENSORRT_SBSA_TARGET_POST_INSTALL_COMP",
+                    "additionalSDKId": "BASE_SDK"
+                },
+                {
+                    "type": "required",
+                    "id": "NV_L4T_VPI_RUNTIME_SBSA_TARGET_POST_INSTALL_COMP",
+                    "additionalSDKId": "BASE_SDK"
+                }
+            ],
+            "version": "8.0",
+            "selected": true,
+            "selectable": true,
+            "licenseIds": [
+                "NV_DEEPSTREAM_EMBEDDED_EULA"
+            ],
+            "id": "NV_DEEPSTREAM_SBSA_TARGET_POST_INSTALL_COMP",
+            "isDetectableInstall": true,
+            "isPartiallyDetectableInstall": false
+        }
+    },
+    "licenses": {
+        "NV_DEEPSTREAM_EMBEDDED_EULA": {
+            "name": "Software License Agreement for Nvidia Software Development Kits",
+            "url": "$compDirectory/EULA/NV_DEEPSTREAM_EMBEDDED_EULA.pdf",
+            "id": "NV_DEEPSTREAM_EMBEDDED_EULA"
+        }
+    },
+    "modals": []
+}

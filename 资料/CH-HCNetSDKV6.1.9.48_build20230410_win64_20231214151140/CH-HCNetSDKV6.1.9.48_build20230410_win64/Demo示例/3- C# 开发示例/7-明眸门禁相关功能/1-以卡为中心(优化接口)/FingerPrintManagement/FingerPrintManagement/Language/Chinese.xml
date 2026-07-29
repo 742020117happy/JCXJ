@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<FingerPrintMgr Language="Chinese">
+  <Form>
+    <Name>FingerPrintMgr</Name>
+    <Controls>
+      <Control name="button1" text="登录"/>
+      <Control name="label1" text="指纹管理"/>
+      <Control name="label2" text="卡号"/>
+      <Control name="label6" text="下发/获取/删除指纹需要"/>
+      <Control name="label4" text="读卡器编号"/>
+      <Control name="label3" text="下发/获取/删除指纹需要"/>
+      <Control name="label7" text="指纹编号"/>
+      <Control name="label5" text="下发/获取/删除指纹需要"/>
+      <Control name="FingerID" text="手指编号"/>
+      <Control name="label8" text="指纹数据"/>
+      <Control name="btnBrowse" text="选择"/>
+      <Control name="label9" text="下发指纹需要"/>
+      <Control name="btnSet" text="下发"/>
+      <Control name="btnGet" text="获取"/>
+      <Control name="btnDel" text="删除"/>
+      <Control name="label10" text="下发指纹到设备"/>
+      <Control name="label11" text="从设备获取指纹"/>
+      <Control name="label12" text="删除设备上的指纹数据"/>
+      <Control name="btnCap" text="采集"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>AddDev</Name>
+    <Controls>
+      <Control name="label1" text="登录设备"/>
+      <Control name="label2" text="IP地址"/>
+      <Control name="label4" text="用户名"/>
+      <Control name="label3" text="端口号"/>
+      <Control name="label5" text="密码"/>
+      <Control name="button1" text="登录"/>
+      <Control name="button2" text="取消"/>
+    </Controls>
+  </Form>
+</FingerPrintMgr>

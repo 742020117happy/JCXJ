@@ -1,0 +1,8 @@
+
+一、Wireshark——（用来获取IP地址，录制保存点云的软件，教程参考文件夹“软件和sdk教程”-wireshark抓包使用教程）
+Windows 版本下载链接（download link）：https://www.wireshark.org/download.html
+
+二、RS View——（点云可视化软件，下载的时候选好对应的雷达型号）
+Ubuntu 和 Windows 版本下载链接（download link）：https://www.robosense.cn/resources
+
+三、SDK--（数据开发包，用于二次开发，压缩包里面有，名称为rslidar_sdk-v1.5.17.tar.gz 这个文件，使用教程在“软件和sdk教程”里面）

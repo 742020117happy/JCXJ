@@ -1,0 +1,85 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🧹 clean-all",
+            "type": "shell",
+            "command": "rm -rf ${workspaceFolder}/build && mkdir -p ${workspaceFolder}/build",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "⚙️ cmake-configure",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/build && cmake .. -DCMAKE_BUILD_TYPE=Release",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "🔨 build-all",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/build && make -j$(nproc)",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "🚀 full-build (Clean + Configure + Build)",
+            "type": "shell",
+            "command": "rm -rf ${workspaceFolder}/build && mkdir -p ${workspaceFolder}/build && cd ${workspaceFolder}/build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j$(nproc)",
+            "group": "build",
+            "problemMatcher": ["$gcc"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "🏃 run-main-process",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/build/bin && ./collector_manage",
+            "group": "test",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "🏃 run-all-processes",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/build/bin && echo 'Starting all processes...' && ./transmission_server & ./transmission_client & ./realsense_manage & ./robosense_manage & ./zivid_manage & sleep 2 && ./collector_manage",
+            "group": "test",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "📋 list-build-artifacts",
+            "type": "shell",
+            "command": "ls -lh ${workspaceFolder}/build/bin/",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        }
+    ]
+}

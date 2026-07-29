@@ -1,0 +1,50 @@
+{
+    "information": {
+        "title": "Jetson HW releases",
+        "contentVersion": "0.0.1",
+        "buildNumber": "182",
+        "schemaVersion": "1"
+    },
+    "series": [
+        {
+            "id": "JETSON_AGX_THOR_TARGETS",
+            "uri": "./families/jetson/series/jetson-agx-thor-targets.json"
+        },
+        {
+            "id": "JETSON_AGX_ORIN_TARGETS",
+            "uri": "./families/jetson/series/jetson-agx-orin-targets.json"
+        },
+        {
+            "id": "JETSON_ORIN_NANO_TARGETS",
+            "uri": "./families/jetson/series/jetson-orin-nano-targets.json"
+        },
+        {
+            "id": "JETSON_ORIN_NX_TARGETS",
+            "uri": "./families/jetson/series/jetson-orin-nx-targets.json"
+        },
+        {
+            "id": "JETSON_AGX_XAVIER_TARGETS",
+            "uri": "./families/jetson/series/jetson-agx-xavier-targets.json"
+        },
+        {
+            "id": "JETSON_XAVIER_NX_TARGETS",
+            "uri": "./families/jetson/series/jetson-xavier-nx-targets.json"
+        },
+        {
+            "id": "JETSON_NANO_TARGETS",
+            "uri": "./families/jetson/series/jetson-nano-targets.json"
+        },
+        {
+            "id": "JETSON_TX2_TARGETS",
+            "uri": "./families/jetson/series/jetson-tx2-targets.json"
+        },
+        {
+            "id": "JETSON_TX1_TARGETS",
+            "uri": "./families/jetson/series/jetson-tx1-targets.json"
+        },
+        {
+            "id": "CLARA_AGX_DEVKIT_TARGETS",
+            "uri": "./families/jetson/series/clara-agx-devkit-targets.json"
+        }
+    ]
+}

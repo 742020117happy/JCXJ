@@ -1,0 +1,53 @@
+{
+    "information": {
+        "title": null,
+        "contentVersion": "0.0.1",
+        "buildNumber": "182",
+        "schemaVersion": "1"
+    },
+    "hw": {
+        "SWITCH_4XXX_TARGETS": {
+            "name": "Switch 4xxx series",
+            "devices": [
+                {
+                    "uri": "../devices/switch-msn4410.json",
+                    "id": "SWITCH_MSN4410"
+                },
+                {
+                    "uri": "../devices/switch-msn4800-128.json",
+                    "id": "SWITCH_MSN4800_128"
+                },
+                {
+                    "uri": "../devices/switch-msn4700-32.json",
+                    "id": "SWITCH_MSN4700_32"
+                },
+                {
+                    "id": "SWITCH_MSN4600_64",
+                    "uri": "../devices/switch-msn4600-64.json"
+                },
+                {
+                    "id": "SWITCH_MSN4280",
+                    "uri": "../devices/switch-msn4280.json"
+                }
+            ],
+            "products": [
+                "Switch"
+            ],
+            "imagePath": "https://developer.download.nvidia.com/sdkmanager/resources/hw_images/SWITCH/SWITCH_MSN4700_32.png",
+            "deviceInstructions": {
+                "flash": [
+                    "Check which OS Type is installed on your Switch (dvs-os-onl / dvs-os-sonic): run \"cat /etc/nvidia-release\"",
+                    "Boot your Switch 4xxx series into ONIE\nFor dvs-os-onl, run 'onl-onie-boot-mode uninstall && reboot'.\nFor dvs-os-sonic: running 'onie-boot-uninstall-os'.\n<i style=\"color: var(--nv-brand-grey)\">Switch will: Boot to ONIE Uninstall Mode -> Uninstall existing OS -> Auto-Reboot to ONIE Install Mode.\nPlease allow up to 15 minutes for procedure to complete.</i>",
+                    "Make sure Switch 4xxx series and your Host system are connected to the same management network.",
+                    "Enter the IP address, username and password of your Switch 4xxx series."
+                ],
+                "targetAccess": [
+                    "Make sure %{targetName} and your host system are connected to the same management network.",
+                    "Enter the IP address, username and password of your %{targetName}."
+                ]
+            },
+            "singularName": "Switch 4xxx series",
+            "id": "SWITCH_4XXX_TARGETS"
+        }
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "information": {
+        "title": "SDK Manager supported HW releases index",
+        "contentVersion": "0.0.2",
+        "buildNumber": "p191",
+        "schemaVersion": "1"
+    },
+    "families": [
+        {
+            "name": "Switch", 
+            "uri": "./sdkml2_switch_hw.json"
+        },
+        {
+            "name": "Aerial",
+            "uri": "./sdkml2_aerial_hw.json"
+        },
+        {
+            "name": "DRIVE",
+            "uri": "./sdkml2_drive_hw.json"
+        },
+        {
+            "name": "Holoscan",
+            "uri": "./sdkml2_holoscan_hw.json"
+        },
+        {
+            "name": "DOCA",
+            "uri": "./sdkml2_doca_hw.json"
+        },
+        {
+            "name": "Jetson",
+            "uri": "./sdkml2_jetson_hw.json"
+        }
+    ]
+}

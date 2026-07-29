@@ -1,0 +1,1947 @@
+========================================================================
+Project: Collector_Manage
+Export Time: Thu Jun 18 10:00:40 AM CST 2026
+Total Files: 9
+========================================================================
+
+==================== HEADER FILES (.h) ====================
+
+########################################################################
+FILE: ./Fr_Light.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_Fr_Light : public QWidget {
+	Q_OBJECT
+
+public:
+	enum State {
+		Default,
+		Error,
+		Working,
+		Null
+	};
+	explicit c_Fr_Light(QWidget * parent = nullptr);
+	virtual ~c_Fr_Light();
+
+	public slots:
+	void Set_Working();
+	void Set_Default();
+	void Set_Error();
+	void Set_Null();
+	void Set_State(const bool state);
+	void Set_Radius(int value);
+	bool Get_State();
+
+signals:
+	void Working_State(bool state);
+	void Default_State(bool state);
+	void Error_State(bool state);
+
+protected:
+	void paintEvent(QPaintEvent *);
+
+private:
+	int m_Radius = 50;
+	State m_State = Default;
+	QColor m_Default_Color;
+	QColor m_Error_Color;
+	QColor m_Working_Color;
+	QColor m_Null_Color;
+};
+
+
+########################################################################
+FILE: ./RealSense.h
+########################################################################
+
+﻿#pragma once
+
+#include "Variable.h"
+#include "RealSense_Remote.h"
+#include "ui_c_RealSense.h"
+
+QT_BEGIN_NAMESPACE
+namespace Ui
+{
+    class c_RealSense;
+}
+QT_END_NAMESPACE
+
+class c_RealSense : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit c_RealSense(QStringList info, QWidget *parent = nullptr);
+    ~c_RealSense() override;
+
+signals:
+    void Connect();
+    void Disconnect();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;  ///< ���ڹر��¼�
+    void keyPressEvent(QKeyEvent* event) override; ///< �����¼�
+    void showEvent(QShowEvent* event) override;
+
+private slots:
+    void readMessage(QString cmd);
+    void System_Scan();
+
+    void Write_Communicate_DB(QString key, int value);//дϵͳ����
+    void Write_Communicate_DB(QString key, QString value);//дϵͳ����	
+    void Write_Communicate_DB(QString key, double value);//дϵͳ����
+
+    void VTK_Init();
+    void RealSense_Init();
+    void RealSense_DB();
+    void RealSense_Delete();
+    void Point_Scan(QVector<pcl::PointXYZRGB> points);
+private:
+    Ui::c_RealSenseClass ui;
+    bool m_Scan = false;
+    bool m_vtkInitialized = false;
+    bool m_first_Scan = true;
+    QString m_DB_Path = "C:/ZividDebugLogs";
+
+    c_RealSense_Remote* m_RealSense;
+    QThread* m_RealSense_thread;
+
+    QFile m_file;
+    QSocketNotifier *m_pNotifier;
+    char  m_arrRecv[128];
+
+    vtkNew<vtkRenderer> m_renderer;
+    vtkNew<vtkGenericOpenGLRenderWindow> m_renderWindow;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr m_cloud;
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> m_viewer;
+};
+
+
+
+########################################################################
+FILE: ./RealSense_Remote.h
+########################################################################
+
+#pragma once  
+
+#include "Variable.h"
+
+class c_RealSense_Remote : public c_Object
+{
+    Q_OBJECT
+public:
+    explicit c_RealSense_Remote(QObject* parent = nullptr);
+    ~c_RealSense_Remote() override;
+
+    public slots:
+    void Init();
+	void Connect();
+    void Disconnect();
+    void Capture();
+  
+signals:
+    void Point_Scan(QVector<pcl::PointXYZRGB> points);
+
+private:
+    // RealSense数据管道
+    rs2::pipeline m_pipeline;   
+    // 管道配置文件
+    rs2::pipeline_profile m_profile;   
+    // 设备句柄
+    rs2::device m_device;            
+    // 深度图→彩色图坐标对齐器
+    rs2::align m_align{ RS2_STREAM_COLOR };
+    // 点云缓存（预分配内存）
+    QVector<pcl::PointXYZRGB> m_buffer;
+};
+
+
+########################################################################
+FILE: ./Variable.h
+########################################################################
+
+﻿#pragma once 
+
+#include <math.h>
+#include <time.h>
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstdio>
+#include <fcntl.h>
+#include <memory>
+
+#include <QApplication>
+#include <QByteArray>
+#include <QCloseEvent>
+#include <QColor>
+#include <QDateTime>
+#include <QDebug>
+#include <QDir>
+#include <QSize>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileDialog>
+#include <QHostAddress>
+#include <QImage>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeyEvent>
+#include <QMainWindow>
+#include <QMap>
+#include <QMessageBox>
+#include <QMetaType>
+#include <QMutex>
+#include <QObject>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPaintDevice> 
+#include <QPen>       
+#include <QProcess>
+#include <QRegularExpression>
+#include <QScopedPointer>
+#include <QSettings>
+#include <QSharedMemory>
+#include <QSocketNotifier>
+#include <QStandardPaths>
+#include <QStackedWidget>
+#include <QString>
+#include <QTextStream>
+#include <QDataStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QVariant>
+#include <QVector>
+#include <QWidget>
+#include <QSocketNotifier>
+
+#include <QAbstractSocket>
+#include <QNetworkAccessManager>
+#include <QNetworkInterface>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket> 
+#include <QUrlQuery>
+#include <QtNetwork>
+#include <QtWebSockets/qwebsocket.h>
+#include <QtWebSockets/qwebsocketserver.h>
+#include <QConicalGradient>
+#include <QPolarChart>
+#include <QScatterSeries>
+#include <QtCharts>
+
+#include <QtConcurrent/QtConcurrent>
+
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkRenderingOpenGL2);   
+VTK_MODULE_INIT(vtkInteractionStyle);  
+
+#include <vtkRenderer.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <QVTKOpenGLNativeWidget.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/common/common.h>
+#include <boost/thread/thread.hpp>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/crop_box.h>  
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/frustum_culling.h>
+#include <pcl/segmentation/sac_segmentation.h> 
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/common/common.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/search/kdtree.h>  
+#include <pcl/surface/convex_hull.h>
+
+#include <boost/thread/thread.hpp>
+
+#include "librealsense2/rs.hpp"
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <Zivid/Zivid.h>
+#include <Zivid/Camera.h>
+
+#include <HCNetSDK.h>
+#include <LinuxPlayM4.h>
+
+using namespace std;
+using namespace pcl;
+using namespace rs2;
+using namespace cv;
+using namespace Zivid;
+
+#if defined(_MSC_VER)
+    #define PACKED_STRUCT __pragma(pack(push, 1)) struct
+    #define PACKED_END __pragma(pack(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+    #if defined(__aarch64__) || defined(__arm64__)
+        #define PACKED_STRUCT struct __attribute__((packed, aligned(1)))
+        #define PACKED_END
+    #else
+        #define PACKED_STRUCT struct __attribute__((packed))
+        #define PACKED_END
+    #endif
+#else
+    #error "Unsupported compiler - Jetson Thor requires GCC/Clang"
+#endif
+
+PACKED_STRUCT s_Timestamp {
+    /* 0-5字节: 秒计数（6字节大端序） */
+    uint8_t seconds[6];
+    /* 6-9字节: 微秒计数（4字节大端序） */
+    uint8_t microseconds[4];
+}PACKED_END;
+// MSOP帧头结构体（32字节）
+PACKED_STRUCT s_MSOPHeader {
+    /* 0-3字节: 同步头（4字节，固定值 0x55AA5AA5） */
+    uint32_t sync;
+    /* 4-5字节: 包序列号（2字节） */
+    uint16_t pktCnt;
+    /* 6-7字节: 协议版本号（2字节） */
+    uint16_t ver;
+    /* 8字节: 回波模式（1字节） */
+    uint8_t returnMode;
+    /* 9字节: 时间同步模式（1字节） */
+    uint8_t timeMode;
+    /* 10-19字节: 时间戳 */
+    s_Timestamp timesTamp;
+    /* 20字节: 帧同步状态（1字节） */
+    uint8_t frameSync;
+    /* 21-29字节: 预留字段（9字节） */
+    uint8_t res0[9];
+    /* 30字节: 雷达类型标识（1字节） */
+    uint8_t lidarType;
+    /* 31字节: 芯片温度原始值（1字节） */
+    int8_t lidarTmp;
+}PACKED_END;
+// MSOP数据块结构体（12字节）
+PACKED_STRUCT s_DataBlock {
+    /* 0-1字节: 时间偏移量（2字节，无符号） */
+    uint16_t timeOffset;
+    /* 2-3字节: 径向距离（2字节，无符号） */
+    uint16_t radius;
+    /* 4-5字节: 单位方向向量X分量（2字节，有符号） */
+    int16_t dirVectorX;
+    /* 6-7字节: 单位方向向量Y分量（2字节，有符号） */
+    int16_t dirVectorY;
+    /* 8-9字节: 单位方向向量Z分量（2字节，有符号） */
+    int16_t dirVectorZ;
+    /* 10字节: 反射强度（1字节，无符号） */
+    uint8_t intensity;
+    /* 11字节: 点属性（1字节，使用联合体解析） */
+    uint8_t pointAttr;
+}PACKED_END;
+// MSOP帧尾结构体（16字节）
+PACKED_STRUCT s_MSOPTrailer {
+    /* 0-3字节: 预留字段（4字节） */
+    uint8_t res1[4];
+    /* 4-5字节: 数据长度（2字节，固定值 0x04B0 = 1200） */
+    uint16_t dataLength;
+    /* 6-7字节: 计数器（2字节） */
+    uint16_t counter;
+    /* 8-11字节: 数据ID（4字节，固定值 0x00000E5C） */
+    uint32_t dataId;
+    /* 12-15字节: CRC32校验码（4字节） */
+    uint32_t crc32;
+}PACKED_END;
+// MSOP完整MSOP包结构体（1200字节定长）
+PACKED_STRUCT s_MSOPPacket {
+    s_MSOPHeader header;
+    s_DataBlock blocks[96];
+    s_MSOPTrailer trailer;
+}PACKED_END;
+// DIFOP帧头结构体 (8字节) - 位于包偏移0~7字节
+PACKED_STRUCT s_DIFOPHeader {
+    /* [0-3] 主识别头 (4字节) */
+    uint32_t sync1;
+    /* [4-7] 次识别头 (4字节) */
+    uint32_t sync2;
+}PACKED_END;
+// 网络地址结构体 (辅助类型) - 用于IP/MAC地址封装
+PACKED_STRUCT s_IPv4Address {
+    uint8_t bytes[4];
+}PACKED_END;
+PACKED_STRUCT s_MACAddress {
+    uint8_t bytes[6];
+}PACKED_END;
+// 固件版本结构体 (3字节) - 位于包偏移16~18字节
+PACKED_STRUCT s_FirmwareVersion {
+    uint8_t major;           // 主版本号
+    uint8_t minor;           // 次版本号
+    uint8_t patch;           // 修订版本号
+}PACKED_END;
+// 完整DIFOP包结构体 (256字节定长) - 严格对应手册4.3.2节
+PACKED_STRUCT s_DIFOPPacket {
+    /* [0-7] DIFOP帧头 (8字节) */
+    s_DIFOPHeader header;
+    /* [8-15] 预留字段 (8字节) */
+    uint8_t res0[8];
+    /* [16-18] 固件版本号 (3字节) */
+    s_FirmwareVersion swVersion;
+    /* [19] 预留字段 (1字节) */
+    uint8_t res1;
+    /* [20-25] 设备序列号 (6字节) - ASCII编码 */
+    uint8_t sn[6];              // 例如: "E1R001"
+    /* [26-43] 预留字段 (18字节) */
+    uint8_t res2[18];
+    /* [44-47] 本地IP地址 (4字节) - 雷达本机IP */
+    s_IPv4Address localIp;
+    /* [48-51] 子网掩码 (4字节) */
+    s_IPv4Address netMask;
+    /* [52-57] MAC地址 (6字节) */
+    s_MACAddress macAddress;
+    /* [58-61] MSOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address msopRemoteIp;
+    /* [62-63] MSOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t msopLocalPort;
+    /* [64-65] MSOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t msopRemotePort;
+    /* [66-69] DIFOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address difopRemoteIp;
+    /* [70-71] DIFOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t difopLocalPort;
+    /* [72-73] DIFOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t difopRemotePort;
+    /* [74-98] 预留字段 (25字节) */
+    uint8_t res3[25];
+    /* [99] 帧率设置 (1字节) */
+    uint8_t frequencySetting; // 0x0A = 10Hz (E1R默认)
+    /* [100] 回波模式 (1字节) - 与MSOP协议一致 */
+    uint8_t returnMode;       // 0x04 = StrongestWave (默认)
+    /* [101] 时间同步模式 (1字节) */
+    uint8_t timeSyncMode;     // 0x00=Internal, 0x02=E2E L2, 0x03=gPTP
+    /* [102] 时间同步状态 (1字节) */
+    uint8_t timeSyncStatus;   // 0x00=failed, 0x01=success, 0x02=timeout
+    /* [103-112] 时间状态 (10字节) - 与MSOP Timestamp格式相同 */
+    s_Timestamp timeStatus;
+    /* [113] 物理层工作模式 (1字节) */
+    uint8_t phyMode;          // 0x00=auto, 0x01=master, 0x02=slave
+    /* [114-255] 预留字段 (142字节) */
+    uint8_t res4[142];
+}PACKED_END;
+
+//EIR雷达
+struct s_RoboSense_DB {
+    bool MSOP_connected = false;
+    bool DIFOP_connected = false;
+    bool device_Status = false;
+
+    QString device_name;
+
+    QString Local_Ip;
+    int Local_MSOP_Port;
+    int Local_DIFOP_Port;
+    QString E1R_IP;
+    int  E1R_MSOP_Port;
+    int E1R_DIFOP_Port;
+
+    int8_t lidarTmp;
+};
+//D555相机
+struct s_RealSense_DB {
+    bool device_connected = false; //相机连接状态
+    bool device_Status = false;
+    QString device_name;
+    QString serial; //相机序列号
+
+    QString Local_Ip;
+    int Local_Port;
+
+    QString Device_IP;
+    int  Device_Port;
+};
+//Zivid相机
+struct s_Zivid_Camera_DB {
+    bool camera_connected = false;    //相机连接状态
+    QString device_name;
+    QString camera_serial;    //相机序列号
+
+    QString server_ip;
+    quint16 server_port;
+
+    qint64 settingTime = 0;        //捕获耗时
+    qint64 captureTime = 0;        //捕获耗时
+    qint64 save2DTime = 0;        //捕获耗时
+    qint64 save3DTime = 0;        //捕获耗时
+  
+    QString image_name;            //基础路径
+    QString save_path;     //当前保存路径
+
+    QString system_status;         //系统状态
+    QDateTime last_operation_time; //最后操作时间
+};
+//服务
+struct s_Server_DB {
+    bool server_connected = false;    //连接状态
+    QString camera_num;  //相机编号
+    QString track;       // 股道号
+    QString date;        // 年月日
+    QString time;       // 时分
+    QString trainType;  // 车型车号
+    QString taskID;     // 任务编号
+    QString basePath;   // 保存路径
+};
+// 服务状态数据库结构
+struct s_Transmission_DB {
+	bool Tran = false;// 传输状态
+	bool Connected = false;// 连接状态
+	bool Start = false;// 开始状态
+	bool Finish = true;// 完成状态
+	bool Cancel = false;// 取消状态
+	bool Error = false;
+	QString device_name = "机车巡检机器人图像采集-上传软件-v1.0";  // 设备名称
+	QString Server_Ip = "192.168.0.1";// 服务器IP
+	int Server_Port = 8888;// 服务器端口
+    QString Client_Ip;
+	int Client_Port;
+	QString Save_Path;    
+    QStringList buffer;
+	QStringList Tran_buffer;
+	QStringList Retran_buffer;
+	QStringList Received_Buffer; 
+};
+
+//DIFOP解析联合体
+union s_DIFOPPacketUnion {
+    /* 原始字节数组 (256字节) - 用于接收UDP数据 */
+    uint8_t raw[256];
+    /* 结构化视图 - 与raw共享同一内存区域 */
+    s_DIFOPPacket data;
+};
+
+// MSOP数据解析联合体
+union s_MSOPPacketUnion {
+    /* 成员1: 原始字节数组（1200字节）- 用于接收网络数据 */
+    uint8_t raw[1200];
+    /* 成员2: 结构化视图 - 与raw共享同一块内存 */
+    s_MSOPPacket data;
+};
+
+class c_Object : public QObject
+{
+    Q_OBJECT
+public:
+    explicit c_Object(QObject* parent = nullptr);
+    virtual ~c_Object();
+
+  	union dataConverter {
+		float floatValue;     // 浮点数
+		quint32 DWord;
+		struct {
+			quint16 low16Bits;
+			quint16 high16Bits;
+		}Word;
+	};
+
+    void BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits);
+	void FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits);
+	void IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits);
+	void BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits);
+
+    bool QtPing(const QString ip);
+    bool msleep(const int mSec);
+    QString TCP_Status(int State);
+    QString Modbus_Status(int State);
+    QString CanOpen(int State);
+    QString Hikvision_Status(DWORD state);
+
+signals:
+    void Status(QString state);
+
+};
+
+class c_Variable : public c_Object
+{
+    Q_OBJECT
+public:
+    static c_Variable& getInstance();
+   
+    static s_RealSense_DB g_RealSense;
+    static QJsonObject g_Communicate_DB;      
+
+    void writeMessage(int style, QString message);
+
+private:
+    explicit c_Variable(QObject* parent = nullptr);
+    virtual ~c_Variable();
+
+    c_Variable(const c_Variable& other) = delete;
+    c_Variable& operator=(const c_Variable& other) = delete;
+
+    static QMutex g_mutex;
+    static QScopedPointer<c_Variable> g_instance;
+    friend struct QScopedPointerDeleter<c_Variable>;          
+};
+
+
+==================== SOURCE FILES (.cpp) ====================
+
+########################################################################
+FILE: ./Fr_Light.cpp
+########################################################################
+
+﻿#include "Fr_Light.h"
+
+c_Fr_Light::c_Fr_Light(QWidget * parent) :QWidget(parent)
+{
+	m_Working_Color = QColor("green");
+	m_Default_Color = QColor("red");
+	m_Error_Color = QColor("yellow");
+	m_Null_Color = QColor("gray");
+}
+
+c_Fr_Light::~c_Fr_Light()
+{
+	
+}
+
+void c_Fr_Light::Set_Working()
+{
+	if (m_State == Working) { return; }//如果状态未改变则立即退出
+	m_State = Working;
+	update();
+	emit Working_State(true);
+}
+bool c_Fr_Light::Get_State()
+{
+	if (m_State == Working) { return true; }
+	else { return false; }
+}
+void c_Fr_Light::Set_Default()
+{
+	if (m_State == Default) { return; }	  //如果状态未改变则立即退出
+	m_State = Default;
+	update();
+	emit Default_State(true);
+}
+void c_Fr_Light::Set_Error()
+{
+	if (m_State == Error) { return; }	   //如果状态未改变则立即退出
+	m_State = Error;
+	update();
+	emit Error_State(true);
+}
+void c_Fr_Light::Set_Null()
+{
+	if (m_State == Null){ return; }
+	m_State = Null;
+	update();
+}
+void c_Fr_Light::Set_State(const bool state)
+{
+	if (state) {
+		Set_Working();
+	}
+	else {
+		Set_Default();
+	}
+}
+void c_Fr_Light::Set_Radius(int value)
+{
+	m_Radius = value;
+	update();
+}
+void c_Fr_Light::paintEvent(QPaintEvent*) {
+	int side = qMin(width(), height());
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.translate(width() / 2, height() / 2);
+	painter.scale(side / 100.0, side / 100.0);
+	QColor color;
+	switch (m_State) {
+	case Default:
+		color = m_Default_Color;
+		break;
+	case Working:
+		color = m_Working_Color;
+		break;
+	case Error:
+		color = m_Error_Color;
+		break;
+	default:
+		color = m_Null_Color;
+		break;
+	}
+	QRadialGradient radial(0, 0, m_Radius, 0, 0);    //设置圆的原点和焦点在中心,半径50
+	radial.setSpread(QGradient::PadSpread);
+	radial.setColorAt(1, color);
+	painter.setPen(Qt::transparent);
+	painter.setBrush(radial);
+	painter.drawEllipse(-50, -50, 100, 100);
+}
+
+########################################################################
+FILE: ./main.cpp
+########################################################################
+
+﻿#include "RealSense.h"
+#include <QtWidgets/QApplication>
+#include <QVector>
+#include <pcl/point_types.h>
+Q_DECLARE_METATYPE(QVector<pcl::PointXYZRGB>)
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    qRegisterMetaType<QVector<pcl::PointXYZRGB>>("QVector<pcl::PointXYZRGB>");
+    c_RealSense w(a.arguments());
+    return a.exec();
+}
+
+
+########################################################################
+FILE: ./RealSense.cpp
+########################################################################
+
+﻿#include "RealSense.h"
+
+c_RealSense::c_RealSense(QStringList info, QWidget *parent): QWidget(parent)
+{
+    ui.setupUi(this);
+    m_renderWindow->SetUseOffScreenBuffers(false);
+    ui.VTK->renderWindow()->SetUseOffScreenBuffers(false);
+    {
+        QFile File;
+        File.setFileName(QDir::currentPath() + "/stuqss.css");
+        File.open(QIODevice::ReadOnly);
+
+        QString strQss = File.readAll();
+        this->setStyleSheet(strQss);
+
+        File.close();
+    }
+
+    if (!info.isEmpty() && info.size() > 1) {
+        c_Variable::getInstance().g_RealSense.device_name = info.at(1);
+
+        this->setWindowFlags(Qt::Widget);
+        this->setAttribute(Qt::WA_NativeWindow);
+        this->setAttribute(Qt::WA_DontCreateNativeAncestors, false);
+
+        this->setWindowFlags(Qt::FramelessWindowHint);
+        this->setWindowTitle(c_Variable::getInstance().g_RealSense.device_name);
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/" + c_Variable::getInstance().g_RealSense.device_name + ".json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        QByteArray Data = File.readAll();
+        QJsonParseError parseError;  
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);  
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+    }
+    else {
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/RealSense.json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        QByteArray Data = File.readAll();
+        QJsonParseError parseError; 
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError); 
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+    }
+    
+    m_file.open(stdin, QIODevice::ReadOnly | QIODevice::Text);
+    m_pNotifier = new QSocketNotifier(m_file.handle(), QSocketNotifier::Read, this);
+    QObject::connect(m_pNotifier, &QSocketNotifier::activated, this, [=](int iHandle){
+        if(m_file.handle() == iHandle){
+            int iRet = read(m_file.handle(), m_arrRecv, sizeof(m_arrRecv));
+            m_arrRecv[iRet] = 0;
+            c_RealSense::readMessage(QString("%1").arg(m_arrRecv));
+        }
+    });
+    
+    c_Variable::getInstance().writeMessage(1, QString("Run&%1").arg(this->winId()));
+
+    m_Scan = true;
+
+    this->show();
+}
+
+c_RealSense::~c_RealSense()
+{
+    emit Disconnect();
+}
+
+void c_RealSense::readMessage(QString message)
+{
+    c_Variable::getInstance().writeMessage(2, message);
+    if (message == "Connect") { emit Connect(); }
+    if (message == "Disconnect") { emit Disconnect(); }
+    if (message == "Close_Device") { this->close(); }
+    if (message.split("&", Qt::SkipEmptyParts).isEmpty()) { return; }
+}
+//ϵͳɨ��
+void c_RealSense::System_Scan()
+{
+    ui.device_Status->Set_State(c_Variable::getInstance().g_RealSense.device_Status);
+    ui.btnConnect->setEnabled(!c_Variable::getInstance().g_RealSense.device_connected);
+    ui.btnDisconnect->setEnabled(c_Variable::getInstance().g_RealSense.device_connected);
+    ui.Capture->setEnabled(c_Variable::getInstance().g_RealSense.device_connected);
+    ui.Connect_Status->Set_State(c_Variable::getInstance().g_RealSense.device_connected);
+    QTimer::singleShot(100, this, [this]() {
+        if (m_Scan) System_Scan();
+        });
+}
+
+void c_RealSense::VTK_Init()
+{
+    QOpenGLContext* ctx = QOpenGLContext::currentContext();
+    if (!ctx || !ctx->isValid()) {
+        c_Variable::getInstance().writeMessage(2, "ERROR: OpenGL context invalid!");
+        QTimer::singleShot(100, this, &c_RealSense::VTK_Init);  // ����
+        return;
+    }
+
+    // 禁用自动重渲染（交互时手动控制）
+    m_renderWindow->SetAlphaBitPlanes(0);           // 禁用Alpha缓冲节省带宽
+    m_renderWindow->SetMultiSamples(0);             // 禁用MSAA抗锯齿（大幅提升性能）
+    
+    m_renderWindow->AddRenderer(m_renderer);
+    ui.VTK->setRenderWindow(m_renderWindow);
+
+    m_viewer.reset(new pcl::visualization::PCLVisualizer(
+        m_renderer, m_renderWindow, "viewer", false));
+    m_viewer->setupInteractor(ui.VTK->interactor(), ui.VTK->renderWindow());
+
+    m_viewer->setBackgroundColor(0.0f, 0.0f, 0.0f);
+    m_viewer->initCameraParameters();
+  
+    m_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+    m_cloud->is_dense = false;
+
+    m_vtkInitialized = true;
+
+    QTimer::singleShot(100, this, &c_RealSense::RealSense_Init);
+    QTimer::singleShot(200, this, &c_RealSense::System_Scan);
+}
+void c_RealSense::RealSense_Init()
+{
+    c_Variable::getInstance().writeMessage(2, "RealSense_Init");
+
+    m_RealSense = new c_RealSense_Remote;
+    m_RealSense_thread = new QThread;
+
+    QObject::connect(m_RealSense_thread, &QThread::started, m_RealSense, &c_RealSense_Remote::Init);
+    QObject::connect(m_RealSense_thread, &QThread::finished, m_RealSense, &c_RealSense_Remote::deleteLater);
+
+    QObject::connect(m_RealSense, &c_RealSense_Remote::Status, this, [=](QString cmd) {
+        c_Variable::getInstance().writeMessage(2, cmd);
+        });
+
+    QObject::connect(ui.btnConnect, &QPushButton::clicked, m_RealSense, &c_RealSense_Remote::Connect);
+    QObject::connect(ui.btnDisconnect, &QPushButton::clicked, m_RealSense, &c_RealSense_Remote::Disconnect);
+    QObject::connect(ui.Capture, &QPushButton::clicked, m_RealSense, &c_RealSense_Remote::Capture);
+    QObject::connect(m_RealSense, &c_RealSense_Remote::Point_Scan, this, &c_RealSense::Point_Scan);
+
+    RealSense_DB();
+
+    m_RealSense_thread->start();
+
+    ui.btnConnect->click();
+}
+void c_RealSense::RealSense_DB()
+{
+    QObject::connect(ui.Camera_Serial, &QLineEdit::textChanged, this, [=](QString Serial) {
+        Write_Communicate_DB("Camera_Serial", Serial);
+        c_Variable::getInstance().g_RealSense.serial = Serial;
+        });
+
+    ui.Camera_Serial->setText(c_Variable::getInstance().g_Communicate_DB.value("Camera_Serial").toString());
+}
+void c_RealSense::RealSense_Delete()
+{
+    if (m_RealSense_thread->isRunning()) {
+        m_RealSense_thread->requestInterruption();
+        m_RealSense_thread->quit();
+        m_RealSense_thread->wait();
+    }
+}
+void c_RealSense::Point_Scan(QVector<pcl::PointXYZRGB> points)
+{
+    if (points.isEmpty()) { return; }
+    m_cloud->clear();
+    m_cloud->resize(points.size());
+    m_cloud->width = static_cast<uint32_t>(points.size());
+    m_cloud->height = 1;
+    m_cloud->is_dense = false;
+    std::memcpy(m_cloud->points.data(), points.constData(),
+        points.size() * sizeof(pcl::PointXYZRGB));
+   
+    if (m_first_Scan) {
+        m_first_Scan = false;
+        m_viewer->addPointCloud(m_cloud, "cloud");
+        m_viewer->setPointCloudRenderingProperties(
+            pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2.0, "cloud");
+        m_viewer->setPointCloudRenderingProperties(
+            pcl::visualization::PCL_VISUALIZER_OPACITY, 1.0, "cloud");
+        m_viewer->setCameraPosition(0.0f, 0.0f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f);
+    }
+    else {
+      
+        m_viewer->updatePointCloud(m_cloud, "cloud");
+    }
+    
+    m_viewer->spinOnce(1, true);  
+    m_renderWindow->Render();     
+    ui.VTK->update();           
+    c_Variable::getInstance().g_RealSense.device_Status = !c_Variable::getInstance().g_RealSense.device_Status;
+    QTimer::singleShot(100, m_RealSense, &c_RealSense_Remote::Capture);
+}
+
+
+void c_RealSense::Write_Communicate_DB(QString key, int value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_RealSense::Write_Communicate_DB(QString key, QString value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_RealSense::Write_Communicate_DB(QString key, double value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+
+void c_RealSense::closeEvent(QCloseEvent* event) {
+    m_Scan = false; 
+    c_RealSense::RealSense_Delete();
+    c_Variable::getInstance().writeMessage(1, "Stop");
+    event->accept();
+}
+void c_RealSense::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_F6) {
+        QFile File;
+        File.setFileName(QDir::currentPath() + "/stuqss.css");
+        File.open(QIODevice::ReadOnly);
+
+        QString strQss = File.readAll();
+        this->setStyleSheet(strQss);
+
+        File.close();
+    }
+
+    QWidget::keyPressEvent(event);
+}
+void c_RealSense::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    if (m_vtkInitialized) return;
+    QTimer::singleShot(100, this, &c_RealSense::VTK_Init);
+}
+
+
+########################################################################
+FILE: ./RealSense_Remote.cpp
+########################################################################
+
+﻿#include "RealSense_Remote.h"
+
+c_RealSense_Remote::c_RealSense_Remote(QObject* parent): c_Object(parent)
+{
+	
+}
+
+c_RealSense_Remote::~c_RealSense_Remote()
+{
+	c_RealSense_Remote::Disconnect();
+}
+
+void c_RealSense_Remote::Init()
+{
+	m_buffer.reserve(1280 * 720);
+	emit Status("相机线程启动");
+}
+
+void c_RealSense_Remote::Connect()
+{
+	if (c_Variable::getInstance().g_RealSense.device_connected) {
+		emit Status("相机已连接，无需再次连接");
+		return;
+	}
+	emit Status("相机连接中");
+	// 创建RealSense上下文（设备枚举入口）
+	rs2::context ctx;
+	// 查询所有连接的设备
+	auto devices = ctx.query_devices();
+	int device_count = static_cast<int>(devices.size());
+	if (device_count == 0) {
+		emit Status("未检测到任何RealSense设备");
+		c_Variable::getInstance().g_RealSense.device_connected = false;
+		return;
+	}
+	emit Status(QString("检测到%1个RealSense设备").arg(device_count));
+	for (int i = 0; i < device_count; ++i) {
+		auto dev = devices[i];
+		// 获取当前设备的序列号（转换为QString）
+		QString serial = QString::fromStdString(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
+		QString name = QString::fromStdString(dev.get_info(RS2_CAMERA_INFO_NAME));
+		if (serial == c_Variable::getInstance().g_RealSense.serial) {
+			m_device = dev;
+			c_Variable::getInstance().g_RealSense.device_connected = true;
+			emit Status(QString("匹配设备[%1]: Serial=%2, Name=%3")
+				.arg(i).arg(serial).arg(name));
+			break;
+		}
+	}
+	if (!c_Variable::getInstance().g_RealSense.device_connected) {
+		emit Status(QString("未找到序列号为%1的设备")
+			.arg(c_Variable::getInstance().g_RealSense.serial));
+		c_Variable::getInstance().g_RealSense.device_connected = false;
+		return ;
+	}
+	if (c_Variable::getInstance().g_RealSense.device_connected) {
+		// 创建RealSense配置对象
+		rs2::config cfg;
+		// 指定目标设备
+		cfg.enable_device(c_Variable::getInstance().g_RealSense.serial.toStdString());
+		// 启用深度流（1280×720，16位深度，30fps）
+		cfg.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, 30);
+		// 启用彩色流（1280×720，BGR8，30fps）
+		cfg.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_BGR8, 30);
+		try {
+			// 启动数据管道
+			m_profile = m_pipeline.start(cfg);
+			c_Variable::getInstance().g_RealSense.device_connected = true;
+			emit Status("连接成功1280*720@30fps");
+			c_Variable::getInstance().writeMessage(1, "Connect_Done");
+
+			QTimer::singleShot(3000, this, &c_RealSense_Remote::Capture);
+		}
+		catch (const rs2::error& e) {
+			// 捕获RealSense SDK异常
+			c_Variable::getInstance().g_RealSense.device_connected = false;
+			emit Status(QString("启动失败: %1").arg(QString::fromStdString(e.what())));
+			c_Variable::getInstance().writeMessage(1, "Disconnect_Done");
+		}
+	}
+}
+
+void c_RealSense_Remote::Disconnect()
+{
+	if (!c_Variable::getInstance().g_RealSense.device_connected) {
+		emit Status(QStringLiteral("相机未连接，无需断开"));
+		return;
+	}
+	emit Status(QStringLiteral("正在断开相机连接..."));
+	try {
+		// 检查管道是否处于活动状态
+		if (m_pipeline.get_active_profile()) {
+			// 停止管道
+			m_pipeline.stop();
+			emit Status(QStringLiteral("Pipeline已停止"));
+		}
+	}
+	catch (const rs2::error& e) {
+		// 设备可能已物理断开，属于正常情况
+		QString error_msg = QString::fromStdString(e.what());
+		emit Status(QStringLiteral("Pipeline停止异常: %1").arg(error_msg));
+	}
+	// 重置RealSense SDK对象
+	m_profile = rs2::pipeline_profile(); 
+	m_device = rs2::device();           
+	c_Variable::getInstance().g_RealSense.device_connected = false;
+	emit Status("断开成功");
+	c_Variable::getInstance().writeMessage(1, "Disconnect_Done");
+}
+
+void c_RealSense_Remote::Capture()
+{
+	if (!c_Variable::getInstance().g_RealSense.device_connected) { return; }
+	// 获取帧数据集（深度+彩色）
+	rs2::frameset frames;
+	// 非阻塞等待帧（100ms超时）
+	if (!m_pipeline.try_wait_for_frames(&frames,100)) {
+		emit Status("帧获取超时（100ms）");
+		return;
+	}
+
+	// 对齐深度图到彩色图坐标系（关键：确保2D/3D像素对应）
+	frames = m_align.process(frames);
+	// 获取深度帧和彩色帧
+	auto depth = frames.get_depth_frame();
+	auto color = frames.get_color_frame();
+	// 任一帧无效则返回失败
+	if (!depth || !color) {
+		emit Status("无效帧（深度/彩色缺失）");
+		return;
+	}
+	// 1280
+	int width = color.get_width();   
+	// 720
+	int height = color.get_height(); 
+	
+	// 点云生成器
+	rs2::pointcloud pc;      
+	// 纹理映射：将彩色帧映射到点云
+	pc.map_to(color);      
+	// 生成点云（单位：米）
+	rs2::points points = pc.calculate(depth);
+
+	// 获取顶点数据（3D坐标，单位：米）
+	const rs2::vertex* vertices = points.get_vertices();  
+	// UV纹理坐标（归一化0.0~1.0）
+	const rs2::texture_coordinate* tex_coords = points.get_texture_coordinates(); 
+	//bgr数据
+	const uint8_t* bgr_data = (const uint8_t*)color.get_data();
+	//清空并重置缓存（保留预分配内存，避免重建）
+	m_buffer.clear();
+	m_buffer.resize(height * width);
+	// 使用纹理坐标精确采样（避免2D-3D映射错位）
+	for (int i = 0; i < height * width; ++i) {
+		// 获取3D坐标（单位：米）
+		const rs2::vertex& v = vertices[i];
+		// 纹理坐标 → 像素坐标（精确采样 + 边界保护）
+		int px = static_cast<int>(tex_coords[i].u * width + 0.5f);
+		int py = static_cast<int>(tex_coords[i].v * height + 0.5f);
+		px = qBound(0, px, width - 1);
+		py = qBound(0, py, height - 1);
+
+		int bgr_idx = (py * width + px) * 3;
+		m_buffer[i].r = bgr_data[bgr_idx + 2]; 
+		m_buffer[i].g = bgr_data[bgr_idx + 1];  
+		m_buffer[i].b = bgr_data[bgr_idx + 0];  
+		m_buffer[i].a = 255;     
+
+		// XYZ坐标（单位：米，PCL/VTK标准）
+		m_buffer[i].x = v.x;
+		m_buffer[i].y = v.y;
+		m_buffer[i].z = v.z;
+	}
+	emit Point_Scan(m_buffer);
+}
+
+
+########################################################################
+FILE: ./Variable.cpp
+########################################################################
+
+﻿
+#include <Variable.h>
+
+c_Object::c_Object(QObject* parent) : QObject(parent)
+{
+
+}
+c_Object::~c_Object()
+{
+   
+}
+bool c_Object::msleep(const int mSec)
+{
+    QEventLoop loop;
+    QTimer::singleShot(mSec, &loop, &QEventLoop::quit);
+    loop.exec();
+    return true;
+}
+bool c_Object::QtPing(const QString ip)
+{
+    QProcess cmd;
+    QStringList arguments;
+    
+    // 1. 参数配置
+    // -c 1: 只发 1 个包
+    // -W 2: 超时 2 秒 (防止网络不通时挂起太久)
+    // -s 1: 包大小 (保持你原有的设置)
+    arguments << "-c" << "1" << "-W" << "2" << "-s" << "1" << ip;
+
+    // 2. 启动进程 (直接传参，不调用 shell)
+    cmd.start("ping", arguments);
+
+    // 3. 等待结束 
+    // 总超时 = Ping 超时 * 次数 + 缓冲。这里设为 3000ms 足够覆盖 -W 2
+    if (!cmd.waitForFinished(3000)) {
+        cmd.kill(); // 如果超时，强制杀死进程
+        emit Status(ip + " Ping 超时");
+        return false;
+    }
+
+    // 4. 获取结果 (使用 exitCode 判断，比解析字符串更可靠)
+    int exitCode = cmd.exitCode();
+    // 可选：打印日志调试
+
+    if (exitCode == 0) {
+        emit Status(ip + " Ping 通");
+        return true;
+    } else {
+        emit Status(ip + " Ping 不通");
+        return false;
+    }
+}
+QString c_Object::TCP_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "连接被对等方拒绝（或超时）";
+	case 1:return "远程主机关闭了连接。请注意，客户端套接字（即此套接字）将在发送远程关闭通知后关闭";
+	case 2:return "找不到主机地址";
+	case 3:return "套接字操作失败，因为应用程序缺少所需的权限";
+	case 4:return "本地系统资源不足（例如，套接字过多）";
+	case 5:return "套接字操作超时";
+	case 6:return "数据报大于操作系统的限制（可低至8192字节）";
+	case 7:return "网络发生错误（例如，网络电缆意外插拔）";
+	case 8:return "为QAbstractSocket:：bind（）指定的地址已在使用中，并被设置为独占";
+	case 9:return "为QAbstractSocket:：bind（）指定的地址不属于主机";
+	case 10:return "本地操作系统不支持请求的套接字操作（例如，缺少IPv6支持）";
+	case 11:return "仅由QAbstractSocketEngine使用，上次尝试的操作尚未完成（仍在后台进行）";
+	case 12:return "套接字正在使用代理，代理需要身份验证";
+	case 13:return "SSL/TLS握手失败，因此连接已关闭（仅在QSslSocket中使用）";
+	case 14:return "无法联系代理服务器，因为与该服务器的连接被拒绝";
+	case 15:return "与代理服务器的连接意外关闭（在与最终对等方建立连接之前）";
+	case 16:return "与代理服务器的连接超时，或者代理服务器在身份验证阶段停止响应。";
+	case 17:return "找不到使用setProxy（）设置的代理地址（或应用程序代理）";
+	case 18:return "与代理服务器的连接协商失败，因为无法理解来自代理服务器的响应";
+	case 19:return "当套接字处于不允许的状态时，尝试了一个操作";
+	case 20:return "正在使用的SSL库报告了一个内部错误。这可能是由于库的安装错误或配置错误造成的";
+	case 21:return "提供了无效数据（证书、密钥、密码等），其使用导致SSL库中出现错误";
+	case 22:return "发生临时错误（例如，操作将被阻塞，套接字为非阻塞）";
+	case 23:return "套接字未连接";
+	case 24:return "套接字正在执行主机名查找";
+	case 25:return "套接字已开始建立连接";
+	case 26:return "建立了一个连接";
+	case 27:return "套接字绑定到一个地址和端口";
+	case 28:return "套接字即将关闭（数据可能仍在等待写入）";
+	case 29:return "套接字监听状态（仅供内部使用）";
+	case -1:return "发生了一个无法识别的错误";
+	default:return "无状态";
+	}
+}
+QString c_Object::Modbus_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "已连接";
+	case 1:return "读取操作期间发生错误";
+	case 2:return "写入操作期间发生错误";
+	case 3:return "尝试打开后端时出错";
+	case 4:return "尝试设置配置参数时出错";
+	case 5:return "I/O期间发生超时。I/O操作未在给定的时间范围内完成";
+	case 6:return "发生Modbus特定协议错误";
+	case 7:return "由于设备断开连接，回复被中止";
+	case 8:return "发生未知错误";
+	case 9:return "设备已断开连接";
+	case 10:return "正在连接设备";
+	case 11:return "设备正在关闭";
+	default:return "无状态";
+	}
+}
+QString c_Object::CanOpen(int State)
+{
+	switch (State) {
+	case 0x0000:return "正常";
+	case 0x0001:return "DCBUS 过压";
+	case 0x0002:return "DCBUS 欠压";
+	case 0x0004:return "电机过流";
+	case 0x0008:return "编码器故障";
+	case 0x0010:return "控制电源欠压";
+	case 0x0020:return "驱动过热";
+	case 0x0040:return "电机过热";
+	case 0x0080:return "电机过载报警";
+	case 0x0100:return "霍尔信号异常";
+	case 0x0200:return "编码器短线故障";
+	case 0x0400:return "电机过速";
+	case 0x0800:return "指令超差错误";
+	case 0x1000:return "存储参数校验错误";
+	case 0x2000:return "功率模块过流（硬件）";
+	case 0x4000:return "电机制动过载错误";
+	case 0x8001:return "电机自学习错误";
+	case 0x8002:return "电流检测基准错误";
+	case 0x8004:return "电机缺相报警";
+	case 0x8005:return "通讯超时";
+	default:return "未知错误";
+	}
+}
+QString c_Object::Hikvision_Status(DWORD state)
+{
+    switch (state){
+    case EXCEPTION_EXCHANGE:return "用户交互时异常";
+    case EXCEPTION_AUDIOEXCHANGE:return "语音对讲异常";
+    case EXCEPTION_ALARM:return "报警异常";
+    case EXCEPTION_PREVIEW:return "网络预览异常";
+    case EXCEPTION_SERIAL:return "透明通道异常";
+    case EXCEPTION_RECONNECT:return "预览时重连";
+    case EXCEPTION_ALARMRECONNECT:return "报警时重连";
+    case EXCEPTION_SERIALRECONNECT:return "透明通道重连";
+    case SERIAL_RECONNECTSUCCESS:return "透明通道重连成功";
+    case EXCEPTION_PLAYBACK:return "回放异常";
+    case EXCEPTION_DISKFMT:return "硬盘格式化";
+    case EXCEPTION_PASSIVEDECODE:return "被动解码异常";
+    case EXCEPTION_EMAILTEST:return "邮件测试异常";
+    case EXCEPTION_BACKUP:return "备份异常";
+    case PREVIEW_RECONNECTSUCCESS:return "预览时重连成功";
+    case ALARM_RECONNECTSUCCESS:return "报警时重连成功";
+    case RESUME_EXCHANGE:return "用户交互恢复";
+    case NETWORK_FLOWTEST_EXCEPTION:return "网络流量检测异常";
+    case EXCEPTION_PICPREVIEWRECONNECT:return "图片预览重连";
+    case PICPREVIEW_RECONNECTSUCCESS:return "图片预览重连成功";
+    case EXCEPTION_PICPREVIEW:return "图片预览异常";
+    case EXCEPTION_MAX_ALARM_INFO:return "报警信息缓存已达上限";
+    case EXCEPTION_LOST_ALARM:return "报警丢失";
+    case EXCEPTION_PASSIVETRANSRECONNECT:return "被动转码重连";
+    case PASSIVETRANS_RECONNECTSUCCESS:return "被动转码重连成功";
+    case EXCEPTION_PASSIVETRANS:return "被动转码异常";
+    case SUCCESS_PUSHDEVLOGON:return "推模式设备注册成功";
+    case EXCEPTION_RELOGIN:return "用户重登陆";
+    case RELOGIN_SUCCESS:return "用户重登陆成功";
+    case EXCEPTION_PASSIVEDECODE_RECONNNECT:return "被动解码重连";
+    case EXCEPTION_CLUSTER_CS_ARMFAILED:return "集群报警异常";
+    case EXCEPTION_RELOGIN_FAILED:return "重登陆失败，停止重登陆";
+    case EXCEPTION_PREVIEW_RECONNECT_CLOSED:return "关闭预览重连功能";
+    case EXCEPTION_ALARM_RECONNECT_CLOSED:return "关闭报警重连功能";
+    case EXCEPTION_SERIAL_RECONNECT_CLOSED:return "关闭透明通道重连功能";
+    case EXCEPTION_PIC_RECONNECT_CLOSED:return "关闭回显重连功能";
+    case EXCEPTION_PASSIVE_DECODE_RECONNECT_CLOSED:return "关闭被动解码重连功能";
+    case EXCEPTION_PASSIVE_TRANS_RECONNECT_CLOSED:return "关闭被动转码重连功能 ";
+    case EXCEPTION_VIDEO_DOWNLOAD:return "录像下载异常";
+    default:return "未知异常";
+    }
+}
+
+void c_Object::BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits)
+{
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = second16Bits;
+	unionConverter.Word.low16Bits = first16Bits;
+	// 返回浮点数
+	floatValue = unionConverter.floatValue;
+}
+void c_Object::FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits)
+{
+	// 使用联合来存储浮点数和其对应的32位整数表示
+	dataConverter unionConverter;
+	unionConverter.floatValue = floatValue;
+	// 提取两个16位值的位信息
+	second16Bits = unionConverter.Word.high16Bits;
+	first16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits) {
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.DWord = intValue;
+	// 提取两个16位值的位信息
+	high16Bits = unionConverter.Word.high16Bits;
+	low16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits)
+{
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = high16Bits;
+	unionConverter.Word.low16Bits = low16Bits;
+	intValue = unionConverter.DWord;
+}
+
+
+QMutex c_Variable::g_mutex;
+QScopedPointer<c_Variable> c_Variable::g_instance;
+
+s_RealSense_DB c_Variable::g_RealSense;
+QJsonObject c_Variable::g_Communicate_DB;
+
+c_Variable::c_Variable(QObject* parent) : c_Object(parent)
+{
+  
+}
+c_Variable::~c_Variable()
+{
+  
+}
+c_Variable& c_Variable::getInstance()
+{
+    if (g_instance.isNull()) {
+        QMutexLocker locker(&g_mutex);
+        if (g_instance.isNull()) {
+            g_instance.reset(new c_Variable());
+        }
+    }
+    return *g_instance.data();
+}
+void c_Variable::writeMessage(int style, QString message)
+{
+    msleep(10);
+	if (style == 1)
+    {
+        QTextStream stream(stdout);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stdout);
+    }
+    if (style == 2)
+    {
+        QTextStream stream(stderr);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stderr);
+    }
+}
+
+
+==================== QDesigner FILES (.ui) ====================
+
+########################################################################
+FILE: ./c_RealSense.ui
+########################################################################
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>c_RealSenseClass</class>
+ <widget class="QWidget" name="c_RealSenseClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1100</width>
+    <height>724</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>c_RealSense</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="1">
+    <widget class="QPushButton" name="Capture">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>捕获图像</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_13">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>连接状态:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="c_Fr_Light" name="Connect_Status" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_15">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>设备心跳:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="c_Fr_Light" name="device_Status" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="btnConnect">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string>Connect</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnDisconnect">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string>Disconnect</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_9">
+     <item>
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>相机序列号:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="Camera_Serial">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="2">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="2">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0" colspan="3">
+    <widget class="QVTKOpenGLNativeWidget" name="VTK">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>c_Fr_Light</class>
+   <extends>QWidget</extends>
+   <header>Fr_Light.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QVTKOpenGLNativeWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header>QVTKOpenGLNativeWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="RealSense.qrc"/>
+ </resources>
+ <connections/>
+</ui>
+
+==================== Cmake FILES (.txt) ====================
+
+########################################################################
+FILE: ./CMakeLists.txt
+########################################################################
+
+cmake_minimum_required(VERSION 3.16)
+project(RealSense_Manage VERSION 1.0.0 LANGUAGES C CXX CUDA)
+
+# ============================================================================
+# 策略与平台检测
+# ============================================================================
+if(POLICY CMP0144)
+    cmake_policy(SET CMP0144 OLD)
+endif()
+
+# 检测ARM64平台
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(ARM64 TRUE)
+    message(STATUS "✅ Detected ARM64 Linux platform (Jetson)")
+endif()
+
+# ============================================================================
+# 构建配置
+# ============================================================================
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES 120 CACHE STRING "CUDA Architectures" FORCE)
+endif()
+
+if(DEFINED ENV{CUDA_HOME})
+    set(CUDA_HOME $ENV{CUDA_HOME})
+    set(CMAKE_CUDA_COMPILER ${CUDA_HOME}/bin/nvcc)
+endif()
+if(DEFINED ENV{OpenCV_DIR})
+    set(OpenCV_DIR $ENV{OpenCV_DIR})
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PCL_NO_MPI ON)
+
+# ============================================================================
+# 查找依赖包（含完善版librealsense2配置）
+# ============================================================================
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network PrintSupport Charts WebSockets Concurrent OpenGL)
+find_package(OpenCV REQUIRED)
+find_package(Zivid REQUIRED COMPONENTS Core Visualization)
+find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization filters kdtree search sample_consensus)
+find_package(VTK 9.1 REQUIRED COMPONENTS CommonCore CommonDataModel FiltersCore RenderingCore RenderingOpenGL2 GUISupportQt)
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# ============================================================================
+# librealsense2 配置（完善版）
+# ============================================================================
+# 优先使用 find_package（现代CMake方式）
+find_package(realsense2 QUIET)
+if(realsense2_FOUND)
+    message(STATUS "✅ librealsense2 found via find_package: ${realsense2_VERSION}")
+    set(REALSENSE2_FOUND TRUE)
+    set(REALSENSE2_INCLUDE_DIRS ${realsense2_INCLUDE_DIRS})
+    set(REALSENSE2_LIBRARIES realsense2::realsense2)  # 使用导入目标
+else()
+    # 回退到 pkg-config（传统方式）
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(REALSENSE2 QUIET realsense2)
+        if(REALSENSE2_FOUND)
+            message(STATUS "✅ librealsense2 found via pkg-config: ${REALSENSE2_VERSION}")
+            # 修复pkg-config路径（Jetson常见问题）
+            if(ARM64 AND NOT REALSENSE2_INCLUDE_DIRS)
+                set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            endif()
+        else()
+            message(WARNING "⚠️  librealsense2 not found (optional feature disabled)")
+        endif()
+    else()
+        message(WARNING "⚠️  pkg-config not found, cannot search for librealsense2")
+    endif()
+endif()
+
+# 验证librealsense2路径（Jetson关键修复）
+if(REALSENSE2_FOUND AND ARM64)
+    if(NOT EXISTS "${REALSENSE2_INCLUDE_DIRS}/librealsense2/rs.hpp")
+        # 尝试备用路径
+        if(EXISTS "/usr/include/librealsense2/rs.hpp")
+            set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            message(STATUS "🔧 Fixed librealsense2 include path: ${REALSENSE2_INCLUDE_DIRS}")
+        endif()
+    endif()
+endif()
+
+# ============================================================================
+# 海康SDK路径配置
+# ============================================================================
+set(HIKVISION_SDK_ROOT "/opt/hikvision_sdk_arm64" CACHE PATH "Path to Hikvision SDK for ARM64")
+set(HIKVISION_INC_PATH "${HIKVISION_SDK_ROOT}/incCn")
+set(HIKVISION_LIB_PATH "${HIKVISION_SDK_ROOT}/MakeAll")
+set(HIKVISION_COMP_PATH "${HIKVISION_SDK_ROOT}/MakeAll/HCNetSDKCom")
+
+if(NOT EXISTS "${HIKVISION_INC_PATH}")
+    message(FATAL_ERROR "❌ Hikvision SDK include directory not found at ${HIKVISION_INC_PATH}")
+endif()
+if(NOT EXISTS "${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+    message(FATAL_ERROR "❌ Hikvision SDK core library not found at ${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+endif()
+
+# ============================================================================
+# 包含目录（严格顺序 + librealsense2修复）
+# ============================================================================
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+    ${HIKVISION_INC_PATH}
+    ${PCL_INCLUDE_DIRS}
+    ${VTK_INCLUDE_DIRS}
+    ${ZIVID_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${REALSENSE2_INCLUDE_DIRS} 
+)
+
+# ============================================================================
+# 源文件
+# ============================================================================
+set(SOURCES
+    Fr_Light.cpp  
+    RealSense.cpp  
+    RealSense.qrc           
+    Variable.cpp
+    c_RealSense.ui           
+    main.cpp      
+    RealSense_Remote.cpp
+)
+
+set(HEADERS
+    RealSense_Remote.h
+    Variable.h
+    Fr_Light.h
+    RealSense.h
+)
+
+# ============================================================================
+# 创建可执行文件
+# ============================================================================
+add_executable(realsense_manage ${SOURCES} ${HEADERS})
+
+# ============================================================================
+# 链接库（含librealsense2完善配置）
+# ============================================================================
+target_link_libraries(realsense_manage PRIVATE
+    # Qt5
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport
+    Qt5::Charts Qt5::WebSockets Qt5::Concurrent Qt5::OpenGL
+    
+    # Zivid
+    Zivid::Core Zivid::Visualization
+    
+    # OpenCV
+    ${OpenCV_LIBS}
+    
+    # PCL + VTK
+    ${PCL_LIBRARIES}
+    ${VTK_LIBRARIES}
+    
+    # Boost
+    ${Boost_LIBRARIES}
+    
+    # ============================================================================
+    # librealsense2（完善配置）
+    # ============================================================================
+    ${REALSENSE2_LIBRARIES}  # 自动处理导入目标或库列表
+    
+    # ============================================================================
+    # 海康SDK（严格按文档顺序）
+    # ============================================================================
+    ${HIKVISION_LIB_PATH}/libhcnetsdk.so
+    ${HIKVISION_LIB_PATH}/libHCCore.so
+    ${HIKVISION_LIB_PATH}/libhpr.so
+    ${HIKVISION_LIB_PATH}/libPlayCtrl.so
+    ${HIKVISION_LIB_PATH}/libSuperRender.so
+    ${HIKVISION_LIB_PATH}/libAudioRender.so
+    ${HIKVISION_COMP_PATH}/libHCCoreDevCfg.so
+    ${HIKVISION_COMP_PATH}/libHCPreview.so
+    ${HIKVISION_COMP_PATH}/libHCPlayBack.so
+    ${HIKVISION_COMP_PATH}/libHCVoiceTalk.so
+    ${HIKVISION_COMP_PATH}/libHCAlarm.so
+    ${HIKVISION_COMP_PATH}/libHCDisplay.so
+    ${HIKVISION_COMP_PATH}/libHCIndustry.so
+    ${HIKVISION_COMP_PATH}/libHCGeneralCfgMgr.so
+    ${HIKVISION_COMP_PATH}/libStreamTransClient.so
+    ${HIKVISION_COMP_PATH}/libSystemTransform.so
+    ${HIKVISION_COMP_PATH}/libanalyzedata.so
+    ${HIKVISION_COMP_PATH}/libAudioIntercom.so
+    ${HIKVISION_COMP_PATH}/libiconv.so.2
+)
+
+# ============================================================================
+# RPATH与编译优化
+# ============================================================================
+set_target_properties(realsense_manage PROPERTIES
+    BUILD_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    INSTALL_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    BUILD_RPATH_USE_ORIGIN ON
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_options(realsense_manage PRIVATE
+    -O3 -mcpu=native
+    -Wall -Wextra
+    -Wno-unused-parameter -Wno-unused-variable -Wno-deprecated-declarations
+)
+
+# ============================================================================
+# 资源文件复制
+# ============================================================================
+add_custom_command(TARGET realsense_manage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/Communicate_DB.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/stuqss.css
+        $<TARGET_FILE_DIR:realsense_manage>/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Images
+        $<TARGET_FILE_DIR:realsense_manage>/Images
+    COMMENT "Copying resources to build directory"
+)
+
+# ============================================================================
+# 构建信息输出
+# ============================================================================
+message(STATUS "========================================")
+message(STATUS "✅ Project Configuration Summary")
+message(STATUS "========================================")
+message(STATUS "Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}")
+message(STATUS "OpenCV: ${OpenCV_VERSION}")
+message(STATUS "PCL: ${PCL_VERSION}")
+message(STATUS "VTK: ${VTK_VERSION}")
+message(STATUS "Zivid SDK: ${ZIVID_VERSION}")
+message(STATUS "librealsense2: ${REALSENSE2_VERSION} (${REALSENSE2_FOUND})")
+message(STATUS "Hikvision SDK: ${HIKVISION_SDK_ROOT}")
+message(STATUS "ARM64 Platform: ${ARM64}")
+

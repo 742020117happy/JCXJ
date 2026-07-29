@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "Linux ARM64 (Jetson Thor)",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include/aarch64-linux-gnu/qt5",
+                "/usr/include/aarch64-linux-gnu/qt5/QtCore",
+                "/usr/include/aarch64-linux-gnu/qt5/QtGui",
+                "/usr/include/aarch64-linux-gnu/qt5/QtWidgets",
+                "/usr/include/aarch64-linux-gnu/qt5/QtNetwork",
+                "/usr/include/aarch64-linux-gnu/qt5/QtSerialPort",
+                "/usr/include/aarch64-linux-gnu/qt5/QtConcurrent",
+                "/usr/local/cuda-13.0/include",
+                "/usr/include/opencv4",
+                "/usr/include/pcl-1.14",
+                "/usr/include/vtk-9.1",
+                "/opt/hikvision_sdk_arm64/incCn",
+                "/usr/include/eigen3",
+                "/usr/include/boost"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "QT_CORE_LIB",
+                "QT_GUI_LIB",
+                "QT_WIDGETS_LIB",
+                "QT_NETWORK_LIB",
+                "QT_SERIALPORT_LIB"
+            ],
+            "compilerPath": "/usr/bin/aarch64-linux-gnu-g++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-aarch64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

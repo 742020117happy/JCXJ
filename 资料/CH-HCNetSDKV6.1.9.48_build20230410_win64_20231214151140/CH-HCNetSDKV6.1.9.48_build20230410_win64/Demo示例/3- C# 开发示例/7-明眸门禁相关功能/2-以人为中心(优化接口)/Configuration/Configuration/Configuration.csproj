@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BB788132-9D01-4186-963A-616DCA0452A6}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Configuration</RootNamespace>
+    <AssemblyName>Configuration</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>
+    </ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CHCNetSDK.cs" />
+    <Compile Include="Language\MultiLanguage.cs" />
+    <Compile Include="ProductAcs\DoorConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProductAcs\DoorConfig.Designer.cs">
+      <DependentUpon>DoorConfig.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProductAcs\IsupAddrConfigure.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProductAcs\IsupAddrConfigure.Designer.cs">
+      <DependentUpon>IsupAddrConfigure.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProductAcs\TimeConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProductAcs\TimeConfig.Designer.cs">
+      <DependentUpon>TimeConfig.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProductAcs\UploadModeConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProductAcs\UploadModeConfig.Designer.cs">
+      <DependentUpon>UploadModeConfig.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProductAcs\WlanConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProductAcs\WlanConfig.Designer.cs">
+      <DependentUpon>WlanConfig.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Public\AcsDemoPublic.cs" />
+    <Compile Include="ProductAcs\RemoteCheck.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProductAcs\RemoteCheck.Designer.cs">
+      <DependentUpon>RemoteCheck.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Configuration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Configuration.Designer.cs">
+      <DependentUpon>Configuration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Public\AddDevice.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Public\AddDevice.Designer.cs">
+      <DependentUpon>AddDevice.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Configuration.resx">
+      <DependentUpon>Configuration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProductAcs\DoorConfig.resx">
+      <DependentUpon>DoorConfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProductAcs\IsupAddrConfigure.resx">
+      <DependentUpon>IsupAddrConfigure.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProductAcs\RemoteCheck.resx">
+      <DependentUpon>RemoteCheck.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProductAcs\TimeConfig.resx">
+      <DependentUpon>TimeConfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProductAcs\UploadModeConfig.resx">
+      <DependentUpon>UploadModeConfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProductAcs\WlanConfig.resx">
+      <DependentUpon>WlanConfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Public\AddDevice.resx">
+      <DependentUpon>AddDevice.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="Public\lib\Crypt.lib" />
+    <None Include="Public\lib\dataInfo.csv" />
+    <None Include="Public\lib\GetRealtimeP2PDataByBuf\GetRealtimeP2PDataByBufDLL.exp" />
+    <None Include="Public\lib\GetRealtimeP2PDataByBuf\GetRealtimeP2PDataByBufDLL.ilk" />
+    <None Include="Public\lib\GetRealtimeP2PDataByBuf\GetRealtimeP2PDataByBufDLL.lib" />
+    <None Include="Public\lib\libeay32.lib" />
+    <None Include="Public\lib\RTP\RTP_48893977.dat" />
+    <None Include="Public\lib\RTP\RTP_48894758.dat" />
+    <None Include="Public\lib\RTP\RTP_48894939.dat" />
+    <None Include="Public\lib\RTP_CSV\48893977_20190129115711_0001.csv" />
+    <None Include="Public\lib\RTP_CSV\48894758_20190129115712_0001.csv" />
+    <None Include="Public\lib\RTP_CSV\48894939_20190129115712_0001.csv" />
+    <None Include="Public\lib\TestTool.exe.config" />
+    <None Include="Public\lib\TestTool.vshost.exe.config" />
+    <None Include="Public\lib\TestTool.vshost.exe.manifest" />
+    <None Include="Public\lib\TINYXMLTRANS.dll.metagen" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Language\Chinese.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Language\DefaultLanguage.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Language\English.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Public\lib\AxInterop.ISAPITimeBarActiveXLib.dll" />
+    <Content Include="Public\lib\Crypt.dll" />
+    <Content Include="Public\lib\DebugUseCase.xml" />
+    <Content Include="Public\lib\DemoLocalCfg.xml" />
+    <Content Include="Public\lib\DeviceList.xml" />
+    <Content Include="Public\lib\FFmpeg2.dll" />
+    <Content Include="Public\lib\FFmpeg\avcodec-57.dll" />
+    <Content Include="Public\lib\FFmpeg\avdevice-57.dll" />
+    <Content Include="Public\lib\FFmpeg\avfilter-6.dll" />
+    <Content Include="Public\lib\FFmpeg\avformat-57.dll" />
+    <Content Include="Public\lib\FFmpeg\avutil-55.dll" />
+    <Content Include="Public\lib\FFmpeg\FFmpeg2.dll" />
+    <Content Include="Public\lib\FFmpeg\postproc-54.dll" />
+    <Content Include="Public\lib\FFmpeg\SDL2.dll" />
+    <Content Include="Public\lib\FFmpeg\swresample-2.dll" />
+    <Content Include="Public\lib\FFmpeg\swscale-4.dll" />
+    <Content Include="Public\lib\GetRealtimeP2PDataByBuf\GetRealtimeP2PDataByBufDLL.dll" />
+    <Content Include="Public\lib\Interop.ISAPITimeBarActiveXLib.dll" />
+    <Content Include="Public\lib\ISAPITimeBarActiveX.ocx" />
+    <Content Include="Public\lib\libeay32.dll" />
+    <Content Include="Public\lib\log.txt" />
+    <Content Include="Public\lib\msvcp120.dll" />
+    <Content Include="Public\lib\msvcr120.dll" />
+    <Content Include="Public\lib\Newtonsoft.Json.dll" />
+    <Content Include="Public\lib\PlayCtrl\AudioIntercom.dll" />
+    <Content Include="Public\lib\PlayCtrl\AudioRender.dll" />
+    <Content Include="Public\lib\PlayCtrl\D3DCompiler_43.dll" />
+    <Content Include="Public\lib\PlayCtrl\D3DX9_43.dll" />
+    <Content Include="Public\lib\PlayCtrl\EagleEyeRender.dll" />
+    <Content Include="Public\lib\PlayCtrl\HWDecode.dll" />
+    <Content Include="Public\lib\PlayCtrl\MP_Render.dll" />
+    <Content Include="Public\lib\PlayCtrl\MP_VIE.dll" />
+    <Content Include="Public\lib\PlayCtrl\msvcr90.dll" />
+    <Content Include="Public\lib\PlayCtrl\OpenAL32.dll" />
+    <Content Include="Public\lib\PlayCtrl\PlayCtrl.dll" />
+    <Content Include="Public\lib\PlayCtrl\SuperRender.dll" />
+    <Content Include="Public\lib\PlayCtrl\YUVProcess.dll" />
+    <Content Include="Public\lib\RTP\RTP_Lost.txt" />
+    <Content Include="Public\lib\RTSP.dll" />
+    <Content Include="Public\lib\TestTool.exe" />
+    <Content Include="Public\lib\TestTool.pdb" />
+    <Content Include="Public\lib\TestTool.vshost.exe" />
+    <Content Include="Public\lib\TINYXMLTRANS.dll" />
+    <Content Include="Public\lib\TINYXMLTRANS.pdb" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

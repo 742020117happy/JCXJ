@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<CardManagement Language="English">
+    <Form>
+        <Name>CardManagement</Name>
+        <Controls>
+          <Control name="btnLogin" text="Login"/>
+          <Control name="label1" text="Card Management"/>
+          <Control name="label2" text="Card No:"/>
+          <Control name="label3" text="Card Right Plan:"/>
+          <Control name="label4" text="Employee No:"/>
+          <Control name="label5" text="Name:"/>
+          <Control name="label6" text="Set/Get/Delete Card Need"/>
+          <Control name="label7" text="Set Card Need"/>
+          <Control name="label8" text="Set Card Need"/>
+          <Control name="label9" text="Set Card Need"/>
+          <Control name="btnSet" text="Set"/>
+          <Control name="btnGet" text="Get"/>
+          <Control name="btnDelete" text="Delete"/>
+          <Control name="label10" text="Set Card To Device"/>
+          <Control name="label11" text="Get Device Card"/>
+          <Control name="label12" text="Delete Device Card"/>
+        </Controls>
+    </Form>
+    <Form>
+        <Name>AddDevice</Name>
+        <Controls>
+          <Control name="label1" text="Login Device"/>
+          <Control name="label2" text="Device Address"/>
+          <Control name="label4" text="User Name"/>
+          <Control name="label3" text="Port"/>
+          <Control name="label5" text="Password"/>
+          <Control name="btnAdd" text="Add"/>
+          <Control name="btnCancel" text="Cancel"/>
+        </Controls>
+    </Form>
+</CardManagement>

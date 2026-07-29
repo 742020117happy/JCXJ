@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<PlanTemplate Language="Chinese">
+  <Form>
+    <Name>PlanTemplate</Name>
+    <Controls>
+      <Control name="btnLogin" text="登录"/>
+      <Control name="btnWeekPlan" text="周计划管理"/>
+      <Control name="btnHolidayPlan" text="假日计划管理"/>
+      <Control name="btnHolidayGroup" text="假日组计划管理"/>
+      <Control name="btnPlanTemplate" text="计划模板管理"/>
+      <Control name="label1" text="计划模板"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>AddDevice</Name>
+    <Controls>
+      <Control name="label1" text="登录设备"/>
+      <Control name="label2" text="IP地址"/>
+      <Control name="label4" text="用户名"/>
+      <Control name="label3" text="端口号"/>
+      <Control name="label5" text="密码"/>
+      <Control name="btnAdd" text="登录"/>
+      <Control name="btnCancel" text="取消"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>HolidayGroupPlan</Name>
+    <Controls>
+      <Control name="HolidayGroupPlan" text="假日组"/>
+      <Control name="label1" text="类型:"/>
+      <Control name="label3" text="假日组编号:"/>
+      <Control name="label2" text="假日组名称:"/>
+      <Control name="label4" text="就地控制器ID:"/>
+      <Control name="checkBoxEnableHG" text="使能"/>
+      <Control name="groupBox2" text="假日计划编号配置"/>
+      <Control name="label5" text="假日计划编号:"/>
+      <Control name="btnUpdate" text="更新"/>
+      <Control name="checkBoxEnableTime" text="使能"/>
+      <Control name="btnGetTemplate" text="获取"/>
+      <Control name="btnSetTemplate" text="设置"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>HolidayPlan</Name>
+    <Controls>
+      <Control name="HolidayPlan" text="假日计划"/>
+      <Control name="label1" text="类型:"/>
+      <Control name="label2" text="假日计划编号:"/>
+      <Control name="checkBoxEnableHP" text="使能"/>
+      <Control name="label3" text="就地控制器ID:"/>
+      <Control name="gBoxTime" text="时间配置"/>
+      <Control name="label4" text="开始日期:"/>
+      <Control name="label7" text="结束日期:"/>
+      <Control name="gBoxEditTime" text="编辑时间"/>
+      <Control name="label5" text="开始时间:"/>
+      <Control name="label6" text="结束时间:"/>
+      <Control name="checkBoxEnableTime" text="使能"/>
+      <Control name="btnAdd" text="更新"/>
+      <Control name="btnGet" text="获取"/>
+      <Control name="btnSet" text="设置"/>
+      <Control name="label8" text="验证模式:"/>
+      <Control name="label9" text="门状态模式:"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>PlanTemplateM</Name>
+    <Controls>
+      <Control name="PlanTemplateM" text="计划模板"/>
+      <Control name="label1" text="类型:"/>
+      <Control name="label2" text="计划模板编号:"/>
+      <Control name="label3" text="模板名称:"/>
+      <Control name="label4" text="就地控制器ID:"/>
+      <Control name="checkBoxEnableTP" text="使能"/>
+      <Control name="groupBox2" text="模板配置"/>
+      <Control name="label5" text="假日组编号:"/>
+      <Control name="label6" text="周计划编号:"/>
+      <Control name="btnUpdate" text="更新"/>
+      <Control name="btnGetPT" text="获取"/>
+      <Control name="btnSetPT" text="设置"/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>WeekPlan</Name>
+    <Controls>
+      <Control name="WeekPlan" text="周计划"/>
+      <Control name="label1" text="类型:"/>
+      <Control name="label2" text="周计划编号:"/>
+      <Control name="checkBoxEnableWP" text="使能"/>
+      <Control name="label3" text="就地控制器ID:"/>
+      <Control name="gBoxTime" text="时间设置"/>
+      <Control name="label4" text="星期:"/>
+      <Control name="gBoxEditTime" text="编辑时间"/>
+      <Control name="label5" text="开始时间:"/>
+      <Control name="label6" text="结束时间:"/>
+      <Control name="checkBoxEnableTime" text="使能"/>
+      <Control name="btnAdd" text="更新"/>
+      <Control name="btnGet" text="获取"/>
+      <Control name="btnSet" text="设置"/>
+      <Control name="label7" text="验证模式:"/>
+      <Control name="label8" text="门状态模式:"/>
+    </Controls>
+  </Form>
+</PlanTemplate>

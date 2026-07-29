@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/c_Collector_Manage">
+        <file>Images/icon.ico</file>
+        <file>Images/Logo.jpg</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,34 @@
+ImageRuntimeVersion: v4.0.30319
+Assembly TINYXMLTRANS, Version=1.0.*, Culture=固定语言(固定国家/地区): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class TINYXMLTRANS.CTinyXmlTrans: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Methods:
+    SetRoot(): PrivateScope, Public, HideBySig
+    Parse(string): PrivateScope, Public, HideBySig
+    LoadFile(string): PrivateScope, Public, HideBySig
+    FindElem(string): PrivateScope, Public, HideBySig
+    FindElemFromBegin(string): PrivateScope, Public, HideBySig
+    IntoElem(): PrivateScope, Public, HideBySig
+    OutOfElem(): PrivateScope, Public, HideBySig
+    NextSibElem(): PrivateScope, Public, HideBySig
+    RemoveNode(): PrivateScope, Public, HideBySig
+    GetChildrenText(): PrivateScope, Public, HideBySig
+    GetRootName(): PrivateScope, Public, HideBySig
+    GetAttributeValue(string): PrivateScope, Public, HideBySig
+    WriteToFile(string): PrivateScope, Public, HideBySig
+    GetData(): PrivateScope, Public, HideBySig
+    GetNodeName(): PrivateScope, Public, HideBySig
+    ModifyData(string, string): PrivateScope, Public, HideBySig
+    Clean(): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig

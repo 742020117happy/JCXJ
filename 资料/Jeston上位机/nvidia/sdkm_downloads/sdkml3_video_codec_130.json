@@ -1,0 +1,195 @@
+{
+    "information": {
+        "schemaUrl": "",
+        "schemaVersion": "23.0",
+        "fileVersion": "0.1",
+        "release": {
+            "title": "Video Codec 13.0",
+            "productDisplayName": "Video Codec",
+            "releaseRevision": 0,
+            "showInMainList": true,
+            "supportedHardware": {
+                "seriesIds": [
+                    "JETSON_AGX_THOR_TARGETS"
+                ]
+            },
+            "minSDKMVer": "2.4.0.13235",
+            "serverType": [
+                "DEVZONE"
+            ],
+            "pidGroupId": "",
+            "devzoneProgramId": [
+                "887788"
+            ],
+            "IntHWSupport": false,
+            "hostOperatingSystemsSupportFor": {
+                "hostGroups": [],
+                "targetGroups": [
+                    "ubuntu22.04",
+                    "ubuntu24.04",
+                    "windows10",
+                    "windows11"
+                ]
+            },
+            "releaseNotes": {
+                "releaseNotesTooltip": "<div><span class=\"tooltip-title\">What's new in Video Codec 13.0:</span><ul><li>NVIDIA Video Codec SDK supported on Jetson Thor starting JP 7.1</li><li> C, C++ NVENCODE and NVDECODE API access for Jetson developers</li><li> Unified APIs to enable cross-platform deployment across DGPU and Jetson GPU.</li></ul><a href=\"https://docs.nvidia.com/video-technologies/video-codec-sdk/13.0/read-me/index.html\" target=\"_blank\" class=\"tooltip-link\">Open Release Notes</a></div>",
+                "releaseNotesURL": "https://docs.nvidia.com/video-technologies/video-codec-sdk/13.0/read-me/index.html",
+                "releaseNotesDownload": false
+            },
+            "releaseMessage": "NVIDIA Video Codec SDK is a comprehensive set of APIs, tools, samples, and documentation that enables developers to utilize  the dedicated hardware-accelerated video encoding and decoding capabilities on NVIDIA GPUs from Edge to Cloud platforms.",
+            "SDKsRelations": [
+                {
+                    "default": "off",
+                    "parent": {
+                        "title": "JetPack 7.1",
+                        "releaseRevision": 0,
+                        "showInMainList": true,
+                        "productCategory": "Jetson",
+                        "targetOS": "Linux",
+                        "releaseVersion": "7.1",
+                        "releaseEdition": ""
+                    },
+                    "depends": [],
+                    "conflicts": []
+                }
+            ],
+            "architectures": [
+                "x86_64",
+                "x86_64-wsl"
+            ],
+            "isAdditionalSDK": true,
+            "productCategory": "VideoCodec",
+            "targetOS": "Linux",
+            "releaseVersion": "13.0",
+            "releaseEdition": "",
+            "installedOn": [
+                "target"
+            ],
+            "description": "NVIDIA Video Codec SDK is a comprehensive set of APIs, tools, samples, and documentation that enables developers to utilize the dedicated hardware-accelerated video encoding and decoding capabilities on NVIDIA GPUs from Edge to Cloud platforms.",
+            "canInstallStandAlone": false,
+            "id": "NV_JETPACK_ADDITIONAL_SDK_VIDEOCODEC",
+            "hasTargetComponents": true,
+            "hardwareConfiguration": [
+                "host",
+                "target"
+            ]
+        },
+        "targetAccessInfo": {
+            "user": "",
+            "password": "",
+            "host": "192.168.55.1",
+            "port": "22"
+        }
+    },
+    "compDirectory": "https://developer.nvidia.com/assets/embedded/secure/tools/files/jetpack-sdks/videocodec-13.0/VideoCodec_130_b36/",
+    "groups": [
+        "NV_VIDEO_CODEC_SBSA_TARGET_GROUP",
+        {
+            "name": "Video Codec",
+            "groupType": "target",
+            "installedOn": "target",
+            "description": "NVIDIA Video Codec SDK is a comprehensive set of APIs, tools, samples, and documentation that enables developers to utilize the dedicated hardware-accelerated video encoding and decoding capabilities on NVIDIA GPUs from Edge to Cloud platforms.",
+            "selected": true,
+            "selectable": true,
+            "displayed": true,
+            "isVirtual": false,
+            "id": "NV_VIDEO_CODEC_SBSA_TARGET_GROUP",
+            "versions": [
+                {
+                    "version": "13.0",
+                    "components": [
+                        {
+                            "id": "NV_VIDEO_CODEC_SDK_SBSA_TARGET_POST_INSTALL_COMP",
+                            "version": "13.0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "components": {
+        "NV_VIDEO_CODEC_SDK_SBSA_TARGET_POST_INSTALL_COMP": {
+            "name": "Video Codec SDK",
+            "isVisible": true,
+            "platforms": [
+                {
+                    "supportedHardware": {
+                        "deviceIds": [],
+                        "seriesIds": [
+                            "JETSON_AGX_THOR_TARGETS"
+                        ],
+                        "excludedDeviceIds": []
+                    },
+                    "prerequisites": [
+                        {
+                            "prerequisiteID": "PREREQUISITE_DISK_SPACE_TARGET"
+                        },
+                        {
+                            "prerequisiteID": "PREREQUISITE_NETWORK_TARGET"
+                        },
+                        {
+                            "prerequisiteID": "PREREQUISITE_APT_TARGET"
+                        }
+                    ],
+                    "architectures": [
+                        "x86_64",
+                        "x86_64-wsl"
+                    ],
+                    "operatingSystems": [
+                        "ubuntu22.04",
+                        "ubuntu24.04",
+                        "windows10",
+                        "windows11"
+                    ],
+                    "installSizeMB": 2.64,
+                    "downloadFiles": [
+                        {
+                            "url": "./nvidia-video-codec-sdk_13.0.37_arm64.deb",
+                            "fileName": "nvidia-video-codec-sdk_13.0.37_arm64.deb",
+                            "size": 455946,
+                            "checksum": "65bbd35d36f56b18c7808bdaf073b126",
+                            "checksumType": "md5",
+                            "verifyChecksum": "yes",
+                            "packageInstallParameters": {
+                                "installEngineQueue": "default",
+                                "installType": "target_deb",
+                                "additionalParameters": {
+                                    "packagesInfo": [
+                                        {
+                                            "name": "nvidia-video-codec-sdk",
+                                            "version": "13.0.37"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "dependencies": [
+                {
+                    "type": "required",
+                    "id": "NV_L4T_CUDA_SBSA_TARGET_POST_INSTALL_COMP",
+                    "additionalSDKId": "BASE_SDK"
+                }
+            ],
+            "version": "13.0",
+            "selected": true,
+            "selectable": true,
+            "licenseIds": [
+                "NV_VIDEO_CODEC_EMBEDDED_EULA"
+            ],
+            "id": "NV_VIDEO_CODEC_SDK_SBSA_TARGET_POST_INSTALL_COMP",
+            "isDetectableInstall": true,
+            "isPartiallyDetectableInstall": false
+        }
+    },
+    "licenses": {
+        "NV_VIDEO_CODEC_EMBEDDED_EULA": {
+            "name": "Software License Agreement for Video Codec",
+            "url": "$compDirectory/EULA/NV_VIDEO_CODEC_EMBEDDED_EULA.pdf",
+            "id": "NV_VIDEO_CODEC_EMBEDDED_EULA"
+        }
+    },
+    "modals": []
+}

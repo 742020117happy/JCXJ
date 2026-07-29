@@ -1,0 +1,3510 @@
+========================================================================
+Project: Collector_Manage
+Export Time: Thu Jun 18 10:00:40 AM CST 2026
+Total Files: 11
+========================================================================
+
+==================== HEADER FILES (.h) ====================
+
+########################################################################
+FILE: ./Fr_Light.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_Fr_Light : public QWidget {
+	Q_OBJECT
+
+public:
+	enum State {
+		Default,
+		Error,
+		Working,
+		Null
+	};
+	explicit c_Fr_Light(QWidget * parent = nullptr);
+	virtual ~c_Fr_Light();
+
+	public slots:
+	void Set_Working();
+	void Set_Default();
+	void Set_Error();
+	void Set_Null();
+	void Set_State(const bool state);
+	void Set_Radius(int value);
+	bool Get_State();
+
+signals:
+	void Working_State(bool state);
+	void Default_State(bool state);
+	void Error_State(bool state);
+
+protected:
+	void paintEvent(QPaintEvent *);
+
+private:
+	int m_Radius = 50;
+	State m_State = Default;
+	QColor m_Default_Color;
+	QColor m_Error_Color;
+	QColor m_Working_Color;
+	QColor m_Null_Color;
+};
+
+
+########################################################################
+FILE: ./TCP_Client.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_TCP_Client : public c_Object
+{
+	Q_OBJECT
+public:
+	explicit c_TCP_Client(c_Object *parent = nullptr);
+	virtual ~c_TCP_Client();
+
+	public slots:
+	void Init();//子线程初始化
+	void Connect();//连接到服务器
+	void Disconnect();//断开连接
+	void Send_File_Info(QString filePath); //写Json数据
+
+signals:
+	void Connect_Done();//连接到服务器完成
+	void Disconnect_Done();//断开连接完成
+	void Connect_Loop();//循环检测连接状态
+	void Write_Byte_Done(); //写完成
+	void Send_File_Error(QString filePath);//读消息转发
+
+private:
+	QTcpSocket *m_Socket;//通讯对象
+	QString m_Ip;
+	int m_Port;
+	bool m_Stop_Connect = false;
+	QString m_filePath;
+};
+
+
+
+########################################################################
+FILE: ./Variable.h
+########################################################################
+
+﻿#pragma once 
+
+#include <math.h>
+#include <time.h>
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstdio>
+#include <fcntl.h>
+#include <memory>
+
+#include <QApplication>
+#include <QByteArray>
+#include <QCloseEvent>
+#include <QColor>
+#include <QDateTime>
+#include <QDebug>
+#include <QDir>
+#include <QSize>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileDialog>
+#include <QHostAddress>
+#include <QImage>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeyEvent>
+#include <QMainWindow>
+#include <QMap>
+#include <QMessageBox>
+#include <QMetaType>
+#include <QMutex>
+#include <QObject>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPaintDevice> 
+#include <QPen>       
+#include <QProcess>
+#include <QRegularExpression>
+#include <QScopedPointer>
+#include <QSettings>
+#include <QSharedMemory>
+#include <QSocketNotifier>
+#include <QStandardPaths>
+#include <QStackedWidget>
+#include <QString>
+#include <QTextStream>
+#include <QDataStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QVariant>
+#include <QVector>
+#include <QWidget>
+#include <QSocketNotifier>
+
+#include <QAbstractSocket>
+#include <QNetworkAccessManager>
+#include <QNetworkInterface>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket> 
+#include <QUrlQuery>
+#include <QtNetwork>
+#include <QtWebSockets/qwebsocket.h>
+#include <QtWebSockets/qwebsocketserver.h>
+#include <QConicalGradient>
+#include <QPolarChart>
+#include <QScatterSeries>
+#include <QtCharts>
+
+#include <QtConcurrent/QtConcurrent>
+
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkRenderingOpenGL2);   
+VTK_MODULE_INIT(vtkInteractionStyle);  
+
+#include <vtkRenderer.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <QVTKOpenGLNativeWidget.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/common/common.h>
+#include <boost/thread/thread.hpp>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/crop_box.h>  
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/frustum_culling.h>
+#include <pcl/segmentation/sac_segmentation.h> 
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/common/common.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/search/kdtree.h>  
+#include <pcl/surface/convex_hull.h>
+
+#include <boost/thread/thread.hpp>
+
+#include "librealsense2/rs.hpp"
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <Zivid/Zivid.h>
+#include <Zivid/Camera.h>
+
+#include <HCNetSDK.h>
+#include <LinuxPlayM4.h>
+
+using namespace std;
+using namespace pcl;
+using namespace rs2;
+using namespace cv;
+using namespace Zivid;
+
+#if defined(_MSC_VER)
+    #define PACKED_STRUCT __pragma(pack(push, 1)) struct
+    #define PACKED_END __pragma(pack(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+    #if defined(__aarch64__) || defined(__arm64__)
+        #define PACKED_STRUCT struct __attribute__((packed, aligned(1)))
+        #define PACKED_END
+    #else
+        #define PACKED_STRUCT struct __attribute__((packed))
+        #define PACKED_END
+    #endif
+#else
+    #error "Unsupported compiler - Jetson Thor requires GCC/Clang"
+#endif
+
+PACKED_STRUCT s_Timestamp {
+    /* 0-5字节: 秒计数（6字节大端序） */
+    uint8_t seconds[6];
+    /* 6-9字节: 微秒计数（4字节大端序） */
+    uint8_t microseconds[4];
+}PACKED_END;
+// MSOP帧头结构体（32字节）
+PACKED_STRUCT s_MSOPHeader {
+    /* 0-3字节: 同步头（4字节，固定值 0x55AA5AA5） */
+    uint32_t sync;
+    /* 4-5字节: 包序列号（2字节） */
+    uint16_t pktCnt;
+    /* 6-7字节: 协议版本号（2字节） */
+    uint16_t ver;
+    /* 8字节: 回波模式（1字节） */
+    uint8_t returnMode;
+    /* 9字节: 时间同步模式（1字节） */
+    uint8_t timeMode;
+    /* 10-19字节: 时间戳 */
+    s_Timestamp timesTamp;
+    /* 20字节: 帧同步状态（1字节） */
+    uint8_t frameSync;
+    /* 21-29字节: 预留字段（9字节） */
+    uint8_t res0[9];
+    /* 30字节: 雷达类型标识（1字节） */
+    uint8_t lidarType;
+    /* 31字节: 芯片温度原始值（1字节） */
+    int8_t lidarTmp;
+}PACKED_END;
+// MSOP数据块结构体（12字节）
+PACKED_STRUCT s_DataBlock {
+    /* 0-1字节: 时间偏移量（2字节，无符号） */
+    uint16_t timeOffset;
+    /* 2-3字节: 径向距离（2字节，无符号） */
+    uint16_t radius;
+    /* 4-5字节: 单位方向向量X分量（2字节，有符号） */
+    int16_t dirVectorX;
+    /* 6-7字节: 单位方向向量Y分量（2字节，有符号） */
+    int16_t dirVectorY;
+    /* 8-9字节: 单位方向向量Z分量（2字节，有符号） */
+    int16_t dirVectorZ;
+    /* 10字节: 反射强度（1字节，无符号） */
+    uint8_t intensity;
+    /* 11字节: 点属性（1字节，使用联合体解析） */
+    uint8_t pointAttr;
+}PACKED_END;
+// MSOP帧尾结构体（16字节）
+PACKED_STRUCT s_MSOPTrailer {
+    /* 0-3字节: 预留字段（4字节） */
+    uint8_t res1[4];
+    /* 4-5字节: 数据长度（2字节，固定值 0x04B0 = 1200） */
+    uint16_t dataLength;
+    /* 6-7字节: 计数器（2字节） */
+    uint16_t counter;
+    /* 8-11字节: 数据ID（4字节，固定值 0x00000E5C） */
+    uint32_t dataId;
+    /* 12-15字节: CRC32校验码（4字节） */
+    uint32_t crc32;
+}PACKED_END;
+// MSOP完整MSOP包结构体（1200字节定长）
+PACKED_STRUCT s_MSOPPacket {
+    s_MSOPHeader header;
+    s_DataBlock blocks[96];
+    s_MSOPTrailer trailer;
+}PACKED_END;
+// DIFOP帧头结构体 (8字节) - 位于包偏移0~7字节
+PACKED_STRUCT s_DIFOPHeader {
+    /* [0-3] 主识别头 (4字节) */
+    uint32_t sync1;
+    /* [4-7] 次识别头 (4字节) */
+    uint32_t sync2;
+}PACKED_END;
+// 网络地址结构体 (辅助类型) - 用于IP/MAC地址封装
+PACKED_STRUCT s_IPv4Address {
+    uint8_t bytes[4];
+}PACKED_END;
+PACKED_STRUCT s_MACAddress {
+    uint8_t bytes[6];
+}PACKED_END;
+// 固件版本结构体 (3字节) - 位于包偏移16~18字节
+PACKED_STRUCT s_FirmwareVersion {
+    uint8_t major;           // 主版本号
+    uint8_t minor;           // 次版本号
+    uint8_t patch;           // 修订版本号
+}PACKED_END;
+// 完整DIFOP包结构体 (256字节定长) - 严格对应手册4.3.2节
+PACKED_STRUCT s_DIFOPPacket {
+    /* [0-7] DIFOP帧头 (8字节) */
+    s_DIFOPHeader header;
+    /* [8-15] 预留字段 (8字节) */
+    uint8_t res0[8];
+    /* [16-18] 固件版本号 (3字节) */
+    s_FirmwareVersion swVersion;
+    /* [19] 预留字段 (1字节) */
+    uint8_t res1;
+    /* [20-25] 设备序列号 (6字节) - ASCII编码 */
+    uint8_t sn[6];              // 例如: "E1R001"
+    /* [26-43] 预留字段 (18字节) */
+    uint8_t res2[18];
+    /* [44-47] 本地IP地址 (4字节) - 雷达本机IP */
+    s_IPv4Address localIp;
+    /* [48-51] 子网掩码 (4字节) */
+    s_IPv4Address netMask;
+    /* [52-57] MAC地址 (6字节) */
+    s_MACAddress macAddress;
+    /* [58-61] MSOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address msopRemoteIp;
+    /* [62-63] MSOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t msopLocalPort;
+    /* [64-65] MSOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t msopRemotePort;
+    /* [66-69] DIFOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address difopRemoteIp;
+    /* [70-71] DIFOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t difopLocalPort;
+    /* [72-73] DIFOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t difopRemotePort;
+    /* [74-98] 预留字段 (25字节) */
+    uint8_t res3[25];
+    /* [99] 帧率设置 (1字节) */
+    uint8_t frequencySetting; // 0x0A = 10Hz (E1R默认)
+    /* [100] 回波模式 (1字节) - 与MSOP协议一致 */
+    uint8_t returnMode;       // 0x04 = StrongestWave (默认)
+    /* [101] 时间同步模式 (1字节) */
+    uint8_t timeSyncMode;     // 0x00=Internal, 0x02=E2E L2, 0x03=gPTP
+    /* [102] 时间同步状态 (1字节) */
+    uint8_t timeSyncStatus;   // 0x00=failed, 0x01=success, 0x02=timeout
+    /* [103-112] 时间状态 (10字节) - 与MSOP Timestamp格式相同 */
+    s_Timestamp timeStatus;
+    /* [113] 物理层工作模式 (1字节) */
+    uint8_t phyMode;          // 0x00=auto, 0x01=master, 0x02=slave
+    /* [114-255] 预留字段 (142字节) */
+    uint8_t res4[142];
+}PACKED_END;
+
+//EIR雷达
+struct s_RoboSense_DB {
+    bool MSOP_connected = false;
+    bool DIFOP_connected = false;
+    bool device_Status = false;
+
+    QString device_name;
+
+    QString Local_Ip;
+    int Local_MSOP_Port;
+    int Local_DIFOP_Port;
+    QString E1R_IP;
+    int  E1R_MSOP_Port;
+    int E1R_DIFOP_Port;
+
+    int8_t lidarTmp;
+};
+//D555相机
+struct s_RealSense_DB {
+    bool device_connected = false; //相机连接状态
+    bool device_Status = false;
+    QString device_name;
+    QString serial; //相机序列号
+
+    QString Local_Ip;
+    int Local_Port;
+
+    QString Device_IP;
+    int  Device_Port;
+};
+//Zivid相机
+struct s_Zivid_Camera_DB {
+    bool camera_connected = false;//相机连接状态
+    QString device_name;
+    QString camera_serial;//相机序列号
+    QString Camera_Ip;
+    QString server_ip;
+    quint16 server_port;
+
+    qint64 settingTime = 0;//捕获耗时
+    qint64 captureTime = 0;//捕获耗时
+    qint64 save2DTime = 0;//捕获耗时
+    qint64 save3DTime = 0;//捕获耗时
+    qint64 saveDepthMapTime;//捕获耗时
+
+    QString image_name;//基础路径
+    QString save_path;//当前保存路径
+    QString base_Path;//基础路径
+
+    QString system_status;         //系统状态
+    QDateTime last_operation_time; //最后操作时间
+};
+
+// 服务状态数据库结构
+struct s_Transmission_DB {
+	bool Tran = false;// 传输状态
+	bool Connected = false;// 连接状态
+	bool Start = false;// 开始状态
+	bool Finish = true;// 完成状态
+	bool Cancel = false;// 取消状态
+	bool Error = false;
+	QString device_name = "机车巡检机器人图像采集-上传软件-v1.0";  // 设备名称
+	QString Server_Ip = "192.168.0.1";// 服务器IP
+	int Server_Port = 8888;// 服务器端口
+    QString Client_Ip;
+	int Client_Port;
+	QString Save_Path;    
+    QStringList buffer;
+	QStringList Tran_buffer;
+	QStringList Retran_buffer;
+	QStringList Received_Buffer; 
+};
+
+//DIFOP解析联合体
+union s_DIFOPPacketUnion {
+    /* 原始字节数组 (256字节) - 用于接收UDP数据 */
+    uint8_t raw[256];
+    /* 结构化视图 - 与raw共享同一内存区域 */
+    s_DIFOPPacket data;
+};
+
+// MSOP数据解析联合体
+union s_MSOPPacketUnion {
+    /* 成员1: 原始字节数组（1200字节）- 用于接收网络数据 */
+    uint8_t raw[1200];
+    /* 成员2: 结构化视图 - 与raw共享同一块内存 */
+    s_MSOPPacket data;
+};
+
+class c_Object : public QObject
+{
+    Q_OBJECT
+public:
+    explicit c_Object(QObject* parent = nullptr);
+    virtual ~c_Object();
+
+  	union dataConverter {
+		float floatValue;     // 浮点数
+		quint32 DWord;
+		struct {
+			quint16 low16Bits;
+			quint16 high16Bits;
+		}Word;
+	};
+
+    void BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits);
+	void FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits);
+	void IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits);
+	void BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits);
+
+    bool QtPing(const QString ip);
+    bool msleep(const int mSec);
+    QString TCP_Status(int State);
+    QString Modbus_Status(int State);
+    QString CanOpen(int State);
+    QString Hikvision_Status(DWORD state);
+
+signals:
+    void Status(QString state);
+
+};
+
+class c_Variable : public c_Object
+{
+    Q_OBJECT
+public:
+    static c_Variable& getInstance();
+    static s_Zivid_Camera_DB g_Zivid_Camera;  
+    static s_Transmission_DB g_Transmission;
+    static QJsonObject g_Communicate_DB;      
+
+    void writeMessage(int style, QString message);
+
+private:
+    explicit c_Variable(QObject* parent = nullptr);
+    virtual ~c_Variable();
+
+    c_Variable(const c_Variable& other) = delete;
+    c_Variable& operator=(const c_Variable& other) = delete;
+
+    static QMutex g_mutex;
+    static QScopedPointer<c_Variable> g_instance;
+    friend struct QScopedPointerDeleter<c_Variable>;          
+};
+
+
+
+########################################################################
+FILE: ./Zivid_Camera.h
+########################################################################
+
+﻿#pragma once  
+
+#include "Variable.h"
+#include "Zivid_Camera_Remote.h"
+#include <TCP_Client.h>
+
+
+namespace Ui{class c_Zivid_Camera;}
+
+
+class c_Zivid_Camera : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit c_Zivid_Camera(QStringList info, QWidget* parent = nullptr);
+    ~c_Zivid_Camera() override;
+
+signals:
+    void Connect();
+    void Disconnect();
+    void Send_File_Info(QString filePath);
+
+protected:
+    void closeEvent(QCloseEvent* event) override;  
+    void keyPressEvent(QKeyEvent* event) override; 
+    void showEvent(QShowEvent* event) override;
+
+private slots:
+    void System_Scan();
+    void VTK_Init();
+    
+    void Camera_Init(); 
+    void Camera_DB();    
+    void Camera_Scan();  
+    void Camera_Delete();
+
+    void TCP_Client_Init();
+	void TCP_Client_DB();
+	void TCP_Client_Scan();
+	void TCP_Client_Delete();
+
+    void onCaptureCompleted(QString path);
+
+    void readMessage(QString cmd);
+
+    void Write_Communicate_DB(QString key, int value);
+    void Write_Communicate_DB(QString key, QString value);
+    void Write_Communicate_DB(QString key, double value);
+
+private:
+    Ui::c_Zivid_Camera* ui;                         
+    bool m_Scan = false;  
+    bool m_vtkInitialized = false;
+
+    QString m_DB_Path = "C:/ZividDebugLogs";    
+	QString m_Path_Name;
+    
+    QThread* m_cameraThread;
+    c_Zivid_Camera_Remote* m_cameras; 
+
+    QThread *m_Client_Thread;
+    c_TCP_Client *m_Client_Remote;
+
+    QFile m_file;
+    QSocketNotifier *m_pNotifier;
+    char  m_arrRecv[128];
+
+    vtkNew<vtkRenderer> m_renderer;
+    vtkNew<vtkGenericOpenGLRenderWindow> m_renderWindow;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr m_cloud;
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> m_viewer;
+};
+
+
+
+########################################################################
+FILE: ./Zivid_Camera_Remote.h
+########################################################################
+
+﻿#pragma once 
+#include "Variable.h"
+
+class c_Zivid_Camera_Remote : public c_Object
+{
+    Q_OBJECT
+
+public:
+    explicit c_Zivid_Camera_Remote(QObject* parent = nullptr);
+    ~c_Zivid_Camera_Remote() override;
+
+public slots:
+    void Init();
+    void Connect();
+    void Disconnect();
+    void Capture();
+  
+signals:
+    /// 📡 捕获完成信号（path为2D图像主路径，保持接口兼容）
+    void CaptureCompleted(QString path);
+
+private:
+    Zivid::Application m_application;   ///< Zivid应用实例
+    Zivid::Camera m_camera;             ///< Zivid相机实例
+    Zivid::CaptureAssistant::SuggestSettingsParameters m_Suggest_Settings;  ///< 自动参数建议
+
+    // ========================================================================
+    // 🔹 核心功能：点云转深度图（成员函数）
+    // ========================================================================
+    /// @brief 将Zivid点云转换为OpenCV深度图（Z通道，归一化可视化）
+    /// @param pointCloud 输入点云
+    /// @return CV_8UC1格式的可视化深度图
+    cv::Mat pointCloudToCvZ(const Zivid::PointCloud &pointCloud);
+    
+    // ========================================================================
+    // 🔹 工具函数：静态成员（无需对象实例，便于复用）
+    // ========================================================================
+    /// @brief 获取PointZ的Z值
+    static float getValueZ(const Zivid::PointZ &p);
+    
+    /// @brief NaN安全的小于比较：a < b 或 a为NaN时返回true
+    static bool isLesserOrNan(const Zivid::PointZ &a, const Zivid::PointZ &b);
+    
+    /// @brief NaN安全的大于比较：a > b 或 a为NaN时返回true
+    static bool isGreaterOrNaN(const Zivid::PointZ &a, const Zivid::PointZ &b);
+
+    // ========================================================================
+    // 🔹 异步任务完成回调槽函数
+    // ========================================================================
+private slots:
+    void onCapture2DCompleted(QString path, qint64 time);
+    void onCapture3DCompleted(QString path, qint64 time);
+    void onCaptureDepthMapCompleted(QString path, qint64 time);
+
+    // ========================================================================
+    // 🔹 状态标志：三任务完成同步（2D+3D+DepthMap）
+    // ========================================================================
+private:
+    bool isCapture2DCompleted = false;
+    bool isCapture3DCompleted = false;
+    bool isCaptureDepthMapCompleted = false;
+};
+
+
+==================== SOURCE FILES (.cpp) ====================
+
+########################################################################
+FILE: ./Fr_Light.cpp
+########################################################################
+
+﻿#include "Fr_Light.h"
+
+c_Fr_Light::c_Fr_Light(QWidget * parent) :QWidget(parent)
+{
+	m_Working_Color = QColor("green");
+	m_Default_Color = QColor("red");
+	m_Error_Color = QColor("yellow");
+	m_Null_Color = QColor("gray");
+}
+
+c_Fr_Light::~c_Fr_Light()
+{
+	
+}
+
+void c_Fr_Light::Set_Working()
+{
+	if (m_State == Working) { return; }//如果状态未改变则立即退出
+	m_State = Working;
+	update();
+	emit Working_State(true);
+}
+bool c_Fr_Light::Get_State()
+{
+	if (m_State == Working) { return true; }
+	else { return false; }
+}
+void c_Fr_Light::Set_Default()
+{
+	if (m_State == Default) { return; }	  //如果状态未改变则立即退出
+	m_State = Default;
+	update();
+	emit Default_State(true);
+}
+void c_Fr_Light::Set_Error()
+{
+	if (m_State == Error) { return; }	   //如果状态未改变则立即退出
+	m_State = Error;
+	update();
+	emit Error_State(true);
+}
+void c_Fr_Light::Set_Null()
+{
+	if (m_State == Null){ return; }
+	m_State = Null;
+	update();
+}
+void c_Fr_Light::Set_State(const bool state)
+{
+	if (state) {
+		Set_Working();
+	}
+	else {
+		Set_Default();
+	}
+}
+void c_Fr_Light::Set_Radius(int value)
+{
+	m_Radius = value;
+	update();
+}
+void c_Fr_Light::paintEvent(QPaintEvent*) {
+	int side = qMin(width(), height());
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.translate(width() / 2, height() / 2);
+	painter.scale(side / 100.0, side / 100.0);
+	QColor color;
+	switch (m_State) {
+	case Default:
+		color = m_Default_Color;
+		break;
+	case Working:
+		color = m_Working_Color;
+		break;
+	case Error:
+		color = m_Error_Color;
+		break;
+	default:
+		color = m_Null_Color;
+		break;
+	}
+	QRadialGradient radial(0, 0, m_Radius, 0, 0);    //设置圆的原点和焦点在中心,半径50
+	radial.setSpread(QGradient::PadSpread);
+	radial.setColorAt(1, color);
+	painter.setPen(Qt::transparent);
+	painter.setBrush(radial);
+	painter.drawEllipse(-50, -50, 100, 100);
+}
+
+########################################################################
+FILE: ./main.cpp
+########################################################################
+
+﻿#include "Zivid_Camera.h"
+#include <QtWidgets/QApplication>
+
+int main(int argc, char *argv[])
+{
+	QApplication a(argc, argv);
+    c_Zivid_Camera w(a.arguments());
+    return a.exec();
+}
+
+
+########################################################################
+FILE: ./TCP_Client.cpp
+########################################################################
+
+﻿#include "TCP_Client.h"
+
+c_TCP_Client::c_TCP_Client(c_Object *parent) : c_Object(parent)
+{
+
+}
+
+c_TCP_Client::~c_TCP_Client()
+{
+	c_TCP_Client::Disconnect();
+	m_Socket->deleteLater();
+}
+
+void c_TCP_Client::Init()
+{
+    //实例化
+    m_Socket = new QTcpSocket;
+    //如果，客户端，状态改变，发送，本线程，状态信息
+    QObject::connect(m_Socket, &QAbstractSocket::errorOccurred, this, [=](QAbstractSocket::SocketError socketError)
+    {
+       emit Status(c_Object::TCP_Status(socketError));
+    });
+    //如果，客户端，状态改变，执行，本线程，状态改变函数
+    QObject::connect(m_Socket, &QTcpSocket::stateChanged, this, [=](int state) {
+		emit Status(c_Object::TCP_Status(state+23));
+	});
+
+    // connected/disconnected 信号（主逻辑）
+    QObject::connect(m_Socket, &QTcpSocket::connected, this, 
+                     &c_TCP_Client::Connect_Done, Qt::QueuedConnection);  // ✅
+    QObject::connect(m_Socket, &QTcpSocket::disconnected, this, 
+                     &c_TCP_Client::Disconnect_Done, Qt::QueuedConnection);  // ✅
+
+	//开启监听模式{机器人，有可读取通道，对象，读取信号}
+	QObject::connect(m_Socket, &QTcpSocket::readyRead, this, [=]() {
+
+		QByteArray buffer = m_Socket->readAll();
+
+		if (buffer.isEmpty()) { return; }
+
+		QJsonObject fileInfo = QJsonDocument::fromJson(buffer).object();
+
+		if (fileInfo.isEmpty()) { return; }
+
+		emit Status(QJsonDocument(fileInfo).toJson());
+
+		QString cmd;
+		if (fileInfo.value("cmd") == QJsonValue::Undefined) {
+			emit Status("cmd不存在");
+			return;
+		}
+		cmd = fileInfo.value("cmd").toString();
+
+		if (cmd == "START")
+		{
+			//开始发送
+			c_Variable::getInstance().g_Transmission.Start = true;
+			c_Variable::getInstance().g_Transmission.Finish = false;
+
+			QString filePath;
+			if (fileInfo.value("filePath") == QJsonValue::Undefined) {
+				emit Status("cmd::filePath不存在");
+				return;
+			}
+			filePath = fileInfo.value("filePath").toString();
+
+			m_filePath = filePath;
+
+			QFile file(filePath);
+			if (!file.open(QIODevice::ReadOnly)) {
+				emit Send_File_Error(filePath);
+				return;
+			}
+			m_Socket->write(file.readAll());
+
+			if (m_Socket->flush()) {
+				emit Write_Byte_Done();
+			}
+
+			file.close();
+		}
+		if (cmd == "FINISH") {
+			QString savePath = fileInfo.value("filePath").toString();
+			msleep(10);
+			//发送完成
+			c_Variable::getInstance().g_Transmission.Start = false;
+			c_Variable::getInstance().g_Transmission.Finish = true;
+		}
+		if (cmd == "ERROR") {
+			if (fileInfo.value("filePath") != QJsonValue::Undefined) {
+				QString filePath = fileInfo.value("filePath").toString();
+				emit Send_File_Error(filePath);
+			}
+			msleep(100);
+			c_Variable::getInstance().g_Transmission.Start = false;
+			c_Variable::getInstance().g_Transmission.Finish = true;
+		}
+	});
+	QTimer::singleShot(3000, this, &c_TCP_Client::Connect);
+}
+
+void c_TCP_Client::Connect()
+{
+	//如果已连接则返回
+    if(!m_Socket) {return;}
+	if(m_Socket->state() != QAbstractSocket::UnconnectedState) {return;}
+
+	//如果发出断开连接请求则终止循环连接，并复位请求标志
+	if (m_Stop_Connect) {
+		m_Stop_Connect = false;
+		return;
+	}
+
+    //建立新的连接
+	m_Ip = c_Variable::getInstance().g_Communicate_DB.value("Server_Ip").toString();
+	m_Port = c_Variable::getInstance().g_Communicate_DB.value("Server_Port").toInt();
+
+	emit Status(m_Ip + ":" + QString::number(m_Port));
+
+	m_Socket->connectToHost(m_Ip, m_Port);
+
+	//等待连接3秒
+	if(!m_Socket->waitForConnected(3000)){
+		QTimer::singleShot(6000, this, &c_TCP_Client::Connect);
+	}
+}
+void c_TCP_Client::Disconnect()
+{
+	if(!m_Socket){
+		m_Stop_Connect = true;
+		return;
+	}
+	if (m_Socket->state() != QAbstractSocket::ConnectedState) {
+		m_Stop_Connect = true;
+		return;
+	}
+	else {
+		m_Socket->close();
+	}
+}
+void c_TCP_Client::Send_File_Info(QString filePath)
+{
+    //如果设备未打开
+	if (!m_Socket) { return; }
+	if (m_Socket->state() != QAbstractSocket::ConnectedState)
+	{
+		emit Send_File_Error(filePath);
+		return;
+	}
+	if (filePath.isEmpty()) { return; }
+
+	c_Variable::getInstance().g_Transmission.Start = true;
+	c_Variable::getInstance().g_Transmission.Finish = false;
+
+	QFile file(filePath);
+
+	if (!file.open(QFile::ReadOnly)) {
+		c_Variable::getInstance().g_Transmission.Start = false;
+		c_Variable::getInstance().g_Transmission.Finish = true;
+		return;
+	}
+	
+	int fileSize = file.size();
+
+	// 计算文件的MD5哈希值
+	QCryptographicHash hash(QCryptographicHash::Md5);
+	if (file.seek(0)) {
+		hash.addData(file.readAll());
+		file.seek(0); // 重置文件指针
+	}
+	QString fileHash = hash.result().toHex();
+
+	file.close();
+
+	QJsonObject fileInfo;
+	fileInfo.insert("cmd", "file_info");
+	fileInfo.insert("filePath", filePath);
+	fileInfo.insert("fileSize", QString::number(fileSize));
+	fileInfo.insert("hash", fileHash);
+
+	emit Status(QJsonDocument(fileInfo).toJson());
+
+	msleep(100);
+
+	m_Socket->write(QJsonDocument(fileInfo).toJson());
+
+	if (m_Socket->flush()) {
+		emit Write_Byte_Done();
+	}
+
+
+}
+
+
+
+########################################################################
+FILE: ./Variable.cpp
+########################################################################
+
+﻿#include "Variable.h"
+
+c_Object::c_Object(QObject* parent) : QObject(parent)
+{
+
+}
+c_Object::~c_Object()
+{
+   
+}
+bool c_Object::msleep(const int mSec)
+{
+    QEventLoop loop;
+    QTimer::singleShot(mSec, &loop, &QEventLoop::quit);
+    loop.exec();
+    return true;
+}
+bool c_Object::QtPing(const QString ip)
+{
+    QProcess cmd;
+    QStringList arguments;
+    
+    // 1. 参数配置
+    // -c 1: 只发 1 个包
+    // -W 2: 超时 2 秒 (防止网络不通时挂起太久)
+    // -s 1: 包大小 (保持你原有的设置)
+    arguments << "-c" << "1" << "-W" << "2" << "-s" << "1" << ip;
+
+    // 2. 启动进程 (直接传参，不调用 shell)
+    cmd.start("ping", arguments);
+
+    // 3. 等待结束 
+    // 总超时 = Ping 超时 * 次数 + 缓冲。这里设为 3000ms 足够覆盖 -W 2
+    if (!cmd.waitForFinished(3000)) {
+        cmd.kill(); // 如果超时，强制杀死进程
+        emit Status(ip + " Ping 超时");
+        return false;
+    }
+
+    // 4. 获取结果 (使用 exitCode 判断，比解析字符串更可靠)
+    int exitCode = cmd.exitCode();
+    // 可选：打印日志调试
+    
+
+    if (exitCode == 0) {
+        emit Status(ip + " Ping 通");
+        return true;
+    } else {
+        emit Status(ip + " Ping 不通");
+        return false;
+    }
+}
+QString c_Object::TCP_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "连接被对等方拒绝（或超时）";
+	case 1:return "远程主机关闭了连接。请注意，客户端套接字（即此套接字）将在发送远程关闭通知后关闭";
+	case 2:return "找不到主机地址";
+	case 3:return "套接字操作失败，因为应用程序缺少所需的权限";
+	case 4:return "本地系统资源不足（例如，套接字过多）";
+	case 5:return "套接字操作超时";
+	case 6:return "数据报大于操作系统的限制（可低至8192字节）";
+	case 7:return "网络发生错误（例如，网络电缆意外插拔）";
+	case 8:return "为QAbstractSocket:：bind（）指定的地址已在使用中，并被设置为独占";
+	case 9:return "为QAbstractSocket:：bind（）指定的地址不属于主机";
+	case 10:return "本地操作系统不支持请求的套接字操作（例如，缺少IPv6支持）";
+	case 11:return "仅由QAbstractSocketEngine使用，上次尝试的操作尚未完成（仍在后台进行）";
+	case 12:return "套接字正在使用代理，代理需要身份验证";
+	case 13:return "SSL/TLS握手失败，因此连接已关闭（仅在QSslSocket中使用）";
+	case 14:return "无法联系代理服务器，因为与该服务器的连接被拒绝";
+	case 15:return "与代理服务器的连接意外关闭（在与最终对等方建立连接之前）";
+	case 16:return "与代理服务器的连接超时，或者代理服务器在身份验证阶段停止响应。";
+	case 17:return "找不到使用setProxy（）设置的代理地址（或应用程序代理）";
+	case 18:return "与代理服务器的连接协商失败，因为无法理解来自代理服务器的响应";
+	case 19:return "当套接字处于不允许的状态时，尝试了一个操作";
+	case 20:return "正在使用的SSL库报告了一个内部错误。这可能是由于库的安装错误或配置错误造成的";
+	case 21:return "提供了无效数据（证书、密钥、密码等），其使用导致SSL库中出现错误";
+	case 22:return "发生临时错误（例如，操作将被阻塞，套接字为非阻塞）";
+	case 23:return "套接字未连接";
+	case 24:return "套接字正在执行主机名查找";
+	case 25:return "套接字已开始建立连接";
+	case 26:return "建立了一个连接";
+	case 27:return "套接字绑定到一个地址和端口";
+	case 28:return "套接字即将关闭（数据可能仍在等待写入）";
+	case 29:return "套接字监听状态（仅供内部使用）";
+	case -1:return "发生了一个无法识别的错误";
+	default:return "无状态";
+	}
+}
+QString c_Object::Modbus_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "已连接";
+	case 1:return "读取操作期间发生错误";
+	case 2:return "写入操作期间发生错误";
+	case 3:return "尝试打开后端时出错";
+	case 4:return "尝试设置配置参数时出错";
+	case 5:return "I/O期间发生超时。I/O操作未在给定的时间范围内完成";
+	case 6:return "发生Modbus特定协议错误";
+	case 7:return "由于设备断开连接，回复被中止";
+	case 8:return "发生未知错误";
+	case 9:return "设备已断开连接";
+	case 10:return "正在连接设备";
+	case 11:return "设备正在关闭";
+	default:return "无状态";
+	}
+}
+QString c_Object::CanOpen(int State)
+{
+	switch (State) {
+	case 0x0000:return "正常";
+	case 0x0001:return "DCBUS 过压";
+	case 0x0002:return "DCBUS 欠压";
+	case 0x0004:return "电机过流";
+	case 0x0008:return "编码器故障";
+	case 0x0010:return "控制电源欠压";
+	case 0x0020:return "驱动过热";
+	case 0x0040:return "电机过热";
+	case 0x0080:return "电机过载报警";
+	case 0x0100:return "霍尔信号异常";
+	case 0x0200:return "编码器短线故障";
+	case 0x0400:return "电机过速";
+	case 0x0800:return "指令超差错误";
+	case 0x1000:return "存储参数校验错误";
+	case 0x2000:return "功率模块过流（硬件）";
+	case 0x4000:return "电机制动过载错误";
+	case 0x8001:return "电机自学习错误";
+	case 0x8002:return "电流检测基准错误";
+	case 0x8004:return "电机缺相报警";
+	case 0x8005:return "通讯超时";
+	default:return "未知错误";
+	}
+}
+QString c_Object::Hikvision_Status(DWORD state)
+{
+    switch (state){
+    case EXCEPTION_EXCHANGE:return "用户交互时异常";
+    case EXCEPTION_AUDIOEXCHANGE:return "语音对讲异常";
+    case EXCEPTION_ALARM:return "报警异常";
+    case EXCEPTION_PREVIEW:return "网络预览异常";
+    case EXCEPTION_SERIAL:return "透明通道异常";
+    case EXCEPTION_RECONNECT:return "预览时重连";
+    case EXCEPTION_ALARMRECONNECT:return "报警时重连";
+    case EXCEPTION_SERIALRECONNECT:return "透明通道重连";
+    case SERIAL_RECONNECTSUCCESS:return "透明通道重连成功";
+    case EXCEPTION_PLAYBACK:return "回放异常";
+    case EXCEPTION_DISKFMT:return "硬盘格式化";
+    case EXCEPTION_PASSIVEDECODE:return "被动解码异常";
+    case EXCEPTION_EMAILTEST:return "邮件测试异常";
+    case EXCEPTION_BACKUP:return "备份异常";
+    case PREVIEW_RECONNECTSUCCESS:return "预览时重连成功";
+    case ALARM_RECONNECTSUCCESS:return "报警时重连成功";
+    case RESUME_EXCHANGE:return "用户交互恢复";
+    case NETWORK_FLOWTEST_EXCEPTION:return "网络流量检测异常";
+    case EXCEPTION_PICPREVIEWRECONNECT:return "图片预览重连";
+    case PICPREVIEW_RECONNECTSUCCESS:return "图片预览重连成功";
+    case EXCEPTION_PICPREVIEW:return "图片预览异常";
+    case EXCEPTION_MAX_ALARM_INFO:return "报警信息缓存已达上限";
+    case EXCEPTION_LOST_ALARM:return "报警丢失";
+    case EXCEPTION_PASSIVETRANSRECONNECT:return "被动转码重连";
+    case PASSIVETRANS_RECONNECTSUCCESS:return "被动转码重连成功";
+    case EXCEPTION_PASSIVETRANS:return "被动转码异常";
+    case SUCCESS_PUSHDEVLOGON:return "推模式设备注册成功";
+    case EXCEPTION_RELOGIN:return "用户重登陆";
+    case RELOGIN_SUCCESS:return "用户重登陆成功";
+    case EXCEPTION_PASSIVEDECODE_RECONNNECT:return "被动解码重连";
+    case EXCEPTION_CLUSTER_CS_ARMFAILED:return "集群报警异常";
+    case EXCEPTION_RELOGIN_FAILED:return "重登陆失败，停止重登陆";
+    case EXCEPTION_PREVIEW_RECONNECT_CLOSED:return "关闭预览重连功能";
+    case EXCEPTION_ALARM_RECONNECT_CLOSED:return "关闭报警重连功能";
+    case EXCEPTION_SERIAL_RECONNECT_CLOSED:return "关闭透明通道重连功能";
+    case EXCEPTION_PIC_RECONNECT_CLOSED:return "关闭回显重连功能";
+    case EXCEPTION_PASSIVE_DECODE_RECONNECT_CLOSED:return "关闭被动解码重连功能";
+    case EXCEPTION_PASSIVE_TRANS_RECONNECT_CLOSED:return "关闭被动转码重连功能 ";
+    case EXCEPTION_VIDEO_DOWNLOAD:return "录像下载异常";
+    default:return "未知异常";
+    }
+}
+
+void c_Object::BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits)
+{
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = second16Bits;
+	unionConverter.Word.low16Bits = first16Bits;
+	// 返回浮点数
+	floatValue = unionConverter.floatValue;
+}
+void c_Object::FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits)
+{
+	// 使用联合来存储浮点数和其对应的32位整数表示
+	dataConverter unionConverter;
+	unionConverter.floatValue = floatValue;
+	// 提取两个16位值的位信息
+	second16Bits = unionConverter.Word.high16Bits;
+	first16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits) {
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.DWord = intValue;
+	// 提取两个16位值的位信息
+	high16Bits = unionConverter.Word.high16Bits;
+	low16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits)
+{
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = high16Bits;
+	unionConverter.Word.low16Bits = low16Bits;
+	intValue = unionConverter.DWord;
+}
+
+QMutex c_Variable::g_mutex;
+QScopedPointer<c_Variable> c_Variable::g_instance;
+
+s_Zivid_Camera_DB c_Variable::g_Zivid_Camera;
+s_Transmission_DB c_Variable::g_Transmission;
+QJsonObject c_Variable::g_Communicate_DB;
+
+c_Variable::c_Variable(QObject* parent) : c_Object(parent)
+{
+  
+}
+
+c_Variable::~c_Variable()
+{
+   
+}
+
+c_Variable& c_Variable::getInstance()
+{
+    if (g_instance.isNull()) {
+        QMutexLocker locker(&g_mutex);
+        if (g_instance.isNull()) {
+            g_instance.reset(new c_Variable());
+        }
+    }
+    return *g_instance.data();
+}
+
+void c_Variable::writeMessage(int style, QString message)
+{
+    msleep(10);
+	if (style == 1)
+    {
+        QTextStream stream(stdout);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stdout);
+    }
+    if (style == 2)
+    {
+        QTextStream stream(stderr);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stderr);
+    }
+}
+
+
+
+########################################################################
+FILE: ./Zivid_Camera.cpp
+########################################################################
+
+﻿#include "Zivid_Camera.h"
+#include "ui_Zivid_Camera.h"
+
+ // 构造函数
+c_Zivid_Camera::c_Zivid_Camera(QStringList info, QWidget* parent) : QWidget(parent)
+{
+    ui = new Ui::c_Zivid_Camera();
+	ui->setupUi(this);
+
+    m_renderWindow->SetUseOffScreenBuffers(false);
+    ui->VTK->renderWindow()->SetUseOffScreenBuffers(false);
+
+    {
+    	QFile File;
+		File.setFileName(QDir::currentPath() + "/stuqss.css");
+		File.open(QIODevice::ReadOnly);
+
+		QString strQss = File.readAll();
+		this->setStyleSheet(strQss);
+
+		File.close();
+    }
+
+    if (!info.isEmpty() && info.size() > 1) {
+        c_Variable::getInstance().g_Zivid_Camera.device_name = info.at(1);
+
+        this->setWindowFlags(Qt::Widget);
+        this->setAttribute(Qt::WA_NativeWindow);  
+        this->setAttribute(Qt::WA_DontCreateNativeAncestors, false);
+
+        this->setWindowFlags(Qt::FramelessWindowHint);
+		this->setWindowTitle(c_Variable::getInstance().g_Zivid_Camera.device_name);
+        //打开文件
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/" + c_Variable::getInstance().g_Zivid_Camera.device_name + ".json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        //读取文件
+        QByteArray Data = File.readAll();
+        //转换JSON
+        QJsonParseError parseError;  // JSON解析错误
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);  // 解析JSON
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+    }
+	else{
+        //打开文件
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/Zivid_Camera.json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        //读取文件
+        QByteArray Data = File.readAll();
+        //转换JSON
+        QJsonParseError parseError;  // JSON解析错误
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);  // 解析JSON
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+    }
+
+    m_file.open(stdin, QIODevice::ReadOnly | QIODevice::Text);
+    m_pNotifier = new QSocketNotifier(m_file.handle(), QSocketNotifier::Read, this);
+    QObject::connect(m_pNotifier, &QSocketNotifier::activated, this, [=](int iHandle){
+        if(m_file.handle() == iHandle){
+            int iRet = read(m_file.handle(), m_arrRecv, sizeof(m_arrRecv));
+            m_arrRecv[iRet] = 0;
+            c_Zivid_Camera::readMessage(QString("%1").arg(m_arrRecv));
+        }
+    });
+
+    QObject::connect(ui->get_Path, &QPushButton::clicked, this, [=]() {
+		m_Path_Name = QFileDialog::getExistingDirectory( // 弹出目录选择对话框
+			this, "选择文件目录");
+		if (!m_Path_Name.isEmpty()) { // 如果选中有效目录
+			ui->Read_Path_Name->setText(m_Path_Name);
+		}
+	});
+
+	QObject::connect(ui->get_File, &QPushButton::clicked, this, [=]() {
+		if (!m_Path_Name.isEmpty()) { // 如果选中有效目录
+			c_Variable::getInstance().g_Transmission.buffer.clear();
+			QDirIterator it(m_Path_Name, // 初始化目录迭代器
+				QDir::Files, // 只遍历文件（不包括子目录）
+				QDirIterator::Subdirectories); // 包括子目录
+			while (it.hasNext()) { // 遍历所有文件
+				it.next(); // 获取下一个文件
+				QFileInfo fileInfo = it.fileInfo(); // 获取文件信息
+				if (fileInfo.size() > 200 * 1024 * 1024) // 过滤超过200MB的文件
+					continue;
+				QString suffix = fileInfo.suffix().toLower(); // 获取文件扩展名（小写）
+				if (suffix == "jpg" || suffix == "png" || suffix == "xyz" || suffix == "data") { // 过滤指定扩展名
+					c_Variable::getInstance().g_Transmission.buffer.append(fileInfo.absoluteFilePath()); // 添加到发送队列
+					QString Read_File_Name_Num = QString::number(c_Variable::getInstance().g_Transmission.buffer.size());
+					ui->Read_File_Name_Num->setText(Read_File_Name_Num);
+				}
+			}
+		}
+	});
+
+	QObject::connect(ui->File_Nane_Buffer, &QPushButton::clicked, this, [=]() {
+		if (c_Variable::getInstance().g_Transmission.buffer.size() > 0) {
+			c_Variable::getInstance().g_Transmission.Tran_buffer += c_Variable::getInstance().g_Transmission.buffer;
+			QString  Tran_File_Name_Num = QString::number(c_Variable::getInstance().g_Transmission.Tran_buffer.size());
+			ui->Write_File_Name_Num->setText(Tran_File_Name_Num);
+		}
+	});
+
+	QObject::connect(ui->Clear_All, &QPushButton::clicked, this, [=]() {
+		ui->Read_Path_Name->clear();
+		ui->Read_File_Name_Num->clear();
+		ui->Write_File_Name_Num->clear();
+		m_Path_Name.clear();
+		c_Variable::getInstance().g_Transmission.buffer.clear();
+	});
+
+    c_Variable::getInstance().writeMessage(1, QString("Run&%1").arg(this->winId()));
+
+    m_Scan = true;
+
+    this->show();
+}
+// 析构函数
+c_Zivid_Camera::~c_Zivid_Camera()
+{
+    delete ui;
+}
+void c_Zivid_Camera::readMessage(QString message)
+{
+    c_Variable::getInstance().writeMessage(2, message);
+	if (message == "Connect") {emit Connect();}
+    if (message == "Disconnect") {emit Disconnect();}
+    if (message == "Close_Device") {this->close();}
+    if (message.split("&", Qt::SkipEmptyParts).isEmpty()) {return;}
+    
+    if (message.split("&", Qt::SkipEmptyParts).at(0) == "save_path"){
+        ui->Save_Path->setText(message.split("&", Qt::SkipEmptyParts).at(1));
+        QString basePath =  c_Variable::getInstance().g_Zivid_Camera.base_Path;
+	    QString savePath = message.split("&", Qt::SkipEmptyParts).at(1);
+        QString imagePath = basePath + savePath;
+
+        c_Variable::getInstance().writeMessage(2, QString("相机接收转发消息: %1").arg(imagePath));
+
+	    if (!QDir().mkpath(imagePath)) {
+		    c_Variable::getInstance().writeMessage(2, QString("无法创建目录: %1").arg(imagePath));
+		    return;
+	    }
+         c_Variable::getInstance().writeMessage(1, "updateCompleted&");
+    }
+    if (message.split("&", Qt::SkipEmptyParts).at(0) == "image_name"){
+        c_Variable::getInstance().writeMessage(2, QString("相机接收转发消息: %1").arg(message));
+        ui->Save_Name->setText(message.split("&", Qt::SkipEmptyParts).at(1));
+        c_Variable::getInstance().g_Zivid_Camera.image_name = message.split("&", Qt::SkipEmptyParts).at(1);
+        ui->Capture->click();
+    }
+}
+//系统扫描
+void c_Zivid_Camera::System_Scan()
+{
+    Camera_Scan();
+    TCP_Client_Scan();
+
+	QTimer::singleShot(100, this, [this]() {
+        if (m_Scan) System_Scan();
+        });
+}
+void c_Zivid_Camera::VTK_Init()
+{
+    QOpenGLContext* ctx = QOpenGLContext::currentContext();
+    if (!ctx || !ctx->isValid()) {
+        c_Variable::getInstance().writeMessage(2, "ERROR: OpenGL context invalid!");
+        QTimer::singleShot(100, this, &c_Zivid_Camera::VTK_Init);  // 重试
+        return;
+    }
+
+    // 禁用自动重渲染（交互时手动控制）
+    m_renderWindow->SetAlphaBitPlanes(0);           // 禁用Alpha缓冲节省带宽
+    m_renderWindow->SetMultiSamples(0);             // 禁用MSAA抗锯齿（大幅提升性能）
+
+    m_renderWindow->AddRenderer(m_renderer);
+    ui->VTK->setRenderWindow(m_renderWindow);
+
+    m_viewer.reset(new pcl::visualization::PCLVisualizer(
+        m_renderer, m_renderWindow, "viewer", false));
+    m_viewer->setupInteractor(ui->VTK->interactor(), ui->VTK->renderWindow());
+
+    m_viewer->setBackgroundColor(0.0f, 0.0f, 0.0f);
+    m_viewer->initCameraParameters();
+    m_viewer->setCameraPosition(
+        0.0f,   // X: 相机后方
+        0.0f,    // Y: 相机居中
+        -1000.0f,    // Z: 相机高度
+        0.0f,    // viewX: 焦点X=0
+        0.0f,    // viewY: 焦点Y=0
+        0.0f,    // viewZ: 焦点Z=0
+        0.0f,    // upX: 上方向X=0
+        0.0f,    // upY: 上方向Y=0
+        -1.0f    // upZ: 上方向Z=1
+    );
+
+    m_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    m_viewer->spinOnce(1, true);  // PCL推荐方式（触发VTK事件循环）
+    m_renderWindow->Render();     // 直接渲染
+    ui->VTK->update();             // 刷新Qt窗口
+
+    m_vtkInitialized = true;
+    QTimer::singleShot(100, this, &c_Zivid_Camera::System_Scan);
+    QTimer::singleShot(200, this, &c_Zivid_Camera::Camera_Init);
+    QTimer::singleShot(300, this, &c_Zivid_Camera::TCP_Client_Init);
+}
+// 初始化相机
+void c_Zivid_Camera::Camera_Init()
+{
+    c_Variable::getInstance().writeMessage(2, "开始初始化相机"); 
+
+    // 创建相机线程
+    m_cameraThread = new QThread;
+    m_cameras = new c_Zivid_Camera_Remote;
+
+    m_cameras->moveToThread(m_cameraThread);
+
+    QObject::connect(m_cameraThread, &QThread::started, m_cameras, &c_Zivid_Camera_Remote::Init);
+    QObject::connect(m_cameraThread, &QThread::finished, m_cameras, &c_Zivid_Camera_Remote::deleteLater);
+
+    // 连接相机状态信号
+    QObject::connect(m_cameras, &c_Zivid_Camera_Remote::Status, this, [=](QString cmd) {
+        c_Variable::getInstance().writeMessage(2, cmd);
+        });
+
+    QObject::connect(ui->Zivid_Connect, &QPushButton::clicked, m_cameras, &c_Zivid_Camera_Remote::Connect);
+    QObject::connect(ui->Zivid_Disconnect, &QPushButton::clicked, m_cameras, &c_Zivid_Camera_Remote::Disconnect);
+
+	QObject::connect(ui->Capture, &QPushButton::clicked, m_cameras, &c_Zivid_Camera_Remote::Capture);
+
+    QObject::connect(m_cameras, &c_Zivid_Camera_Remote::CaptureCompleted, this, &c_Zivid_Camera::onCaptureCompleted);
+
+    m_Scan = true;
+
+    c_Zivid_Camera::Camera_DB();
+    c_Zivid_Camera::Camera_Scan();
+
+    // 启动线程
+    m_cameraThread->start();
+}
+// 相机参数
+void c_Zivid_Camera::Camera_DB()
+{
+    QObject::connect(ui->basePath, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_Zivid_Camera.base_Path = value;
+        Write_Communicate_DB("basePath", value);
+        });
+    QObject::connect(ui->Save_Path, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_Zivid_Camera.save_path = value;
+        Write_Communicate_DB("Save_Path", value);
+        });
+    QObject::connect(ui->Save_Name, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_Zivid_Camera.image_name = value;
+        Write_Communicate_DB("Save_Name", value);
+        });
+
+    QObject::connect(ui->Camera_Serial, &QLineEdit::textChanged, this, [=](QString Serial) {
+        Write_Communicate_DB("Camera_Serial", Serial);
+        c_Variable::getInstance().g_Zivid_Camera.camera_serial = Serial;
+        });
+    QObject::connect(ui->Camera_Ip, &QLineEdit::textChanged, this, [=](QString Ip) {
+        Write_Communicate_DB("Camera_Ip", Ip);
+        c_Variable::getInstance().g_Zivid_Camera.Camera_Ip = Ip;
+        });
+
+        
+    ui->Camera_Serial->setText(c_Variable::getInstance().g_Communicate_DB.value("Camera_Serial").toString());      
+    ui->Camera_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("Camera_Ip").toString());
+	ui->Save_Path->setText(c_Variable::getInstance().g_Communicate_DB.value("Save_Path").toString());
+	ui->Save_Name->setText(c_Variable::getInstance().g_Communicate_DB.value("Save_Name").toString());
+    ui->basePath->setText(c_Variable::getInstance().g_Communicate_DB.value("basePath").toString());
+}
+// 扫描函数
+void c_Zivid_Camera::Camera_Scan()
+{
+    ui->Zivid_Connect->setEnabled(!c_Variable::getInstance().g_Zivid_Camera.camera_connected);
+    ui->Zivid_Disconnect->setEnabled(c_Variable::getInstance().g_Zivid_Camera.camera_connected);
+    ui->Capture->setEnabled(c_Variable::getInstance().g_Zivid_Camera.camera_connected);
+    ui->settingTime->setText(QString::number(c_Variable::getInstance().g_Zivid_Camera.settingTime));
+    ui->captureTime->setText(QString::number(c_Variable::getInstance().g_Zivid_Camera.captureTime));
+    ui->save2DTime->setText(QString::number(c_Variable::getInstance().g_Zivid_Camera.save2DTime));
+    ui->save3DTime->setText(QString::number(c_Variable::getInstance().g_Zivid_Camera.save3DTime));
+    ui->saveDepthMapTime->setText(QString::number(c_Variable::getInstance().g_Zivid_Camera.saveDepthMapTime));
+	ui->last_operation_time->setText(c_Variable::getInstance().g_Zivid_Camera.last_operation_time.toString("yyyy-MM-dd-hh-mm-ss"));
+}
+// 释放资源
+void c_Zivid_Camera::Camera_Delete()
+{
+    if (m_cameraThread->isRunning()) {
+        m_cameraThread->requestInterruption();
+        m_cameraThread->quit();
+        m_cameraThread->wait();
+    }
+}
+
+void c_Zivid_Camera::TCP_Client_Init()
+{
+	m_Client_Thread = new QThread();
+	m_Client_Remote = new c_TCP_Client();
+	m_Client_Remote->moveToThread(m_Client_Thread);
+
+	QObject::connect(m_Client_Thread, &QThread::started, m_Client_Remote, &c_TCP_Client::Init);
+	QObject::connect(m_Client_Thread, &QThread::finished, m_Client_Remote, &c_TCP_Client::deleteLater);
+	
+	QObject::connect(this, &c_Zivid_Camera::Connect, m_Client_Remote, &c_TCP_Client::Connect);
+	QObject::connect(this, &c_Zivid_Camera::Disconnect, m_Client_Remote, &c_TCP_Client::Disconnect);
+
+	QObject::connect(ui->Transmission_Connect, &QPushButton::clicked, m_Client_Remote, &c_TCP_Client::Connect);
+	QObject::connect(ui->Transmission_Disconnect, &QPushButton::clicked, m_Client_Remote, &c_TCP_Client::Disconnect);
+
+	QObject::connect(this, &c_Zivid_Camera::Send_File_Info, m_Client_Remote, &c_TCP_Client::Send_File_Info);
+
+	QObject::connect(m_Client_Remote, &c_TCP_Client::Send_File_Error, this, [=](QString filePath) {
+		c_Variable::getInstance().g_Transmission.Retran_buffer.append(filePath);
+	});
+
+	QObject::connect(m_Client_Remote, &c_TCP_Client::Connect_Done, this, [=]() {
+		c_Variable::getInstance().g_Transmission.Connected = true;
+		c_Variable::getInstance().g_Transmission.Start = false;
+		c_Variable::getInstance().g_Transmission.Finish = true;
+		c_Variable::getInstance().writeMessage(1, "Connect_Done");
+	});
+
+	QObject::connect( m_Client_Remote, &c_TCP_Client::Disconnect_Done, this, [=]() {
+		c_Variable::getInstance().g_Transmission.Connected = false;
+		c_Variable::getInstance().g_Transmission.Start = true;
+		c_Variable::getInstance().g_Transmission.Finish = false;
+		c_Variable::getInstance().writeMessage(1, "Disconnect_Done");
+	});
+
+	QObject::connect(m_Client_Remote, &c_TCP_Client::Write_Byte_Done, this, [=]() {
+		c_Variable::getInstance().g_Transmission.Tran = !c_Variable::getInstance().g_Transmission.Tran;
+	});
+
+	QObject::connect(m_Client_Remote, &c_TCP_Client::Status, this, [=](QString value) {
+		c_Variable::getInstance().writeMessage(2, value);
+	});
+	m_Scan = true;
+
+	c_Zivid_Camera::TCP_Client_DB();
+	c_Zivid_Camera::TCP_Client_Scan();
+
+	m_Client_Thread->start();
+}
+void c_Zivid_Camera::TCP_Client_DB()
+{
+	ui->Server_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("Server_Ip").toString());
+	ui->Server_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Server_Port").toInt()));
+	ui->Client_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("Client_Ip").toString());
+	ui->Client_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Client_Port").toInt()));
+
+	QObject::connect(ui->Server_Ip, &QLineEdit::textChanged, this, [=](QString ip) {Write_Communicate_DB("Server_Ip", ip); });
+	QObject::connect(ui->Server_Port, &QLineEdit::textChanged, this, [=](QString port) {Write_Communicate_DB("Server_Port", port.toInt()); });
+	QObject::connect(ui->Client_Ip, &QLineEdit::textChanged, this, [=](QString ip) {Write_Communicate_DB("Client_Ip", ip); });
+	QObject::connect(ui->Client_Port, &QLineEdit::textChanged, this, [=](QString port) {Write_Communicate_DB("Client_Port", port.toInt()); });
+}
+void c_Zivid_Camera::TCP_Client_Scan()
+{
+	ui->Connected->Set_State(c_Variable::getInstance().g_Transmission.Connected);
+	ui->Tran->Set_State(c_Variable::getInstance().g_Transmission.Tran);
+	ui->Start->Set_State(c_Variable::getInstance().g_Transmission.Start);
+	ui->Finish->Set_State(c_Variable::getInstance().g_Transmission.Finish);
+
+	ui->Transmission_Connect->setEnabled(!c_Variable::getInstance().g_Transmission.Connected);
+	ui->Transmission_Disconnect->setEnabled(c_Variable::getInstance().g_Transmission.Connected);
+
+	ui->File_Name_Num->setText(QString::number(
+		c_Variable::getInstance().g_Transmission.Tran_buffer.size()
+		+ c_Variable::getInstance().g_Transmission.Retran_buffer.size()
+	));
+
+	ui->Tran_File_Name_Num->setText(QString::number(c_Variable::getInstance().g_Transmission.Tran_buffer.size()));
+	ui->Retran_File_Name_Num->setText(QString::number(c_Variable::getInstance().g_Transmission.Retran_buffer.size()));
+
+	if (c_Variable::getInstance().g_Transmission.Connected 
+		&& !c_Variable::getInstance().g_Transmission.Start
+		&& c_Variable::getInstance().g_Transmission.Finish
+		&& !c_Variable::getInstance().g_Transmission.Tran_buffer.isEmpty()) {
+		     emit c_Zivid_Camera::Send_File_Info(c_Variable::getInstance().g_Transmission.Tran_buffer.takeAt(0));
+	}
+	if (c_Variable::getInstance().g_Transmission.Connected
+		&& !c_Variable::getInstance().g_Transmission.Start
+		&& c_Variable::getInstance().g_Transmission.Finish
+		&& c_Variable::getInstance().g_Transmission.Tran_buffer.isEmpty()
+		&& !c_Variable::getInstance().g_Transmission.Retran_buffer.isEmpty()) {
+		emit c_Zivid_Camera::Send_File_Info(c_Variable::getInstance().g_Transmission.Retran_buffer.takeAt(0));
+	}
+}
+void c_Zivid_Camera::TCP_Client_Delete()
+{
+	m_Scan = false;
+	if (m_Client_Thread->isRunning()) {
+		m_Client_Thread->requestInterruption();
+		m_Client_Thread->quit();
+		m_Client_Thread->wait();
+	}
+}
+// 采集图像可视化
+void c_Zivid_Camera::onCaptureCompleted(QString path)
+{
+    QFileInfo fileInfo(path);
+    QString image_path = QDir(fileInfo.path()).filePath(fileInfo.completeBaseName() + ".jpg");
+    QString point_cloud_path = QDir(fileInfo.path()).filePath(fileInfo.completeBaseName() + ".xyz");
+    QString point_depth_path = QDir(fileInfo.path()).filePath(fileInfo.completeBaseName() + ".png");
+
+    if (!QFile::exists(point_depth_path) )
+    {
+         c_Variable::getInstance().writeMessage(2, "无法加载 PNG 图像: " + point_depth_path);
+    }else{
+        c_Variable::getInstance().g_Transmission.Tran_buffer.append(point_depth_path);
+    }
+
+
+    if (!QFile::exists(image_path) || !QFile::exists(point_cloud_path))
+    {
+        c_Variable::getInstance().writeMessage(2, QString("可视化加载文件不完整"));
+    	return;
+    }
+
+    // === 1. 读取 JPG 图像并获取尺寸 ===
+    cv::Mat bgrImage = cv::imread(image_path.toStdString(), cv::IMREAD_COLOR);
+    if (bgrImage.empty()) {
+        c_Variable::getInstance().writeMessage(2, "无法加载 JPG 图像: " + image_path);
+        return;
+    }
+
+    c_Variable::getInstance().g_Transmission.Tran_buffer.append(image_path);
+
+    size_t width = static_cast<size_t>(bgrImage.cols);
+    size_t height = static_cast<size_t>(bgrImage.rows);
+    size_t pointCount = width * height;
+
+    // === 2. 验证点云文件大小 ===
+    QFile file(point_cloud_path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        c_Variable::getInstance().writeMessage(2, "无法打开点云文件: " + point_cloud_path);
+        return;
+    }
+
+    constexpr size_t bytesPerPoint = 3 * sizeof(int16_t);
+    size_t expectedSize = pointCount * bytesPerPoint;
+
+    if (static_cast<size_t>(file.size()) != expectedSize) {
+        c_Variable::getInstance().writeMessage(2,
+            QString("点云尺寸不匹配：图像 %1x%2，点云文件大小 %3 字节（期望 %4）")
+            .arg(width).arg(height).arg(file.size()).arg(expectedSize));
+        file.close();
+        return;
+    }
+
+    c_Variable::getInstance().g_Transmission.Tran_buffer.append(point_cloud_path);
+
+    c_Variable::getInstance().writeMessage(1, "CaptureCompleted&");
+
+    // === 3. 读取点云数据 ===
+    std::vector<int16_t> buffer(pointCount * 3);
+    qint64 bytesRead = file.read(reinterpret_cast<char*>(buffer.data()), expectedSize);
+    file.close();
+
+    if (static_cast<size_t>(bytesRead) != expectedSize) {
+        c_Variable::getInstance().writeMessage(2, "点云文件读取不完整");
+        return;
+    }
+
+    // === 4. 构建带颜色的点云 ===
+    m_cloud->clear(); 
+    m_cloud->resize(pointCount);
+    m_cloud->width = width;
+    m_cloud->height = height;
+    m_cloud->is_dense = false;
+
+    const float scale = 0.1f; // 与保存时 *10 对应
+    constexpr int16_t INVALID = -32768;
+
+    for (size_t idx = 0; idx < pointCount; ++idx) {
+        int16_t x_i = buffer[3 * idx];
+        int16_t y_i = buffer[3 * idx + 1];
+        int16_t z_i = buffer[3 * idx + 2];
+
+        size_t row = idx / width;
+        size_t col = idx % width;
+
+        if (row >= height || col >= width) {
+            m_cloud->points[idx].x = m_cloud->points[idx].y = m_cloud->points[idx].z = std::numeric_limits<float>::quiet_NaN();
+        }
+        else {
+            cv::Vec3b pixel = bgrImage.at<cv::Vec3b>(static_cast<int>(row), static_cast<int>(col));
+
+            if (x_i == INVALID || y_i == INVALID || z_i == INVALID) {
+                m_cloud->points[idx].x = m_cloud->points[idx].y = m_cloud->points[idx].z = std::numeric_limits<float>::quiet_NaN();
+            }
+            else {
+                m_cloud->points[idx].x = static_cast<float>(x_i) * scale;
+                m_cloud->points[idx].y = static_cast<float>(y_i) * scale;
+                m_cloud->points[idx].z = static_cast<float>(z_i) * scale;
+            }
+
+            m_cloud->points[idx].b = pixel[0]; // B
+            m_cloud->points[idx].g = pixel[1]; // G
+            m_cloud->points[idx].r = pixel[2]; // R
+        }
+    }
+
+    m_viewer->updatePointCloud(m_cloud, "cloud");
+
+    m_viewer->removeAllPointClouds();
+    m_viewer->addPointCloud(m_cloud, "cloud");
+    m_viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+    m_viewer->setCameraPosition(0.0f, 0.0f, -1000.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f);
+
+    m_viewer->spinOnce(1, true);  // PCL推荐方式（触发VTK事件循环）
+    m_renderWindow->Render();     // 直接渲染
+    ui->VTK->update();             // 刷新Qt窗口
+
+    c_Variable::getInstance().writeMessage(2, "可视化加载成功");
+}
+
+// 写入日志
+void c_Zivid_Camera::Write_Communicate_DB(QString key, int value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_Zivid_Camera::Write_Communicate_DB(QString key, QString value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_Zivid_Camera::Write_Communicate_DB(QString key, double value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+// 窗口关闭事件
+void c_Zivid_Camera::closeEvent(QCloseEvent* event) {
+    m_Scan = false;
+    // 释放资源
+    Camera_Delete();
+    TCP_Client_Delete();
+    c_Variable::getInstance().writeMessage(1, "Stop");
+    // 允许关闭
+    event->accept();
+}
+// 键盘事件 - F6加载样式表
+void c_Zivid_Camera::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_F6) {
+        QFile File;
+        File.setFileName(QDir::currentPath() + "/stuqss.css");
+        
+	    if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	    return;
+	    }
+	
+        QString strQss = File.readAll();
+        this->setStyleSheet(strQss);
+
+        File.close();
+    }
+
+    QWidget::keyPressEvent(event);
+}
+void c_Zivid_Camera::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    if (m_vtkInitialized) return;
+    QTimer::singleShot(100, this, &c_Zivid_Camera::VTK_Init);
+}
+
+########################################################################
+FILE: ./Zivid_Camera_Remote.cpp
+########################################################################
+
+﻿#include "Zivid_Camera_Remote.h"
+
+c_Zivid_Camera_Remote::c_Zivid_Camera_Remote(QObject* parent): c_Object(parent)
+{
+	
+}
+// 析构函数
+c_Zivid_Camera_Remote::~c_Zivid_Camera_Remote()
+{
+	Disconnect();
+}
+// 初始化
+void c_Zivid_Camera_Remote::Init()
+{
+	emit Status("相机线程启动");
+    QTimer::singleShot(3000, this, &c_Zivid_Camera_Remote::Connect);
+}
+// 点云转深度图（成员函数实现）
+cv::Mat c_Zivid_Camera_Remote::pointCloudToCvZ(const Zivid::PointCloud &pointCloud)
+{
+    const size_t width = pointCloud.width();
+    const size_t height = pointCloud.height();
+
+    // ✅ Zivid::Array2D 无 empty()，直接判断尺寸即可
+    if (width == 0 || height == 0) {
+        return cv::Mat();
+    }
+
+    // ✅ 正确获取 Zivid::Array2D 的连续内存指针
+    const auto zArray = pointCloud.copyData<Zivid::PointZ>();
+    const Zivid::PointZ* rawData = zArray.data();
+    const size_t totalPoints = width * height;
+
+    cv::Mat depthMap(static_cast<int>(height), static_cast<int>(width), CV_32FC1);
+
+    for (size_t i = 0; i < totalPoints; ++i) {
+        float z = rawData[i].z;
+        depthMap.at<float>(static_cast<int>(i / width), static_cast<int>(i % width)) =
+            std::isfinite(z) ? z : std::numeric_limits<float>::quiet_NaN();
+    }
+
+    // 🎨 归一化到 0-255
+    double minVal = std::numeric_limits<double>::max();
+    double maxVal = std::numeric_limits<double>::lowest();
+
+    for (int r = 0; r < depthMap.rows; ++r) {
+        for (int c = 0; c < depthMap.cols; ++c) {
+            float val = depthMap.at<float>(r, c);
+            if (std::isfinite(val)) {
+                minVal = std::min(minVal, static_cast<double>(val));
+                maxVal = std::max(maxVal, static_cast<double>(val));
+            }
+        }
+    }
+
+    cv::Mat depthMapVis;
+    if (std::isfinite(minVal) && std::isfinite(maxVal) && maxVal > minVal) {
+        depthMap.convertTo(depthMapVis, CV_8UC1, 
+                          255.0 / (maxVal - minVal), 
+                          -255.0 * minVal / (maxVal - minVal));
+    } else {
+        depthMapVis = cv::Mat::zeros(depthMap.size(), CV_8UC1);
+    }
+
+    return depthMapVis;
+}
+// 静态工具函数实现（类内封装）
+float c_Zivid_Camera_Remote::getValueZ(const Zivid::PointZ &p)
+{
+    return p.z;
+}
+bool c_Zivid_Camera_Remote::isLesserOrNan(const Zivid::PointZ &a, const Zivid::PointZ &b)
+{
+    if (std::isnan(getValueZ(a)) && std::isnan(getValueZ(b))) {
+        return false;
+    }
+    return getValueZ(a) < getValueZ(b) ? true : std::isnan(getValueZ(a));
+}
+bool c_Zivid_Camera_Remote::isGreaterOrNaN(const Zivid::PointZ &a, const Zivid::PointZ &b)
+{
+    if (std::isnan(getValueZ(a)) && std::isnan(getValueZ(b))) {
+        return false;
+    }
+    return getValueZ(a) > getValueZ(b) ? true : std::isnan(getValueZ(a));
+}
+//连接相机
+void c_Zivid_Camera_Remote::Connect()
+{
+    if (c_Variable::getInstance().g_Zivid_Camera.camera_connected) {
+        emit Status("相机已连接，无需再次连接");
+        return;
+    }
+    
+    if(!QtPing(c_Variable::getInstance().g_Zivid_Camera.Camera_Ip)){
+        emit Status("相机未上电，6秒后重连连接");
+        QTimer::singleShot(6000, this, &c_Zivid_Camera_Remote::Connect);
+        return;
+    }
+    QElapsedTimer timer;
+    timer.start();
+    emit Status("相机连接中");
+    
+    try {
+        m_camera = m_application.connectCamera(
+            Zivid::CameraInfo::SerialNumber(
+                c_Variable::getInstance().g_Zivid_Camera.camera_serial.toStdString()
+            )
+        );
+    }
+    catch (const std::exception& e) {
+        emit Status(QString("连接失败: %1").arg(e.what()));
+        c_Variable::getInstance().g_Zivid_Camera.camera_connected = false;
+        c_Variable::getInstance().writeMessage(1, "Disconnect_Done");
+        QTimer::singleShot(6000, this, &c_Zivid_Camera_Remote::Connect);
+        return;
+    }
+    
+    if (m_camera.state().isConnected()) {
+        c_Variable::getInstance().g_Zivid_Camera.camera_connected = true;
+        emit Status(QString("找到序列号为 %1 的相机")
+            .arg(c_Variable::getInstance().g_Zivid_Camera.camera_serial));
+        c_Variable::getInstance().g_Zivid_Camera.settingTime = timer.elapsed();
+        c_Variable::getInstance().writeMessage(1, "Connect_Done");
+    }
+    else {
+        c_Variable::getInstance().g_Zivid_Camera.camera_connected = false;
+        emit Status(QString("未找到序列号为 %1 的相机")
+            .arg(c_Variable::getInstance().g_Zivid_Camera.camera_serial));
+        c_Variable::getInstance().writeMessage(1, "Disconnect_Done");
+        QTimer::singleShot(6000, this, &c_Zivid_Camera_Remote::Connect);
+    }
+}
+// 释放相机资源
+void c_Zivid_Camera_Remote::Disconnect()
+{
+	if (c_Variable::getInstance().g_Zivid_Camera.camera_connected && m_camera.state().isConnected()) {
+		m_camera.disconnect();
+		c_Variable::getInstance().g_Zivid_Camera.camera_connected = false;
+		emit Status(QString("相机已断开: %1").arg(
+			c_Variable::getInstance().g_Zivid_Camera.camera_serial));
+
+		c_Variable::getInstance().writeMessage(1, "Disconnect_Done");
+	}
+}
+// 捕获2D+3D帧
+void c_Zivid_Camera_Remote::Capture()
+{
+	if (!c_Variable::getInstance().g_Zivid_Camera.camera_connected && !m_camera.state().isConnected()) {
+		emit Status("相机未连接，无法捕获图像");
+		return;
+	}
+	
+	Zivid::Frame frame;
+    Zivid::Settings settings;
+
+	QElapsedTimer timer;
+
+    QString basePath =  c_Variable::getInstance().g_Zivid_Camera.base_Path;
+	QString savePath = c_Variable::getInstance().g_Zivid_Camera.save_path;
+	QString imageName = c_Variable::getInstance().g_Zivid_Camera.image_name;
+
+    QString imagePath = basePath + savePath;
+
+ 	timer.start();
+
+	if (!QDir().mkpath(imagePath)) {
+		emit Status(QString("无法创建目录: %1").arg(c_Variable::getInstance().g_Zivid_Camera.save_path));
+		return;
+	}
+	
+	try {
+        Zivid::CaptureAssistant::SuggestSettingsParameters params{
+            Zivid::CaptureAssistant::SuggestSettingsParameters::MaxCaptureTime{ 
+                std::chrono::milliseconds{ 2000 } 
+            },
+            Zivid::CaptureAssistant::SuggestSettingsParameters::AmbientLightFrequency::none
+        };
+
+        settings = Zivid::CaptureAssistant::suggestSettings(m_camera, params);
+
+        // 强制全分辨率
+        settings.set(Zivid::Settings::Sampling::Pixel{ Zivid::Settings::Sampling::Pixel::all });
+        if (settings.color().hasValue()) {
+            auto s2d = settings.color().value();
+            s2d.set(Zivid::Settings2D::Sampling::Pixel{ Zivid::Settings2D::Sampling::Pixel::all });
+            settings.set(Zivid::Settings::Color{ s2d });
+        }
+        settings.set(Zivid::Settings::Processing::Resampling::Mode{ 
+            Zivid::Settings::Processing::Resampling::Mode::disabled 
+        });
+
+        // 【关键修复】正确钳位 3D Brightness ≤ 2.2
+        {
+            auto acqs = settings.acquisitions();
+            Zivid::Settings::Acquisitions newAcqs;
+            
+            for (const auto& acq : acqs) {
+                float b = acq.brightness().value();
+                if (b > 2.2f) {
+                    emit Status(QString("⚠️ 3D Brightness 钳位: %1 → 1.8").arg(b));  // 修复格式化
+                    Zivid::Settings::Acquisition newAcq = acq;
+                    newAcq.brightness() = Zivid::Settings::Acquisition::Brightness{ 1.8f };
+                    newAcqs.emplaceBack(newAcq);
+                } else {
+                    newAcqs.emplaceBack(acq);
+                }
+            }
+            settings.set(Zivid::Settings::Acquisitions{newAcqs});  // 回写生效
+        }
+		// 在钳位 Brightness 后，追加滤波参数优化
+		{
+    		//离群点去除：室外风沙噪声
+    		settings.set(Zivid::Settings::Processing::Filters::Outlier::Removal::Threshold{ 6.5 });
+    
+    		//噪声三重处理
+    		settings.set(Zivid::Settings::Processing::Filters::Noise::Removal::Threshold{ 4.0 });
+    		settings.set(Zivid::Settings::Processing::Filters::Noise::Suppression::Enabled{ 
+        		Zivid::Settings::Processing::Filters::Noise::Suppression::Enabled::yes });
+    
+    		// 孔洞修复：机车曲面
+    		settings.set(Zivid::Settings::Processing::Filters::Hole::Repair::HoleSize{ 0.25f });
+    		settings.set(Zivid::Settings::Processing::Filters::Hole::Repair::Strictness{ 2 });
+    
+    		//对比度校正：强光边缘锐化
+    		settings.set(Zivid::Settings::Processing::Filters::Experimental::ContrastDistortion::Correction::Strength{ 0.35f });
+    
+    		//高斯平滑：保留裂纹细节
+    		settings.set(Zivid::Settings::Processing::Filters::Smoothing::Gaussian::Sigma{ 0.6f });
+    
+   			// 聚类去除：移除悬浮小簇
+    		settings.set(Zivid::Settings::Processing::Filters::Cluster::Removal::MaxNeighborDistance{ 5.0 });
+    		settings.set(Zivid::Settings::Processing::Filters::Cluster::Removal::MinArea{ 30.0 });
+    
+    		//启用诊断（便于后续问题追溯）
+    		settings.set(Zivid::Settings::Diagnostics::Enabled::yes);
+    
+    		emit Status("室外滤波参数优化已应用");
+		}
+		frame = m_camera.capture2D3D(settings);
+	}
+	catch (const Zivid::Exception& e) {
+		emit Status(QString("捕获失败: %1").arg(e.what()));
+		return;
+	}
+	
+	//保存settings
+	QFuture<void> saveSettings = QtConcurrent::run([settings, imagePath, imageName, this]() {
+		//保存设置参数
+		QString setting_path = imagePath + "/" + imageName + ".txt";
+		QFile file(setting_path);
+		if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+			QMetaObject::invokeMethod(this, "Status", Qt::QueuedConnection,
+				Q_ARG(QString, "打开失败" + setting_path));
+				return;
+			}
+		file.write(QByteArray::fromStdString(settings.toString()));
+		file.close();
+	});	
+	
+	//保存3D
+	QFuture<void> save3D = QtConcurrent::run([frame, imagePath, imageName, this]() {
+		QElapsedTimer timer;
+		timer.start();
+		QString point_cloud_path = imagePath + "/" + imageName + ".xyz";
+
+		QFile file(point_cloud_path);
+		if (!file.open(QIODevice::WriteOnly)) {
+			QMetaObject::invokeMethod(this, "Status", Qt::QueuedConnection,
+				Q_ARG(QString, "3D保存路径错误"));
+			return;
+		}
+		auto points = frame.pointCloud().copyData<Zivid::PointXYZ>();
+		const size_t numPoints = points.size();
+		const Zivid::PointXYZ* rawData = points.data();
+		std::vector<int16_t> buffer(numPoints * 3);
+		constexpr float SCALE = 10.0f;
+		constexpr int16_t INVALID = -32768; // INT16_MIN
+
+		int16_t* out = buffer.data();
+		for (size_t i = 0; i < numPoints; ++i) {
+			const auto& pt = rawData[i];
+			out[i * 3 + 0] = std::isfinite(pt.x) ?
+				static_cast<int16_t>(std::round(std::clamp(pt.x * SCALE, -32768.0f, 32767.0f))) : INVALID;
+			out[i * 3 + 1] = std::isfinite(pt.y) ?
+				static_cast<int16_t>(std::round(std::clamp(pt.y * SCALE, -32768.0f, 32767.0f))) : INVALID;
+			out[i * 3 + 2] = std::isfinite(pt.z) ?
+				static_cast<int16_t>(std::round(std::clamp(pt.z * SCALE, -32768.0f, 32767.0f))) : INVALID;
+		}
+		// 一次性写入
+		file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(int16_t));
+		file.close();
+
+		QMetaObject::invokeMethod(this, "onCapture3DCompleted", Qt::QueuedConnection,
+			Q_ARG(QString, point_cloud_path),
+			Q_ARG(qint64, timer.elapsed()));
+		});
+	
+	//保存2D
+	QFuture<void> save2D = QtConcurrent::run([frame, imagePath, imageName, this]() {
+		QElapsedTimer timer;
+		timer.start();
+		// 保存2D图像
+		QString image_path = imagePath + "/" + imageName + ".jpg";
+
+		try {
+			frame.frame2D().value().imageRGBA().save(image_path.toStdString());
+		}
+		catch (const std::exception& e) {
+			QMetaObject::invokeMethod(this, "Status", Qt::QueuedConnection,
+				Q_ARG(QString, e.what()));
+			return;
+		}
+
+		QMetaObject::invokeMethod(this, "onCapture2DCompleted", Qt::QueuedConnection,
+			Q_ARG(QString, image_path),
+			Q_ARG(qint64, timer.elapsed()));
+	});
+
+	// ✅ 新增：保存深度图
+    QFuture<void> saveDepthMap = QtConcurrent::run([this, imagePath, imageName, frame]() {
+        QElapsedTimer timer; timer.start();
+        try {
+            const auto pointCloud = frame.pointCloud();
+            cv::Mat depthMap = this->pointCloudToCvZ(pointCloud);
+            if (depthMap.empty()) {
+                QMetaObject::invokeMethod(this, "Status", Qt::QueuedConnection, Q_ARG(QString, "⚠️ 深度图转换结果为空"));
+                return;
+            }
+            QString depthMapPath = imagePath + "/" + imageName + ".png";
+            std::vector<int> params = { cv::IMWRITE_PNG_COMPRESSION, 0 };
+            if (!cv::imwrite(depthMapPath.toStdString(), depthMap, params)) {
+                QMetaObject::invokeMethod(this, "Status", Qt::QueuedConnection, Q_ARG(QString, "❌ 深度图保存失败"));
+                return;
+            }
+            QMetaObject::invokeMethod(this, [this, depthMapPath]() {
+                emit Status("✅ DepthMap saved: " + depthMapPath); // ✅ 修复 logMessage 未声明
+            }, Qt::QueuedConnection);
+            QMetaObject::invokeMethod(this, "onCaptureDepthMapCompleted", Qt::QueuedConnection, Q_ARG(QString, depthMapPath), Q_ARG(qint64, timer.elapsed()));
+        } catch (const std::exception &e) {
+            QMetaObject::invokeMethod(this, "Status", Qt::QueuedConnection, Q_ARG(QString, "💥 深度图保存异常: " + QString(e.what())));
+        } catch (...) {
+            QMetaObject::invokeMethod(this, "Status", Qt::QueuedConnection, Q_ARG(QString, "💥 深度图保存未知错误"));
+        }
+    });
+
+
+	emit Status("捕获完成");
+		
+	c_Variable::getInstance().g_Zivid_Camera.captureTime = timer.elapsed();
+	c_Variable::getInstance().g_Zivid_Camera.last_operation_time = QDateTime::currentDateTime();
+}
+void c_Zivid_Camera_Remote::onCapture2DCompleted(QString path, qint64 time)
+{
+    c_Variable::getInstance().g_Zivid_Camera.save2DTime = time;
+    emit Status("2D保存完成");
+    isCapture2DCompleted = true;
+    
+    if (isCapture2DCompleted && isCapture3DCompleted && isCaptureDepthMapCompleted) {
+        isCapture2DCompleted = false;
+        isCapture3DCompleted = false;
+        isCaptureDepthMapCompleted = false;
+        emit CaptureCompleted(path);  // path为2D主图路径，保持接口兼容
+    }
+}
+void c_Zivid_Camera_Remote::onCapture3DCompleted(QString path, qint64 time)
+{
+    c_Variable::getInstance().g_Zivid_Camera.save3DTime = time;
+    emit Status("3D保存完成");
+    isCapture3DCompleted = true;
+    
+    if (isCapture2DCompleted && isCapture3DCompleted && isCaptureDepthMapCompleted) {
+        isCapture2DCompleted = false;
+        isCapture3DCompleted = false;
+        isCaptureDepthMapCompleted = false;
+        emit CaptureCompleted(path);
+    }
+}
+void c_Zivid_Camera_Remote::onCaptureDepthMapCompleted(QString path, qint64 time)
+{
+    c_Variable::getInstance().g_Zivid_Camera.saveDepthMapTime = time;
+    emit Status("深度图保存完成");
+    isCaptureDepthMapCompleted = true;
+    
+    if (isCapture2DCompleted && isCapture3DCompleted && isCaptureDepthMapCompleted) {
+        isCapture2DCompleted = false;
+        isCapture3DCompleted = false;
+        isCaptureDepthMapCompleted = false;
+        emit CaptureCompleted(path);  // 统一发射总完成信号
+    }
+}
+
+
+
+==================== QDesigner FILES (.ui) ====================
+
+########################################################################
+FILE: ./Zivid_Camera.ui
+########################################################################
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>c_Zivid_Camera</class>
+ <widget class="QWidget" name="c_Zivid_Camera">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1421</width>
+    <height>735</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Zivid Camera Control</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="2">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>650</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>当前图像</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="0" column="0">
+       <widget class="QVTKOpenGLNativeWidget" name="VTK">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="title">
+        <string>图片发送详情</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_15">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>服务端IP：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Server_Ip">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_10">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>服务端口：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Server_Port">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_14">
+          <item>
+           <widget class="QLabel" name="label_11">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>客户端IP：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Client_Ip">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="3">
+         <layout class="QHBoxLayout" name="horizontalLayout_13">
+          <item>
+           <widget class="QLabel" name="label_9">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>客户端口：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Client_Port">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_18">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>任务总数：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="File_Name_Num">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_19">
+          <item>
+           <widget class="QLabel" name="label_18">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>待上传数：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Tran_File_Name_Num">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_20">
+          <item>
+           <widget class="QLabel" name="label_19">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>待重传数：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Retran_File_Name_Num">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0" colspan="4">
+         <layout class="QHBoxLayout" name="horizontalLayout_16">
+          <item>
+           <widget class="c_Fr_Light" name="Connected" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_178"/>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_13">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>连接状态</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="c_Fr_Light" name="Tran" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_179"/>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_14">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>发送心跳</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="c_Fr_Light" name="Start" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_180"/>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_15">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>发送占用</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="c_Fr_Light" name="Finish" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_181"/>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_16">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>发送空闲</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_17">
+            <item>
+             <widget class="QPushButton" name="Transmission_Connect">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>连接服务器</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="Transmission_Disconnect">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>断开服务器</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox3D">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="title">
+        <string>参数设置</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="3" column="0">
+         <layout class="QHBoxLayout" name="topHBoxLayout_3">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>图像名称</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Save_Name">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QLabel" name="label_8">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>相机序列号   :</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="Camera_Serial">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_24">
+            <item>
+             <widget class="QLabel" name="label_22">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>相机IP   :</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="Camera_Ip">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QPushButton" name="Zivid_Connect">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>连接相机</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="Zivid_Disconnect">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>断开相机</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="Capture">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>捕获图像</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item row="5" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_22">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QLabel" name="capture2DTimeLabel_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>彩色保存时间: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="save2DTime">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QLabel" name="capture2DTimeLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>3D保存时间: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="save3DTime">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_23">
+            <item>
+             <widget class="QLabel" name="capture2DTimeLabel_5">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>2D保存时间: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="saveDepthMapTime">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="topHBoxLayout_2">
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>保存路径</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Save_Path">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="4" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="capture2DTimeLabel_4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>设置时间: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="settingTime">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLabel" name="capture2DTimeLabel_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>捕获时间: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="captureTime">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <item>
+             <widget class="QLabel" name="capture3DTimeLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>时间戳:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="last_operation_time">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0">
+         <layout class="QHBoxLayout" name="topHBoxLayout_7">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>基础路径</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="basePath">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="title">
+        <string>手动文件选择</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>文件路径：</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="Read_Path_Name">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="get_Path">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>选择文件</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QPushButton" name="Clear_All">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>重置</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_21">
+       <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>启动</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_21">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>发送：</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="Write_File_Name_Num">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="File_Nane_Buffer">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>开始发送</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>手动读取文件内容</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_20">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>数量：</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="Read_File_Name_Num">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="get_File">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>读取文件</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKOpenGLNativeWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header>QVTKOpenGLNativeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>c_Fr_Light</class>
+   <extends>QWidget</extends>
+   <header>Fr_Light.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
+
+==================== Cmake FILES (.txt) ====================
+
+########################################################################
+FILE: ./CMakeLists.txt
+########################################################################
+
+cmake_minimum_required(VERSION 3.16)
+project(Zivid_Manage VERSION 1.0.0 LANGUAGES C CXX CUDA)
+
+# ============================================================================
+# 策略与平台检测
+# ============================================================================
+if(POLICY CMP0144)
+    cmake_policy(SET CMP0144 OLD)
+endif()
+
+# 检测ARM64平台
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(ARM64 TRUE)
+    message(STATUS "✅ Detected ARM64 Linux platform (Jetson)")
+endif()
+
+# ============================================================================
+# 构建配置
+# ============================================================================
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES 120 CACHE STRING "CUDA Architectures" FORCE)
+endif()
+
+if(DEFINED ENV{CUDA_HOME})
+    set(CUDA_HOME $ENV{CUDA_HOME})
+    set(CMAKE_CUDA_COMPILER ${CUDA_HOME}/bin/nvcc)
+endif()
+if(DEFINED ENV{OpenCV_DIR})
+    set(OpenCV_DIR $ENV{OpenCV_DIR})
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PCL_NO_MPI ON)
+
+# ============================================================================
+# 查找依赖包（含完善版librealsense2配置）
+# ============================================================================
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network PrintSupport Charts WebSockets Concurrent OpenGL)
+find_package(OpenCV REQUIRED)
+find_package(Zivid REQUIRED COMPONENTS Core Visualization)
+find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization filters kdtree search sample_consensus)
+find_package(VTK 9.1 REQUIRED COMPONENTS CommonCore CommonDataModel FiltersCore RenderingCore RenderingOpenGL2 GUISupportQt)
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# ============================================================================
+# librealsense2 配置（完善版）
+# ============================================================================
+# 优先使用 find_package（现代CMake方式）
+find_package(realsense2 QUIET)
+if(realsense2_FOUND)
+    message(STATUS "✅ librealsense2 found via find_package: ${realsense2_VERSION}")
+    set(REALSENSE2_FOUND TRUE)
+    set(REALSENSE2_INCLUDE_DIRS ${realsense2_INCLUDE_DIRS})
+    set(REALSENSE2_LIBRARIES realsense2::realsense2)  # 使用导入目标
+else()
+    # 回退到 pkg-config（传统方式）
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(REALSENSE2 QUIET realsense2)
+        if(REALSENSE2_FOUND)
+            message(STATUS "✅ librealsense2 found via pkg-config: ${REALSENSE2_VERSION}")
+            # 修复pkg-config路径（Jetson常见问题）
+            if(ARM64 AND NOT REALSENSE2_INCLUDE_DIRS)
+                set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            endif()
+        else()
+            message(WARNING "⚠️  librealsense2 not found (optional feature disabled)")
+        endif()
+    else()
+        message(WARNING "⚠️  pkg-config not found, cannot search for librealsense2")
+    endif()
+endif()
+
+# 验证librealsense2路径（Jetson关键修复）
+if(REALSENSE2_FOUND AND ARM64)
+    if(NOT EXISTS "${REALSENSE2_INCLUDE_DIRS}/librealsense2/rs.hpp")
+        # 尝试备用路径
+        if(EXISTS "/usr/include/librealsense2/rs.hpp")
+            set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            message(STATUS "🔧 Fixed librealsense2 include path: ${REALSENSE2_INCLUDE_DIRS}")
+        endif()
+    endif()
+endif()
+
+# ============================================================================
+# 海康SDK路径配置
+# ============================================================================
+set(HIKVISION_SDK_ROOT "/opt/hikvision_sdk_arm64" CACHE PATH "Path to Hikvision SDK for ARM64")
+set(HIKVISION_INC_PATH "${HIKVISION_SDK_ROOT}/incCn")
+set(HIKVISION_LIB_PATH "${HIKVISION_SDK_ROOT}/MakeAll")
+set(HIKVISION_COMP_PATH "${HIKVISION_SDK_ROOT}/MakeAll/HCNetSDKCom")
+
+if(NOT EXISTS "${HIKVISION_INC_PATH}")
+    message(FATAL_ERROR "❌ Hikvision SDK include directory not found at ${HIKVISION_INC_PATH}")
+endif()
+if(NOT EXISTS "${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+    message(FATAL_ERROR "❌ Hikvision SDK core library not found at ${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+endif()
+
+# ============================================================================
+# 包含目录（严格顺序 + librealsense2修复）
+# ============================================================================
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+    ${HIKVISION_INC_PATH}
+    ${PCL_INCLUDE_DIRS}
+    ${VTK_INCLUDE_DIRS}
+    ${ZIVID_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${REALSENSE2_INCLUDE_DIRS} 
+)
+
+# ============================================================================
+# 源文件
+# ============================================================================
+set(SOURCES
+    main.cpp
+    Variable.cpp
+    Zivid_Camera.cpp
+    Zivid_Camera_Remote.cpp
+    TCP_Client.cpp
+    Fr_Light.cpp
+    Zivid_Camera.qrc
+)
+
+set(HEADERS
+    Variable.h
+    Zivid_Camera.h
+    Zivid_Camera_Remote.h
+    TCP_Client.h
+    Fr_Light.h
+)
+
+# ============================================================================
+# 创建可执行文件
+# ============================================================================
+add_executable(zivid_manage ${SOURCES} ${HEADERS})
+
+# ============================================================================
+# 链接库（含librealsense2完善配置）
+# ============================================================================
+target_link_libraries(zivid_manage PRIVATE
+    # Qt5
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport
+    Qt5::Charts Qt5::WebSockets Qt5::Concurrent Qt5::OpenGL
+    
+    # Zivid
+    Zivid::Core Zivid::Visualization
+    
+    # OpenCV
+    ${OpenCV_LIBS}
+    
+    # PCL + VTK
+    ${PCL_LIBRARIES}
+    ${VTK_LIBRARIES}
+    
+    # Boost
+    ${Boost_LIBRARIES}
+    
+    # ============================================================================
+    # librealsense2（完善配置）
+    # ============================================================================
+    ${REALSENSE2_LIBRARIES}  # 自动处理导入目标或库列表
+    
+    # ============================================================================
+    # 海康SDK（严格按文档顺序）
+    # ============================================================================
+    ${HIKVISION_LIB_PATH}/libhcnetsdk.so
+    ${HIKVISION_LIB_PATH}/libHCCore.so
+    ${HIKVISION_LIB_PATH}/libhpr.so
+    ${HIKVISION_LIB_PATH}/libPlayCtrl.so
+    ${HIKVISION_LIB_PATH}/libSuperRender.so
+    ${HIKVISION_LIB_PATH}/libAudioRender.so
+    ${HIKVISION_COMP_PATH}/libHCCoreDevCfg.so
+    ${HIKVISION_COMP_PATH}/libHCPreview.so
+    ${HIKVISION_COMP_PATH}/libHCPlayBack.so
+    ${HIKVISION_COMP_PATH}/libHCVoiceTalk.so
+    ${HIKVISION_COMP_PATH}/libHCAlarm.so
+    ${HIKVISION_COMP_PATH}/libHCDisplay.so
+    ${HIKVISION_COMP_PATH}/libHCIndustry.so
+    ${HIKVISION_COMP_PATH}/libHCGeneralCfgMgr.so
+    ${HIKVISION_COMP_PATH}/libStreamTransClient.so
+    ${HIKVISION_COMP_PATH}/libSystemTransform.so
+    ${HIKVISION_COMP_PATH}/libanalyzedata.so
+    ${HIKVISION_COMP_PATH}/libAudioIntercom.so
+    ${HIKVISION_COMP_PATH}/libiconv.so.2
+)
+
+# ============================================================================
+# RPATH与编译优化
+# ============================================================================
+set_target_properties(zivid_manage PROPERTIES
+    BUILD_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    INSTALL_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    BUILD_RPATH_USE_ORIGIN ON
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_options(zivid_manage PRIVATE
+    -O3 -mcpu=native
+    -Wall -Wextra
+    -Wno-unused-parameter -Wno-unused-variable -Wno-deprecated-declarations
+)
+
+# ============================================================================
+# 资源文件复制
+# ============================================================================
+add_custom_command(TARGET zivid_manage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/Communicate_DB.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/stuqss.css
+        $<TARGET_FILE_DIR:zivid_manage>/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Images
+        $<TARGET_FILE_DIR:zivid_manage>/Images
+    COMMENT "Copying resources to build directory"
+)
+
+# ============================================================================
+# 构建信息输出
+# ============================================================================
+message(STATUS "========================================")
+message(STATUS "✅ Project Configuration Summary")
+message(STATUS "========================================")
+message(STATUS "Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}")
+message(STATUS "OpenCV: ${OpenCV_VERSION}")
+message(STATUS "PCL: ${PCL_VERSION}")
+message(STATUS "VTK: ${VTK_VERSION}")
+message(STATUS "Zivid SDK: ${ZIVID_VERSION}")
+message(STATUS "librealsense2: ${REALSENSE2_VERSION} (${REALSENSE2_FOUND})")
+message(STATUS "Hikvision SDK: ${HIKVISION_SDK_ROOT}")
+message(STATUS "ARM64 Platform: ${ARM64}")
+
+########################################################################
+FILE: ./directory_tree.txt
+########################################################################
+
+.
+├── CMakeLists.txt
+├── Communicate_DB.json
+├── directory_tree.txt
+├── export_code.sh
+├── Fr_Light.cpp
+├── Fr_Light.h
+├── Images
+│   ├── icon.ico
+│   └── Logo.jpg
+├── main.cpp
+├── stuqss.css
+├── TCP_Client.cpp
+├── TCP_Client.h
+├── Variable.cpp
+├── Variable.h
+├── Zivid_Camera.cpp
+├── Zivid_Camera.h
+├── Zivid_Camera.qrc
+├── Zivid_Camera_Remote.cpp
+├── Zivid_Camera_Remote.h
+└── Zivid_Camera.ui
+
+2 directories, 20 files
+

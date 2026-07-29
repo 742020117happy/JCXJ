@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<PlanTemplate Language="English">
+    <Form>
+        <Name>PlanTemplate</Name>
+        <Controls>
+          <Control name="btnLogin" text="Login"/>
+          <Control name="btnWeekPlan" text="Week Plan Management"/>
+          <Control name="btnHolidayPlan" text="Holiday Plan Management"/>
+          <Control name="btnHolidayGroup" text="Holiday Group Management"/>
+          <Control name="btnPlanTemplate" text="Plan Template Management"/>
+          <Control name="label1" text="Plan Template"/>
+        </Controls>
+    </Form>
+    <Form>
+        <Name>AddDevice</Name>
+        <Controls>
+          <Control name="label1" text="Login Device"/>
+          <Control name="label2" text="Device Address"/>
+          <Control name="label4" text="User Name"/>
+          <Control name="label3" text="Port"/>
+          <Control name="label5" text="Password"/>
+          <Control name="btnAdd" text="Add"/>
+          <Control name="btnCancel" text="Cancel"/>
+        </Controls>
+    </Form>
+    <Form>
+      <Name>HolidayGroupPlan</Name>
+      <Controls>
+        <Control name="HolidayGroupPlan" text="HolidayGroupPlan"/>
+        <Control name="label1" text="Device Type:"/>
+        <Control name="label3" text="HolidayGroup Number:"/>
+        <Control name="label2" text="HolidayGroup Name:"/>
+        <Control name="label4" text="LocalControllerID:"/>
+        <Control name="checkBoxEnableHG" text="Enable"/>
+        <Control name="groupBox2" text="HolidayPlanNo Config"/>
+        <Control name="label5" text="HolidayPlanNo:"/>
+        <Control name="btnUpdate" text="Update"/>
+        <Control name="checkBoxEnableTime" text="Enable"/>
+        <Control name="btnGetTemplate" text="GET"/>
+        <Control name="btnSetTemplate" text="SET"/>
+      </Controls>
+    </Form>
+    <Form>
+        <Name>HolidayPlan</Name>
+        <Controls>
+          <Control name="HolidayPlan" text="HolidayPlan"/>
+          <Control name="label1" text="Device Type:"/>
+          <Control name="label2" text="HolidayPlan Number:"/>
+          <Control name="checkBoxEnableHP" text="Enable"/>
+          <Control name="label3" text="LocalControllerID:"/>
+          <Control name="gBoxTime" text="Time Configuration"/>
+          <Control name="label4" text="Start Date:"/>
+          <Control name="label7" text="End Date:"/>
+          <Control name="gBoxEditTime" text="EditTimeSegment"/>
+          <Control name="label5" text="Start Time:"/>
+          <Control name="label6" text="End Time:"/>
+          <Control name="checkBoxEnableTime" text="Enable"/>
+          <Control name="btnAdd" text="Update"/>
+          <Control name="btnGet" text="GET"/>
+          <Control name="btnSet" text="SET"/>
+          <Control name="label8" text="VerifyMode:"/>
+          <Control name="label9" text="DoorStateMode:"/>
+        </Controls>
+    </Form>
+    <Form>
+      <Name>PlanTemplateM</Name>
+      <Controls>
+        <Control name="PlanTemplateM" text="PlanTemplateM"/>
+        <Control name="label1" text="Device Type:"/>
+        <Control name="label2" text="PlanTemplateNumber:"/>
+        <Control name="label3" text="PlanTemplateName:"/>
+        <Control name="label4" text="LocalControllerID:"/>
+        <Control name="checkBoxEnableTP" text="Enable"/>
+        <Control name="groupBox2" text="Template Config"/>
+        <Control name="label5" text="HolidayGroupPlanNo:"/>
+        <Control name="label6" text="WeekPlanNo:"/>
+        <Control name="btnUpdate" text="Update"/>
+        <Control name="btnGetPT" text="GET"/>
+        <Control name="btnSetPT" text="SET"/>
+      </Controls>
+    </Form>
+    <Form>
+      <Name>WeekPlan</Name>
+      <Controls>
+        <Control name="WeekPlan" text="WeekPlan"/>
+        <Control name="label1" text="Device Type:"/>
+        <Control name="label2" text="WeekPlan Number:"/>
+        <Control name="checkBoxEnableWP" text="Enable"/>
+        <Control name="label3" text="LocalControllerID:"/>
+        <Control name="gBoxTime" text="Time Configuration"/>
+        <Control name="label4" text="Date:"/>
+        <Control name="gBoxEditTime" text="EditTimeSegment"/>
+        <Control name="label5" text="Start Time:"/>
+        <Control name="label6" text="End Time:"/>
+        <Control name="checkBoxEnableTime" text="Enable"/>
+        <Control name="btnAdd" text="Update"/>
+        <Control name="btnGet" text="GET"/>
+        <Control name="btnSet" text="SET"/>
+        <Control name="label7" text="VerifyMode:"/>
+        <Control name="label8" text="DoorStateMode:"/>
+      </Controls>
+    </Form>
+</PlanTemplate>

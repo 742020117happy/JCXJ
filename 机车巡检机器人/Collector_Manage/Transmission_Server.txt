@@ -1,0 +1,2003 @@
+========================================================================
+Project: Collector_Manage
+Export Time: Thu Jun 18 10:00:40 AM CST 2026
+Total Files: 9
+========================================================================
+
+==================== HEADER FILES (.h) ====================
+
+########################################################################
+FILE: ./Fr_Light.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_Fr_Light : public QWidget {
+	Q_OBJECT
+
+public:
+	enum State {
+		Default,
+		Error,
+		Working,
+		Null
+	};
+	explicit c_Fr_Light(QWidget * parent = nullptr);
+	virtual ~c_Fr_Light();
+
+	public slots:
+	void Set_Working();
+	void Set_Default();
+	void Set_Error();
+	void Set_Null();
+	void Set_State(const bool state);
+	void Set_Radius(int value);
+	bool Get_State();
+
+signals:
+	void Working_State(bool state);
+	void Default_State(bool state);
+	void Error_State(bool state);
+
+protected:
+	void paintEvent(QPaintEvent *);
+
+private:
+	int m_Radius = 50;
+	State m_State = Default;
+	QColor m_Default_Color;
+	QColor m_Error_Color;
+	QColor m_Working_Color;
+	QColor m_Null_Color;
+};
+
+
+########################################################################
+FILE: ./TCP_Server.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"  // 包含全局变量头文件
+
+// TCP服务器类
+class c_TCP_Server : public c_Object
+{
+	Q_OBJECT  // Qt元对象系统宏
+public:
+	explicit c_TCP_Server(quint16 port, QObject *parent = nullptr);  // 构造函数
+	virtual ~c_TCP_Server();  // 析构函数
+
+public slots:
+	void Init();  // 初始化服务器
+	void Start_Server();  // 启动服务器
+	void Stop_Server();  // 停止服务器
+	void get_SaveDirectory(QString path);
+
+signals:
+	void Server_Started();        // 服务器启动信号
+	void Server_Stopped();        // 服务器停止信号
+	void Client_Connected();      // 客户端连接信号
+	void Client_Disconnected();   // 客户端断开信号
+
+private:
+	// 客户端状态枚举
+	enum ClientState {
+		WaitingForCommand,    // 等待命令
+		ReceivingFileInfo,    // 接收文件信息
+		ReceivingFileData,    // 接收文件数据
+		WaitingForVerification // 等待验证
+	};
+
+	// 客户端文件数据结构
+	struct ClientFileData {
+		ClientState state;          // 客户端状态
+		QString filePath;           // 文件远程路径
+		QString fileName;           // 文件名
+		QString fileDir;            // 文件远程目录
+		quint64 fileSize;           // 文件大小
+		quint64 receivedSize;       // 已接收大小
+		QString fileHash;           // 文件哈希
+		QFile* file;                // 文件指针
+		QString saveDir;            // 存储目录
+		QString savePath;           // 保存文件完整路径
+		int retryCount;             // 重试计数
+		QTimer* timeoutTimer;       // 超时定时器
+		QByteArray buffer;          // 缓冲区
+	};
+
+	void Process_File_Info(QTcpSocket* socket, const QJsonObject& json);  // 处理文件信息
+	void Process_File_Data(QTcpSocket* socket);  // 处理文件数据
+	void Send_Command(QTcpSocket* socket, const QJsonObject& command);  // 发送命令
+	void Close_File_For_Client(QTcpSocket* socket, bool success);  // 关闭客户端文件
+	void Cleanup_Client_Data(QTcpSocket* socket);  // 清理客户端数据
+
+private:
+	QTcpServer* m_Server;              // TCP服务器实例
+	QList<QTcpSocket*> m_SocketList;   // 套接字列表
+	QMap<QTcpSocket*, ClientFileData*> m_ClientData;  // 客户端数据映射
+	QString m_SaveDirectory;           // 保存目录
+	quint16 m_port;                    // 监听端口
+};
+
+########################################################################
+FILE: ./Transmission_Server.h
+########################################################################
+
+﻿#pragma once
+#include "ui_Transmission_Server.h"
+#include "TCP_Server.h"
+#include "Fr_Light.h"
+
+// 传输服务器界面类
+class c_Transmission_Server : public QMainWindow
+{
+    Q_OBJECT
+public:
+    explicit c_Transmission_Server(QWidget *parent = Q_NULLPTR);
+    virtual ~c_Transmission_Server();
+
+public slots:
+    void TCP_Server_Init();      // TCP服务器初始化
+    void TCP_Server_DB();        // TCP服务器数据库操作
+    void TCP_Server_Scan();      // TCP服务器扫描
+    void TCP_Server_Delete();    // TCP服务器删除
+
+signals:
+    void Start_Server_Command();   // 启动服务器命令信号
+    void Stop_Server_Command();    // 停止服务器命令信号
+
+protected:
+    void keyPressEvent(QKeyEvent *event) override;   // 键盘按下事件
+    void closeEvent(QCloseEvent *event) override;    // 关闭事件
+
+private:
+    Ui::c_Transmission_Server_Class ui;    // UI对象
+    c_TCP_Server *m_Server_1_Remote;       // 远程服务器实例1
+    QThread *m_Server_1_Thread;            // 服务器线程1
+    c_TCP_Server* m_Server_2_Remote;       // 远程服务器实例2
+    QThread* m_Server_2_Thread;            // 服务器线程2
+    bool m_Scan;                           // 扫描标志位
+
+    QString m_logDir;                      // 日志目录
+
+private slots:
+    void Write_Communicate_DB(QString key, int value);      // 写通信数据库(int)
+    void Write_Communicate_DB(QString key, QString value);  // 写通信数据库(QString)
+    void Write_Worry_List(QString value);                   // 写入设备告警信息
+};
+
+########################################################################
+FILE: ./Variable.h
+########################################################################
+
+﻿#pragma once 
+
+#include <math.h>
+#include <time.h>
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstdio>
+#include <fcntl.h>
+#include <memory>
+#include <unistd.h>
+
+#include <QApplication>
+#include <QByteArray>
+#include <QCloseEvent>
+#include <QColor>
+#include <QDateTime>
+#include <QDebug>
+#include <QDir>
+#include <QSize>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileDialog>
+#include <QHostAddress>
+#include <QImage>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeyEvent>
+#include <QMainWindow>
+#include <QMap>
+#include <QMessageBox>
+#include <QMetaType>
+#include <QMutex>
+#include <QObject>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPaintDevice> 
+#include <QPen>       
+#include <QProcess>
+#include <QRegularExpression>
+#include <QScopedPointer>
+#include <QSettings>
+#include <QSharedMemory>
+#include <QSocketNotifier>
+#include <QStandardPaths>
+#include <QStackedWidget>
+#include <QString>
+#include <QTextStream>
+#include <QDataStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QVariant>
+#include <QVector>
+#include <QWidget>
+#include <QSocketNotifier>
+
+#include <QAbstractSocket>
+#include <QNetworkAccessManager>
+#include <QNetworkInterface>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket> 
+#include <QUrlQuery>
+#include <QtNetwork>
+#include <QtWebSockets/qwebsocket.h>
+#include <QtWebSockets/qwebsocketserver.h>
+#include <QConicalGradient>
+
+#include <QtConcurrent/QtConcurrent>
+#include <QCryptographicHash>  
+
+
+using namespace std;
+
+
+
+struct s_Transmission_DB {
+	bool Tran = false;
+	bool Connected = false;
+	bool Start = false;
+	bool Finish = true;
+	bool Cancel = false;
+	bool Error = false;
+	QString device_name = "机车巡检机器人图像接收软件-v1.0";  
+	QString Server_Ip = "192.168.0.1";
+	int Server_Port = 8888;
+    QString Client_Ip;
+	int Client_Port;
+	QString Save_Path;    
+    QStringList buffer;
+	QStringList Tran_buffer;
+	QStringList Retran_buffer;
+	QStringList Received_Buffer; 
+};
+
+
+
+class c_Object : public QObject
+{
+    Q_OBJECT
+public:
+    explicit c_Object(QObject* parent = nullptr);
+    virtual ~c_Object();
+
+  	union dataConverter {
+		float floatValue;     
+		quint32 DWord;
+		struct {
+			quint16 low16Bits;
+			quint16 high16Bits;
+		}Word;
+	};
+
+    void BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits);
+	void FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits);
+	void IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits);
+	void BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits);
+
+    bool QtPing(const QString ip);
+    bool msleep(const int mSec);
+    QString TCP_Status(int State);
+    QString Modbus_Status(int State);
+    QString CanOpen(int State);
+
+signals:
+    void Status(QString state);
+
+};
+
+
+class c_Variable : public QObject
+{
+	Q_OBJECT
+public:
+	static c_Variable& getInstance();  
+
+									   
+	static QJsonObject g_Communicate_DB;  
+	static s_Transmission_DB g_Transmission_1;  
+	static s_Transmission_DB g_Transmission_2;  
+
+
+private:
+	explicit c_Variable(QObject * parent = nullptr);  
+	virtual ~c_Variable();  
+
+							
+	c_Variable(const c_Variable &other) = delete;
+	c_Variable& operator=(const c_Variable &other) = delete;
+
+	static QMutex g_mutex;  
+	static QScopedPointer<c_Variable> g_instance;  
+
+	friend struct QScopedPointerDeleter<c_Variable>;  
+};
+
+
+==================== SOURCE FILES (.cpp) ====================
+
+########################################################################
+FILE: ./Fr_Light.cpp
+########################################################################
+
+﻿#include "Fr_Light.h"
+
+c_Fr_Light::c_Fr_Light(QWidget * parent) :QWidget(parent)
+{
+	m_Working_Color = QColor("green");
+	m_Default_Color = QColor("red");
+	m_Error_Color = QColor("yellow");
+	m_Null_Color = QColor("gray");
+}
+
+c_Fr_Light::~c_Fr_Light()
+{
+	
+}
+
+void c_Fr_Light::Set_Working()
+{
+	if (m_State == Working) { return; }//如果状态未改变则立即退出
+	m_State = Working;
+	update();
+	emit Working_State(true);
+}
+bool c_Fr_Light::Get_State()
+{
+	if (m_State == Working) { return true; }
+	else { return false; }
+}
+void c_Fr_Light::Set_Default()
+{
+	if (m_State == Default) { return; }	  //如果状态未改变则立即退出
+	m_State = Default;
+	update();
+	emit Default_State(true);
+}
+void c_Fr_Light::Set_Error()
+{
+	if (m_State == Error) { return; }	   //如果状态未改变则立即退出
+	m_State = Error;
+	update();
+	emit Error_State(true);
+}
+void c_Fr_Light::Set_Null()
+{
+	if (m_State == Null){ return; }
+	m_State = Null;
+	update();
+}
+void c_Fr_Light::Set_State(const bool state)
+{
+	if (state) {
+		Set_Working();
+	}
+	else {
+		Set_Default();
+	}
+}
+void c_Fr_Light::Set_Radius(int value)
+{
+	m_Radius = value;
+	update();
+}
+void c_Fr_Light::paintEvent(QPaintEvent*) {
+	int side = qMin(width(), height());
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.translate(width() / 2, height() / 2);
+	painter.scale(side / 100.0, side / 100.0);
+	QColor color;
+	switch (m_State) {
+	case Default:
+		color = m_Default_Color;
+		break;
+	case Working:
+		color = m_Working_Color;
+		break;
+	case Error:
+		color = m_Error_Color;
+		break;
+	default:
+		color = m_Null_Color;
+		break;
+	}
+	QRadialGradient radial(0, 0, m_Radius, 0, 0);    //设置圆的原点和焦点在中心,半径50
+	radial.setSpread(QGradient::PadSpread);
+	radial.setColorAt(1, color);
+	painter.setPen(Qt::transparent);
+	painter.setBrush(radial);
+	painter.drawEllipse(-50, -50, 100, 100);
+}
+
+########################################################################
+FILE: ./main.cpp
+########################################################################
+
+﻿#include "Transmission_Server.h"  
+#include <QtWidgets/QApplication>  
+
+
+int main(int argc, char *argv[])
+{
+	QApplication a(argc, argv);  
+    c_Transmission_Server w;  
+
+    return a.exec(); 
+}
+
+########################################################################
+FILE: ./TCP_Server.cpp
+########################################################################
+
+﻿#include "TCP_Server.h"
+
+c_TCP_Server::c_TCP_Server(quint16 port, QObject *parent) : c_Object(parent)
+{
+    m_Server = nullptr;  
+    m_SaveDirectory = QDir::currentPath() + "/received_files"; 
+
+    QDir dir(m_SaveDirectory);
+    if (!dir.exists()) {
+        dir.mkpath(m_SaveDirectory);  // 创建目录
+    }
+
+    m_port = port;
+}
+
+c_TCP_Server::~c_TCP_Server()
+{
+    Stop_Server();  // 停止服务器
+
+    // 清理所有客户端数据
+    for (auto it = m_ClientData.begin(); it != m_ClientData.end(); ++it) {
+        QTcpSocket* socket = it.key();
+        ClientFileData* data = it.value();
+
+        if (data->file) {  // 检查文件指针是否存在
+            if (data->file->isOpen()) {  // 检查文件是否打开
+                data->file->close();  // 关闭文件
+            }
+            delete data->file;  // 删除文件指针
+        }
+
+        if (data->timeoutTimer) {  // 检查定时器是否存在
+            data->timeoutTimer->stop();  // 停止定时器
+            data->timeoutTimer->deleteLater();  // 延迟删除定时器
+        }
+
+        delete data;  // 删除客户端文件数据
+    }
+    m_ClientData.clear();  // 清空客户端数据映射
+
+    // 清理套接字
+    for (int i = 0; i < m_SocketList.size(); ++i) {
+        if (m_SocketList.at(i)) {
+            m_SocketList.at(i)->deleteLater();  // 延迟删除套接字
+        }
+    }
+    m_SocketList.clear();  // 清空套接字列表
+
+    // 清理服务器
+    if (m_Server) {
+        m_Server->deleteLater();  // 延迟删除服务器
+        m_Server = nullptr;  // 重置服务器指针
+    }
+}
+
+void c_TCP_Server::Init()
+{
+    m_Server = new QTcpServer(this); 
+    QObject::connect(m_Server, &QTcpServer::acceptError, this, [=](int state) {
+        emit Status(TCP_Status(state));
+    });
+
+    QObject::connect(m_Server, &QTcpServer::newConnection, this, [=](){
+        if (!m_Server->hasPendingConnections()) { return; }
+        QTcpSocket* socket = m_Server->nextPendingConnection();
+        if (!socket) { return; }
+
+        m_SocketList.append(socket);
+
+        ClientFileData* clientData = new ClientFileData;
+        clientData->state = WaitingForCommand;
+        clientData->filePath.clear();
+        clientData->fileName.clear();
+        clientData->fileDir.clear();
+        clientData->fileSize = 0;
+        clientData->receivedSize = 0;
+        clientData->fileHash.clear();
+        clientData->file = nullptr;
+        clientData->saveDir.clear();
+        clientData->savePath.clear();
+        clientData->retryCount = 0;
+        clientData->timeoutTimer = new QTimer(this);
+        clientData->timeoutTimer->setSingleShot(true);
+        clientData->timeoutTimer->setInterval(60000);  // 60秒超时
+        m_ClientData[socket] = clientData;
+        
+        QObject::connect(clientData->timeoutTimer, &QTimer::timeout, this, [=]() {
+            for (auto it = m_ClientData.begin(); it != m_ClientData.end(); ++it) {
+                QTcpSocket* sock = it.key();
+                ClientFileData* data = it.value();
+
+                // 检查定时器是否超时
+                if (data->timeoutTimer->isActive() && data->timeoutTimer->remainingTime() <= 0) {
+                    QJsonObject response;  // 构建响应JSON
+                    response["cmd"] = "ERROR";
+                    response["filePath"] = data->filePath;
+                    response["message"] = "Operation timed out";  // 超时信息
+                    Send_Command(sock, response);  // 发送错误响应
+
+                    Close_File_For_Client(sock, false);  // 关闭文件
+                    break;
+                }
+            }
+        });
+        
+        emit Client_Connected();
+        emit Status("客户端连接: " + socket->peerAddress().toString());
+        
+        QObject::connect(socket, &QTcpSocket::disconnected, this, [socket, this]() {
+            emit Client_Disconnected();
+            emit Status("客户端断开: " + socket->peerAddress().toString());
+            msleep(100);
+            Cleanup_Client_Data(socket);
+            msleep(100);
+            m_SocketList.removeOne(socket);
+            msleep(100);
+            socket->deleteLater();
+        });
+        
+        QObject::connect(socket, &QTcpSocket::readyRead, this, [socket, this]() {
+            if (!m_ClientData.contains(socket)) { return; }
+            m_ClientData[socket]->timeoutTimer->start();
+            m_ClientData[socket]->buffer = socket->readAll();
+            if (m_ClientData[socket]->buffer.isEmpty()) { return; }
+            
+            if (m_ClientData[socket]->state == ReceivingFileData) {
+                Process_File_Data(socket); 
+            }
+            
+            if (m_ClientData[socket]->state != ReceivingFileData) {
+                QJsonObject json = QJsonDocument::fromJson(m_ClientData[socket]->buffer).object();
+
+                if (json.isEmpty()) { return; }
+
+                emit Status("接收: " + m_ClientData[socket]->buffer);
+
+                QString cmd = json.value("cmd").toString();  
+
+                if (cmd == "file_info") {  
+                    Process_File_Info(socket, json);  
+                }
+            }
+        });
+    });
+}
+
+void c_TCP_Server::Start_Server()
+{
+    if(!m_Server || m_Server->isListening()) {
+        return;
+    }
+
+    QString serverIp = c_Variable::getInstance().g_Communicate_DB.value("Server_Ip").toString();
+
+    QHostAddress address;
+    if (serverIp == "0.0.0.0" || serverIp.isEmpty()) {  // 判断IP是否为空
+        address = QHostAddress::Any;  // 监听所有接口
+    }
+    else {
+        address = QHostAddress(serverIp); 
+    }
+
+    if(m_Server->listen(address, m_port)) {
+        emit Server_Started(); 
+        emit Status(QString("服务器启动成功，监听: %1:%2").arg(serverIp).arg(m_port));  // 写入成功信息
+    } else {
+        emit Server_Stopped(); 
+        emit Status(QString("服务器启动失败: %1").arg(m_Server->errorString()));  // 写入错误信息
+    }
+}
+
+void c_TCP_Server::Stop_Server()
+{
+    // 断开所有客户端连接
+    for (int i = 0; i < m_SocketList.size(); ++i) {
+        QTcpSocket* socket = m_SocketList.at(i);
+        if (socket) {
+            socket->disconnectFromHost();  // 断开连接
+            Cleanup_Client_Data(socket);  // 清理客户端数据
+            socket->deleteLater();  // 延迟删除套接字
+        }
+    }
+    m_SocketList.clear();  // 清空套接字列表
+
+    // 关闭服务器
+    if (m_Server && m_Server->isListening()) {
+        m_Server->close();  // 关闭服务器
+    }
+
+    emit Server_Stopped();  // 发送服务器停止信号
+}
+
+// 处理文件信息
+void c_TCP_Server::Process_File_Info(QTcpSocket* socket, const QJsonObject& json)
+{
+    ClientFileData* clientData = m_ClientData[socket];  
+
+    clientData->filePath = json["filePath"].toString();  // 获取文件路径
+    clientData->fileSize = json["fileSize"].toString().toULongLong();  // 获取文件大小
+    clientData->fileHash = json["hash"].toString();  // 获取文件哈希
+    QFileInfo fileInfo(clientData->filePath);
+    clientData->fileName = fileInfo.fileName();  // 获取文件名
+    clientData->fileDir = fileInfo.path();  // F:/RawImageDisk/PreScan_raw/J11/.../202404231143CR400AF2200
+    
+    // 检查文件后缀
+    QString suffix = QFileInfo(clientData->filePath).suffix().toLower();  // 获取文件后缀(小写)
+    bool ok = suffix == "jpg" || suffix == "png" || suffix == "xyz" || suffix == "data";  // 检查是否为有效后缀
+    if (!ok) {
+        QJsonObject response;
+        response["cmd"] = "ERROR";
+        response["message"] = "文件类型错误";
+        Send_Command(socket, response); 
+        return;
+    }
+
+    //m_SaveDirectory = c_Variable::getInstance().g_Communicate_DB.value("Save_Directory_1").toString();
+
+    QString normalizedPath = QDir::fromNativeSeparators(clientData->fileDir);
+    QString baseMarker = QStringLiteral("/PreScan_raw/");
+    int idx = normalizedPath.indexOf(baseMarker);
+    if (idx == -1) {
+        baseMarker = QStringLiteral("PreScan_raw/");
+        idx = normalizedPath.indexOf(baseMarker);
+        if (idx == -1) {
+            // 无法解析路径结构
+            QJsonObject response;
+            response["cmd"] = "ERROR";
+            response["message"] = "无法解析路径结构";
+            Send_Command(socket, response);  // 发送错误响应
+            return;
+        }
+        clientData->saveDir = QDir::cleanPath(m_SaveDirectory + QLatin1Char('/')
+            + normalizedPath.mid(idx + baseMarker.length() - 1)); 
+    }
+    else {
+        clientData->saveDir = QDir::cleanPath(m_SaveDirectory + QLatin1Char('/')
+            + normalizedPath.mid(idx + baseMarker.length() - 1));
+    }
+    clientData->savePath = QDir::cleanPath(clientData->saveDir + QLatin1Char('/') + clientData->fileName);
+    
+    QDir dir;
+    dir.mkpath(clientData->saveDir);
+
+    clientData->file = new QFile(clientData->savePath);
+    if (!clientData->file->open(QFile::WriteOnly)) {
+        QJsonObject response;
+        response["cmd"] = "ERROR";
+        response["filePath"] = clientData->filePath;
+        response["message"] = "Cannot create file: " + clientData->savePath;
+        Send_Command(socket, response);  // 发送错误响应
+        delete clientData->file;  // 删除文件指针
+        clientData->file = nullptr;  // 重置文件指针
+        return;
+    }
+
+    QJsonObject ack;
+    ack["cmd"] = "START";
+    ack["filePath"] = clientData->filePath;
+    ack["fileSize"] = QString::number(clientData->fileSize);
+    Send_Command(socket, ack);  // 发送确认响应
+
+    // 更新状态
+    clientData->state = ReceivingFileData;
+    clientData->receivedSize = 0;
+}
+
+// 处理文件数据
+void c_TCP_Server::Process_File_Data(QTcpSocket* socket)
+{
+    ClientFileData* clientData = m_ClientData[socket];  // 获取客户端数据
+
+    // 检查缓冲区是否为空
+    if (m_ClientData[socket]->buffer.isEmpty()) {
+        emit Status("m_ClientData[socket]->buffer.isEmpty()");
+        return; 
+    }  
+    if (!clientData->file) {
+        emit Status("!clientData->file");
+        return;
+    }
+    if (!clientData->file->isOpen()) {
+        emit Status("!clientData->file->isOpen()");
+        return;
+    }
+    
+    // 写入文件
+    qint64 bytesWritten = clientData->file->write(m_ClientData[socket]->buffer);
+    if (bytesWritten != m_ClientData[socket]->buffer.size()) {
+        QJsonObject response;
+        response["cmd"] = "ERROR";
+        response["filePath"] = clientData->filePath;
+        response["message"] = "Error writing to file: " + clientData->file->errorString();
+        Send_Command(socket, response);  // 发送错误响应
+
+        Close_File_For_Client(socket, false);  // 关闭文件
+        return;
+    }
+    
+    // 更新已接收大小
+    clientData->receivedSize += bytesWritten;  
+    
+    // 检查是否接收完成
+    if (clientData->receivedSize >= clientData->fileSize) {
+        clientData->file->close();  // 关闭文件
+
+        // 计算接收文件的MD5哈希值
+        QCryptographicHash hash(QCryptographicHash::Md5);
+        QFile receivedFile(clientData->savePath);
+        QString serverHash;
+        bool success = false;
+
+        if (receivedFile.open(QFile::ReadOnly)) {
+            hash.addData(&receivedFile);
+            serverHash = hash.result().toHex();
+            receivedFile.close();
+
+            // 比较哈希值
+            if (serverHash == clientData->fileHash) {
+                success = true;
+                emit Status("文件完整性验证成功");  // 写入成功信息
+            } else {
+                emit Status(QString("文件完整性验证失败. 客户端哈希: %1, 服务器哈希: %2")
+                    .arg(clientData->fileHash)
+                    .arg(serverHash));  // 写入错误信息
+            }
+        } else {
+            emit Status(QString("无法打开接收文件进行验证: %1")
+                .arg(receivedFile.errorString()));  // 写入错误信息
+        }
+
+        // 构建验证响应
+        QJsonObject response;
+        response["cmd"] = success ? "FINISH" : "ERROR";  // 修复: ERORR -> ERROR
+        response["status"] = success ? "ok" : "failed";
+        response["filePath"] = clientData->savePath;
+        response["server_hash"] = serverHash;
+        
+        // 发送验证响应
+        Send_Command(socket, response);
+        
+        // 关闭文件传输
+        Close_File_For_Client(socket, success);  // 关闭文件
+        clientData->state = WaitingForVerification;  // 设置状态为等待验证
+    }
+}
+
+// 发送命令
+void c_TCP_Server::Send_Command(QTcpSocket* socket, const QJsonObject& command)
+{
+    // 检查套接字状态
+    if (!socket || socket->state() != QTcpSocket::ConnectedState) { return; }
+    
+    // 将JSON对象转换为字节数组
+    QByteArray data = QJsonDocument(command).toJson();
+
+    msleep(100);
+
+    emit Status("发送: " + data);
+    socket->write(data);  // 写入数据
+    socket->flush();  // 刷新缓冲区
+}
+
+// 为客户端关闭文件
+void c_TCP_Server::Close_File_For_Client(QTcpSocket* socket, bool success)
+{
+    // 检查客户端数据是否存在
+    if (!m_ClientData.contains(socket)) return;
+
+    ClientFileData* clientData = m_ClientData[socket];  // 获取客户端数据
+
+    if (clientData->file) {
+        if (clientData->file->isOpen()) {
+            clientData->file->close();
+        }
+        delete clientData->file;  // 删除文件指针
+        clientData->file = nullptr;  // 重置文件指针
+    }
+
+    // 重置状态
+    clientData->state = WaitingForCommand;  // 设置状态为等待命令
+    clientData->receivedSize = 0;  // 重置已接收大小
+    clientData->buffer.clear();  // 清空缓冲区
+}
+
+// 清理客户端数据
+void c_TCP_Server::Cleanup_Client_Data(QTcpSocket* socket)
+{
+    // 检查客户端数据是否存在
+    if (m_ClientData.contains(socket)) {
+        ClientFileData* data = m_ClientData[socket];  // 获取客户端数据
+        
+        // 关闭文件
+        if (data->file) {
+            if (data->file->isOpen()) {
+                data->file->close();
+            }
+            delete data->file; 
+        }
+
+        // 停止并删除定时器
+        if (data->timeoutTimer) {
+            data->timeoutTimer->stop();
+            data->timeoutTimer->deleteLater();
+        }
+
+        delete data;  // 删除客户端数据
+        m_ClientData.remove(socket);  // 从映射中移除
+    }
+}
+
+void c_TCP_Server::get_SaveDirectory(QString path)
+{
+    m_SaveDirectory = path;
+}
+
+
+########################################################################
+FILE: ./Transmission_Server.cpp
+########################################################################
+
+﻿#include "Transmission_Server.h"  // 头文件
+
+// 构造函数
+c_Transmission_Server::c_Transmission_Server(QWidget *parent) : QMainWindow(parent)
+{
+    ui.setupUi(this);  
+    
+    QFile File;
+    File.setFileName(QDir::currentPath() + "/stuqss.css");
+    File.open(QIODevice::ReadOnly);
+    QString strQss = File.readAll();
+    this->setStyleSheet(strQss);
+    File.close();
+
+    
+    File.setFileName(QDir::currentPath() + "/Transmission_Server.json");
+    File.open(QFile::ReadOnly | QIODevice::Text);
+    
+    QByteArray Data = File.readAll();  
+    
+    QJsonParseError parseError; 
+    QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);  
+    if (parseError.error == QJsonParseError::NoError) {
+        c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+    }
+    // 关闭文件
+    File.close();  
+    
+    ui.Worry_List->document()->setMaximumBlockCount(5000000);
+
+	 m_logDir = QDir::currentPath() + "/LOG/" + 
+                     QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
+					 
+    QObject::connect(ui.get_Directory_1, &QPushButton::clicked, this, [=]() {
+        QString dir = QFileDialog::getExistingDirectory(this, "选择保存目录");
+        if (!dir.isEmpty()) {
+            ui.Save_Directory_1->setText(dir);  // 设置目录文本
+        }
+    });
+    QObject::connect(ui.get_Directory_2, &QPushButton::clicked, this, [=]() {
+        QString dir = QFileDialog::getExistingDirectory(this, "选择保存目录");
+        if (!dir.isEmpty()) {
+            ui.Save_Directory_2->setText(dir);  // 设置目录文本
+        }
+        });
+
+    this->show();
+    TCP_Server_Init();
+}
+
+// 析构函数
+c_Transmission_Server::~c_Transmission_Server()
+{
+    TCP_Server_Delete();  // 删除TCP服务器
+}
+
+// TCP服务器初始化
+void c_Transmission_Server::TCP_Server_Init()
+{
+    m_Server_1_Thread = new QThread();
+    m_Server_1_Remote = new c_TCP_Server(c_Variable::getInstance().g_Communicate_DB.value("Server_1_Port").toInt());
+    m_Server_1_Remote->moveToThread(m_Server_1_Thread);
+
+    QObject::connect(m_Server_1_Thread, &QThread::started,m_Server_1_Remote, &c_TCP_Server::Init);
+    QObject::connect(m_Server_1_Thread, &QThread::finished, m_Server_1_Remote, &c_TCP_Server::deleteLater);
+    
+    QObject::connect(ui.startButton_1, &QPushButton::clicked, this, [=](){
+        if (c_Variable::getInstance().g_Transmission_1.Connected) {
+            emit Stop_Server_Command();  // 发送停止服务器命令
+        }
+        else {
+            emit Start_Server_Command();  // 发送启动服务器命令
+        }
+    });
+    QObject::connect(this, &c_Transmission_Server::Start_Server_Command,m_Server_1_Remote, &c_TCP_Server::Start_Server);
+    QObject::connect(this, &c_Transmission_Server::Stop_Server_Command,m_Server_1_Remote, &c_TCP_Server::Stop_Server);
+
+    QObject::connect(m_Server_1_Remote, &c_TCP_Server::Server_Started, this, [=]() {
+        c_Variable::getInstance().g_Transmission_1.Connected = true;  // 设置连接状态
+        ui.startButton_1->setText("停止监听");
+    });
+    QObject::connect(m_Server_1_Remote, &c_TCP_Server::Server_Stopped, this, [=](){
+        c_Variable::getInstance().g_Transmission_1.Connected = false;  // 设置断开监听状态
+        ui.startButton_1->setText("开始监听");  // 更新按钮文本
+    }); 
+    QObject::connect(m_Server_1_Remote, &c_TCP_Server::Client_Connected,this, [=](){
+        c_Variable::getInstance().g_Transmission_1.Tran = true;
+    });
+    QObject::connect(m_Server_1_Remote, &c_TCP_Server::Client_Disconnected, this, [=]() {
+        c_Variable::getInstance().g_Transmission_1.Tran = false;  // 设置传输状态
+    });
+
+    QObject::connect(m_Server_1_Remote, &c_TCP_Server::Status,this, & c_Transmission_Server::Write_Worry_List);
+    QObject::connect(ui.Save_Directory_1, &QLineEdit::textChanged, m_Server_1_Remote, &c_TCP_Server::get_SaveDirectory);
+    // 启动服务器线程
+    m_Server_1_Thread->start();
+
+    m_Server_2_Thread = new QThread();
+    m_Server_2_Remote = new c_TCP_Server(c_Variable::getInstance().g_Communicate_DB.value("Server_2_Port").toInt());
+    m_Server_2_Remote->moveToThread(m_Server_2_Thread);
+
+    QObject::connect(m_Server_2_Thread, &QThread::started, m_Server_2_Remote, &c_TCP_Server::Init);
+    QObject::connect(m_Server_2_Thread, &QThread::finished, m_Server_2_Remote, &c_TCP_Server::deleteLater);
+
+    QObject::connect(ui.startButton_2, &QPushButton::clicked, this, [=]() {
+        if (c_Variable::getInstance().g_Transmission_2.Connected) {
+            emit Stop_Server_Command();  // 发送停止服务器命令
+        }
+        else {
+            emit Start_Server_Command();  // 发送启动服务器命令
+        }
+        });
+    QObject::connect(this, &c_Transmission_Server::Start_Server_Command, m_Server_2_Remote, &c_TCP_Server::Start_Server);
+    QObject::connect(this, &c_Transmission_Server::Stop_Server_Command, m_Server_2_Remote, &c_TCP_Server::Stop_Server);
+
+    QObject::connect(m_Server_2_Remote, &c_TCP_Server::Server_Started, this, [=]() {
+        c_Variable::getInstance().g_Transmission_2.Connected = true;  // 设置连接状态
+        ui.startButton_2->setText("停止监听");
+        });
+    QObject::connect(m_Server_2_Remote, &c_TCP_Server::Server_Stopped, this, [=]() {
+        c_Variable::getInstance().g_Transmission_2.Connected = false;  // 设置断开监听状态
+        ui.startButton_2->setText("开始监听");  // 更新按钮文本
+        });
+    QObject::connect(m_Server_2_Remote, &c_TCP_Server::Client_Connected, this, [=]() {
+        c_Variable::getInstance().g_Transmission_2.Tran = true;
+        });
+    QObject::connect(m_Server_2_Remote, &c_TCP_Server::Client_Disconnected, this, [=]() {
+        c_Variable::getInstance().g_Transmission_2.Tran = false;  // 设置传输状态
+        });
+
+    QObject::connect(m_Server_2_Remote, &c_TCP_Server::Status, this, &c_Transmission_Server::Write_Worry_List);
+
+    QObject::connect(ui.Save_Directory_2, &QLineEdit::textChanged, m_Server_2_Remote, &c_TCP_Server::get_SaveDirectory);
+    // 启动服务器线程
+    m_Server_2_Thread->start();
+
+    // 设置扫描标志
+    m_Scan = true;  
+
+    TCP_Server_DB();
+    // 10毫秒后开始扫描
+    TCP_Server_Scan();
+    
+    QTimer::singleShot(100, this, &c_Transmission_Server::Start_Server_Command);
+}
+void c_Transmission_Server::TCP_Server_DB()
+{
+    // 绑定UI信号
+    QObject::connect(ui.Server_1_Ip, &QLineEdit::textChanged, this, [=](QString ip) {
+        Write_Communicate_DB("Server_1_Ip", ip);  // 写入通信数据库
+    });
+
+    QObject::connect(ui.Server_1_Port, &QLineEdit::textChanged, this, [=](QString port) {
+        bool ok;
+        int value = port.toInt(&ok);  // 转换为整数
+        if (ok) {
+            Write_Communicate_DB("Server_1_Port", value);  // 写入通信数据库
+        }
+    });
+
+    QObject::connect(ui.Save_Directory_1, &QLineEdit::textChanged, this, [=](QString dir) {
+        Write_Communicate_DB("Save_Directory_1", dir);  // 写入通信数据库
+    });
+
+    QObject::connect(ui.Server_2_Ip, &QLineEdit::textChanged, this, [=](QString ip) {
+        Write_Communicate_DB("Server_2_Ip", ip);  // 写入通信数据库
+        });
+
+    QObject::connect(ui.Server_2_Port, &QLineEdit::textChanged, this, [=](QString port) {
+        bool ok;
+        int value = port.toInt(&ok);  // 转换为整数
+        if (ok) {
+            Write_Communicate_DB("Server_2_Port", value);  // 写入通信数据库
+        }
+        });
+
+    QObject::connect(ui.Save_Directory_2, &QLineEdit::textChanged, this, [=](QString dir) {
+        Write_Communicate_DB("Save_Directory_2", dir);  // 写入通信数据库
+        });
+
+    // 初始化UI控件
+    ui.Server_1_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("Server_1_Ip").toString());
+    ui.Server_1_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Server_1_Port").toInt()));
+    ui.Save_Directory_1->setText(c_Variable::getInstance().g_Communicate_DB.value("Save_Directory_1").toString());
+
+    ui.Server_2_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("Server_2_Ip").toString());
+    ui.Server_2_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Server_2_Port").toInt()));
+    ui.Save_Directory_2->setText(c_Variable::getInstance().g_Communicate_DB.value("Save_Directory_2").toString());
+}
+void c_Transmission_Server::TCP_Server_Scan()
+{
+    ui.Server_1_State->Set_State(c_Variable::getInstance().g_Transmission_1.Connected);
+    ui.Receiving_1->Set_State(c_Variable::getInstance().g_Transmission_1.Tran);  // 设置接收状态为真
+    ui.Start_1->Set_State(c_Variable::getInstance().g_Transmission_1.Start);  // 设置开始状态为真
+    ui.Finish_1->Set_State(c_Variable::getInstance().g_Transmission_1.Finish);  // 设置完成状态为真
+    ui.Error_1->Set_State(c_Variable::getInstance().g_Transmission_1.Error);  // 设置错误状态为真
+    ui.File_Name_Num_1->setText(QString::number(c_Variable::getInstance().g_Transmission_1.Received_Buffer.size()));
+
+	 ui.Server_2_State->Set_State(c_Variable::getInstance().g_Transmission_2.Connected);
+    ui.Receiving_2->Set_State(c_Variable::getInstance().g_Transmission_2.Tran);  
+    ui.Start_2->Set_State(c_Variable::getInstance().g_Transmission_2.Start); 
+    ui.Finish_2->Set_State(c_Variable::getInstance().g_Transmission_2.Finish);  
+    ui.Error_2->Set_State(c_Variable::getInstance().g_Transmission_2.Error); 
+    ui.File_Name_Num_2->setText(QString::number(c_Variable::getInstance().g_Transmission_2.Received_Buffer.size()));
+
+    if (m_Scan) {
+        // 10毫秒后再次扫描
+        QTimer::singleShot(10, this, SLOT(TCP_Server_Scan()));
+    }
+}
+void c_Transmission_Server::TCP_Server_Delete()
+{
+    m_Scan = false;  // 清除扫描标志
+
+    if (m_Server_1_Thread->isRunning()) {  // 检查线程是否运行
+        emit Stop_Server_Command(); // 停止服务器
+        m_Server_1_Thread->requestInterruption();  // 请求中断
+        m_Server_1_Thread->quit();  // 退出线程
+        m_Server_1_Thread->wait();  // 等待线程结束
+    }
+
+ if (m_Server_2_Thread->isRunning()) {  // 检查线程是否运行
+        emit Stop_Server_Command(); // 停止服务器
+        m_Server_2_Thread->requestInterruption();  // 请求中断
+        m_Server_2_Thread->quit();  // 退出线程
+        m_Server_2_Thread->wait();  // 等待线程结束
+    }
+}
+
+void c_Transmission_Server::Write_Communicate_DB(QString key, int value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);  // 插入值
+
+                                                                    // 保存到文件
+    QFile File;
+    File.setFileName(QDir::currentPath() + "/Transmission_Server.json");
+    File.open(QIODevice::ReadWrite | QIODevice::Text);
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+    File.write(DB_Doc.toJson());  // 写入JSON
+    File.close();  // 关闭文件
+}
+void c_Transmission_Server::Write_Communicate_DB(QString key, QString value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);  // 插入值
+
+                                                                    // 保存到文件
+    QFile File;
+    File.setFileName(QDir::currentPath() + "/Transmission_Server.json");
+    File.open(QIODevice::ReadWrite | QIODevice::Text);
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+    File.write(DB_Doc.toJson());  // 写入JSON
+    File.close();  // 关闭文件
+}
+
+void c_Transmission_Server::Write_Worry_List(QString value)
+{
+     // 1. 更新 UI 显示
+    ui.Worry_List->append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "->" + value);
+    QDir().mkpath(m_logDir);  // 递归创建目录
+
+    QFile logFile(m_logDir + "/system_log.txt");  // ← 英文文件名
+
+    // 3. 安全写入日志
+    if (logFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        logFile.write(ui.Worry_List->toPlainText().toUtf8());
+        logFile.close();
+    } else {
+        qWarning() << "Log write failed:" << logFile.errorString();
+    }
+}
+
+void c_Transmission_Server::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_F6) {  // F6键
+        QFile File;
+        File.setFileName(QDir::currentPath() + "/stuqss.css");
+        File.open(QIODevice::ReadOnly);
+        QString strQss = File.readAll();
+        this->setStyleSheet(strQss);  // 重新加载样式表
+        File.close();  // 关闭文件
+    }
+}
+void c_Transmission_Server::closeEvent(QCloseEvent *event)
+{
+    TCP_Server_Delete();  // 删除TCP服务器
+    Write_Worry_List( "Stop");  // 写入停止信息
+    event->accept();  // 接受关闭事件
+}
+
+
+########################################################################
+FILE: ./Variable.cpp
+########################################################################
+
+﻿#include "Variable.h"  // ����ͷ�ļ�
+
+c_Object::c_Object(QObject* parent) : QObject(parent)
+{
+
+}
+c_Object::~c_Object()
+{
+   
+}
+bool c_Object::msleep(const int mSec)
+{
+    QEventLoop loop;
+    QTimer::singleShot(mSec, &loop, &QEventLoop::quit);
+    loop.exec();
+    return true;
+}
+bool c_Object::QtPing(const QString ip)
+{
+    QProcess cmd;
+    QStringList arguments;
+    
+    // 1. 参数配置
+    // -c 1: 只发 1 个包
+    // -W 2: 超时 2 秒 (防止网络不通时挂起太久)
+    // -s 1: 包大小 (保持你原有的设置)
+    arguments << "-c" << "1" << "-W" << "2" << "-s" << "1" << ip;
+
+    // 2. 启动进程 (直接传参，不调用 shell)
+    cmd.start("ping", arguments);
+
+    // 3. 等待结束 
+    // 总超时 = Ping 超时 * 次数 + 缓冲。这里设为 3000ms 足够覆盖 -W 2
+    if (!cmd.waitForFinished(3000)) {
+        cmd.kill(); // 如果超时，强制杀死进程
+        emit Status(ip + " Ping 超时");
+        return false;
+    }
+
+    // 4. 获取结果 (使用 exitCode 判断，比解析字符串更可靠)
+    int exitCode = cmd.exitCode();
+    // 可选：打印日志调试
+
+    if (exitCode == 0) {
+        emit Status(ip + " Ping 通");
+        return true;
+    } else {
+        emit Status(ip + " Ping 不通");
+        return false;
+    }
+}
+QString c_Object::TCP_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "连接被对等方拒绝（或超时）";
+	case 1:return "远程主机关闭了连接。请注意，客户端套接字（即此套接字）将在发送远程关闭通知后关闭";
+	case 2:return "找不到主机地址";
+	case 3:return "套接字操作失败，因为应用程序缺少所需的权限";
+	case 4:return "本地系统资源不足（例如，套接字过多）";
+	case 5:return "套接字操作超时";
+	case 6:return "数据报大于操作系统的限制（可低至8192字节）";
+	case 7:return "网络发生错误（例如，网络电缆意外插拔）";
+	case 8:return "为QAbstractSocket:：bind（）指定的地址已在使用中，并被设置为独占";
+	case 9:return "为QAbstractSocket:：bind（）指定的地址不属于主机";
+	case 10:return "本地操作系统不支持请求的套接字操作（例如，缺少IPv6支持）";
+	case 11:return "仅由QAbstractSocketEngine使用，上次尝试的操作尚未完成（仍在后台进行）";
+	case 12:return "套接字正在使用代理，代理需要身份验证";
+	case 13:return "SSL/TLS握手失败，因此连接已关闭（仅在QSslSocket中使用）";
+	case 14:return "无法联系代理服务器，因为与该服务器的连接被拒绝";
+	case 15:return "与代理服务器的连接意外关闭（在与最终对等方建立连接之前）";
+	case 16:return "与代理服务器的连接超时，或者代理服务器在身份验证阶段停止响应。";
+	case 17:return "找不到使用setProxy（）设置的代理地址（或应用程序代理）";
+	case 18:return "与代理服务器的连接协商失败，因为无法理解来自代理服务器的响应";
+	case 19:return "当套接字处于不允许的状态时，尝试了一个操作";
+	case 20:return "正在使用的SSL库报告了一个内部错误。这可能是由于库的安装错误或配置错误造成的";
+	case 21:return "提供了无效数据（证书、密钥、密码等），其使用导致SSL库中出现错误";
+	case 22:return "发生临时错误（例如，操作将被阻塞，套接字为非阻塞）";
+	case 23:return "套接字未连接";
+	case 24:return "套接字正在执行主机名查找";
+	case 25:return "套接字已开始建立连接";
+	case 26:return "建立了一个连接";
+	case 27:return "套接字绑定到一个地址和端口";
+	case 28:return "套接字即将关闭（数据可能仍在等待写入）";
+	case 29:return "套接字监听状态（仅供内部使用）";
+	case -1:return "发生了一个无法识别的错误";
+	default:return "无状态";
+	}
+}
+QString c_Object::Modbus_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "已连接";
+	case 1:return "读取操作期间发生错误";
+	case 2:return "写入操作期间发生错误";
+	case 3:return "尝试打开后端时出错";
+	case 4:return "尝试设置配置参数时出错";
+	case 5:return "I/O期间发生超时。I/O操作未在给定的时间范围内完成";
+	case 6:return "发生Modbus特定协议错误";
+	case 7:return "由于设备断开连接，回复被中止";
+	case 8:return "发生未知错误";
+	case 9:return "设备已断开连接";
+	case 10:return "正在连接设备";
+	case 11:return "设备正在关闭";
+	default:return "无状态";
+	}
+}
+QString c_Object::CanOpen(int State)
+{
+	switch (State) {
+	case 0x0000:return "正常";
+	case 0x0001:return "DCBUS 过压";
+	case 0x0002:return "DCBUS 欠压";
+	case 0x0004:return "电机过流";
+	case 0x0008:return "编码器故障";
+	case 0x0010:return "控制电源欠压";
+	case 0x0020:return "驱动过热";
+	case 0x0040:return "电机过热";
+	case 0x0080:return "电机过载报警";
+	case 0x0100:return "霍尔信号异常";
+	case 0x0200:return "编码器短线故障";
+	case 0x0400:return "电机过速";
+	case 0x0800:return "指令超差错误";
+	case 0x1000:return "存储参数校验错误";
+	case 0x2000:return "功率模块过流（硬件）";
+	case 0x4000:return "电机制动过载错误";
+	case 0x8001:return "电机自学习错误";
+	case 0x8002:return "电流检测基准错误";
+	case 0x8004:return "电机缺相报警";
+	case 0x8005:return "通讯超时";
+	default:return "未知错误";
+	}
+}
+
+
+
+void c_Object::BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits)
+{
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = second16Bits;
+	unionConverter.Word.low16Bits = first16Bits;
+
+	floatValue = unionConverter.floatValue;
+}
+void c_Object::FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits)
+{
+
+	dataConverter unionConverter;
+	unionConverter.floatValue = floatValue;
+
+	second16Bits = unionConverter.Word.high16Bits;
+	first16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits) {
+	
+	dataConverter unionConverter;
+	unionConverter.DWord = intValue;
+
+	high16Bits = unionConverter.Word.high16Bits;
+	low16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits)
+{
+	
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = high16Bits;
+	unionConverter.Word.low16Bits = low16Bits;
+	intValue = unionConverter.DWord;
+}
+
+
+QMutex c_Variable::g_mutex;
+QScopedPointer<c_Variable> c_Variable::g_instance;
+QJsonObject c_Variable::g_Communicate_DB;
+s_Transmission_DB c_Variable::g_Transmission_1;
+s_Transmission_DB c_Variable::g_Transmission_2;
+
+
+
+c_Variable::c_Variable(QObject * parent) : QObject(parent)
+{
+}
+
+
+c_Variable::~c_Variable()
+{
+	
+}
+
+
+c_Variable& c_Variable::getInstance()
+{
+	if (g_instance.isNull()) {  
+		QMutexLocker locker(&g_mutex); 
+		if (g_instance.isNull()) {
+			g_instance.reset(new c_Variable()); 
+		}
+	}
+	return *g_instance.data();  
+}
+
+==================== QDesigner FILES (.ui) ====================
+
+########################################################################
+FILE: ./Transmission_Server.ui
+########################################################################
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>c_Transmission_Server_Class</class>
+ <widget class="QMainWindow" name="c_Transmission_Server_Class">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>962</width>
+    <height>318</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>机车巡检机器人图像采集-上传软件-v1.0</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="Transmission_Server.qrc">
+    <normaloff>:/c_Transmission_Server/Images/icon.ico</normaloff>:/c_Transmission_Server/Images/icon.ico</iconset>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout_4">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>服务器1配置</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>服务器IP：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="Server_1_Ip">
+         <property name="placeholderText">
+          <string>0.0.0.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>服务器PORT：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLineEdit" name="Server_1_Port">
+         <property name="placeholderText">
+          <string>8888</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>保存目录：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="2">
+        <widget class="QLineEdit" name="Save_Directory_1">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="get_Directory_1">
+         <property name="text">
+          <string>浏览</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>状态指示：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="3">
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="c_Fr_Light" name="Server_1_State" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_16">
+           <property name="text">
+            <string>服务状态</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Receiving_1" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>接收中</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Start_1" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>开始</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Finish_1" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>完成</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Error_1" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_20">
+           <property name="text">
+            <string>错误</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>任务总数：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="File_Name_Num_1">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2" colspan="2">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="3">
+        <widget class="QPushButton" name="startButton_1">
+         <property name="text">
+          <string>启动服务器</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>服务器2配置</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>服务器IP：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="Server_2_Ip">
+         <property name="placeholderText">
+          <string>0.0.0.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>服务器PORT：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLineEdit" name="Server_2_Port">
+         <property name="placeholderText">
+          <string>8888</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>保存目录：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="2">
+        <widget class="QLineEdit" name="Save_Directory_2">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="get_Directory_2">
+         <property name="text">
+          <string>浏览</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>状态指示：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="3">
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <item>
+          <widget class="c_Fr_Light" name="Server_2_State" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_21">
+           <property name="text">
+            <string>服务状态</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Receiving_2" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_22">
+           <property name="text">
+            <string>接收中</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Start_2" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_23">
+           <property name="text">
+            <string>开始</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Finish_2" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_24">
+           <property name="text">
+            <string>完成</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="c_Fr_Light" name="Error_2" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_25">
+           <property name="text">
+            <string>错误</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>任务总数：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="File_Name_Num_2">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2" colspan="2">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="3">
+        <widget class="QPushButton" name="startButton_2">
+         <property name="text">
+          <string>启动服务器</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="2">
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>系统消息</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QTextBrowser" name="Worry_List">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>c_Fr_Light</class>
+   <extends>QWidget</extends>
+   <header>Fr_Light.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="Transmission_Server.qrc"/>
+ </resources>
+ <connections/>
+</ui>
+
+==================== Cmake FILES (.txt) ====================
+
+########################################################################
+FILE: ./CMakeLists.txt
+########################################################################
+
+﻿cmake_minimum_required(VERSION 3.16)
+project(Transmission_Server VERSION 1.0.0 LANGUAGES C CXX CUDA)
+
+# ============================================================================
+# 策略与平台检测
+# ============================================================================
+if(POLICY CMP0144)
+    cmake_policy(SET CMP0144 OLD)
+endif()
+
+# 检测ARM64平台
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(ARM64 TRUE)
+    message(STATUS "✅ Detected ARM64 Linux platform (Jetson)")
+endif()
+
+# ============================================================================
+# 构建配置
+# ============================================================================
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES 120 CACHE STRING "CUDA Architectures" FORCE)
+endif()
+
+if(DEFINED ENV{CUDA_HOME})
+    set(CUDA_HOME $ENV{CUDA_HOME})
+    set(CMAKE_CUDA_COMPILER ${CUDA_HOME}/bin/nvcc)
+endif()
+if(DEFINED ENV{OpenCV_DIR})
+    set(OpenCV_DIR $ENV{OpenCV_DIR})
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PCL_NO_MPI ON)
+
+# ============================================================================
+# 查找依赖包（含完善版librealsense2配置）
+# ============================================================================
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network PrintSupport Charts WebSockets Concurrent OpenGL)
+find_package(OpenCV REQUIRED)
+find_package(Zivid REQUIRED COMPONENTS Core Visualization)
+find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization filters kdtree search sample_consensus)
+find_package(VTK 9.1 REQUIRED COMPONENTS CommonCore CommonDataModel FiltersCore RenderingCore RenderingOpenGL2 GUISupportQt)
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# ============================================================================
+# librealsense2 配置（完善版）
+# ============================================================================
+# 优先使用 find_package（现代CMake方式）
+find_package(realsense2 QUIET)
+if(realsense2_FOUND)
+    message(STATUS "✅ librealsense2 found via find_package: ${realsense2_VERSION}")
+    set(REALSENSE2_FOUND TRUE)
+    set(REALSENSE2_INCLUDE_DIRS ${realsense2_INCLUDE_DIRS})
+    set(REALSENSE2_LIBRARIES realsense2::realsense2)  # 使用导入目标
+else()
+    # 回退到 pkg-config（传统方式）
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(REALSENSE2 QUIET realsense2)
+        if(REALSENSE2_FOUND)
+            message(STATUS "✅ librealsense2 found via pkg-config: ${REALSENSE2_VERSION}")
+            # 修复pkg-config路径（Jetson常见问题）
+            if(ARM64 AND NOT REALSENSE2_INCLUDE_DIRS)
+                set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            endif()
+        else()
+            message(WARNING "⚠️  librealsense2 not found (optional feature disabled)")
+        endif()
+    else()
+        message(WARNING "⚠️  pkg-config not found, cannot search for librealsense2")
+    endif()
+endif()
+
+# 验证librealsense2路径（Jetson关键修复）
+if(REALSENSE2_FOUND AND ARM64)
+    if(NOT EXISTS "${REALSENSE2_INCLUDE_DIRS}/librealsense2/rs.hpp")
+        # 尝试备用路径
+        if(EXISTS "/usr/include/librealsense2/rs.hpp")
+            set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            message(STATUS "🔧 Fixed librealsense2 include path: ${REALSENSE2_INCLUDE_DIRS}")
+        endif()
+    endif()
+endif()
+
+# ============================================================================
+# 海康SDK路径配置
+# ============================================================================
+set(HIKVISION_SDK_ROOT "/opt/hikvision_sdk_arm64" CACHE PATH "Path to Hikvision SDK for ARM64")
+set(HIKVISION_INC_PATH "${HIKVISION_SDK_ROOT}/incCn")
+set(HIKVISION_LIB_PATH "${HIKVISION_SDK_ROOT}/MakeAll")
+set(HIKVISION_COMP_PATH "${HIKVISION_SDK_ROOT}/MakeAll/HCNetSDKCom")
+
+if(NOT EXISTS "${HIKVISION_INC_PATH}")
+    message(FATAL_ERROR "❌ Hikvision SDK include directory not found at ${HIKVISION_INC_PATH}")
+endif()
+if(NOT EXISTS "${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+    message(FATAL_ERROR "❌ Hikvision SDK core library not found at ${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+endif()
+
+# ============================================================================
+# 包含目录（严格顺序 + librealsense2修复）
+# ============================================================================
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+    ${HIKVISION_INC_PATH}
+    ${PCL_INCLUDE_DIRS}
+    ${VTK_INCLUDE_DIRS}
+    ${ZIVID_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${REALSENSE2_INCLUDE_DIRS} 
+)
+
+# ============================================================================
+# 源文件
+# ============================================================================
+set(SOURCES
+     main.cpp    
+     TCP_Server.cpp  
+     Transmission_Server.cpp  
+     Transmission_Server.qrc  
+     Variable.cpp
+     Fr_Light.cpp             
+     Transmission_Server.ui  
+)
+
+set(HEADERS
+    Fr_Light.h
+    TCP_Server.h   
+    Transmission_Server.h
+    Variable.h
+)
+
+# ============================================================================
+# 创建可执行文件
+# ============================================================================
+add_executable(transmission_server ${SOURCES} ${HEADERS})
+
+# ============================================================================
+# 链接库（含librealsense2完善配置）
+# ============================================================================
+target_link_libraries(transmission_server PRIVATE
+    # Qt5
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport
+    Qt5::Charts Qt5::WebSockets Qt5::Concurrent Qt5::OpenGL
+    
+    # Zivid
+    Zivid::Core Zivid::Visualization
+    
+    # OpenCV
+    ${OpenCV_LIBS}
+    
+    # PCL + VTK
+    ${PCL_LIBRARIES}
+    ${VTK_LIBRARIES}
+    
+    # Boost
+    ${Boost_LIBRARIES}
+    
+    # ============================================================================
+    # librealsense2（完善配置）
+    # ============================================================================
+    ${REALSENSE2_LIBRARIES}  # 自动处理导入目标或库列表
+    
+    # ============================================================================
+    # 海康SDK（严格按文档顺序）
+    # ============================================================================
+    ${HIKVISION_LIB_PATH}/libhcnetsdk.so
+    ${HIKVISION_LIB_PATH}/libHCCore.so
+    ${HIKVISION_LIB_PATH}/libhpr.so
+    ${HIKVISION_LIB_PATH}/libPlayCtrl.so
+    ${HIKVISION_LIB_PATH}/libSuperRender.so
+    ${HIKVISION_LIB_PATH}/libAudioRender.so
+    ${HIKVISION_COMP_PATH}/libHCCoreDevCfg.so
+    ${HIKVISION_COMP_PATH}/libHCPreview.so
+    ${HIKVISION_COMP_PATH}/libHCPlayBack.so
+    ${HIKVISION_COMP_PATH}/libHCVoiceTalk.so
+    ${HIKVISION_COMP_PATH}/libHCAlarm.so
+    ${HIKVISION_COMP_PATH}/libHCDisplay.so
+    ${HIKVISION_COMP_PATH}/libHCIndustry.so
+    ${HIKVISION_COMP_PATH}/libHCGeneralCfgMgr.so
+    ${HIKVISION_COMP_PATH}/libStreamTransClient.so
+    ${HIKVISION_COMP_PATH}/libSystemTransform.so
+    ${HIKVISION_COMP_PATH}/libanalyzedata.so
+    ${HIKVISION_COMP_PATH}/libAudioIntercom.so
+    ${HIKVISION_COMP_PATH}/libiconv.so.2
+)
+
+# ============================================================================
+# RPATH与编译优化
+# ============================================================================
+set_target_properties(transmission_server PROPERTIES
+    BUILD_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    INSTALL_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    BUILD_RPATH_USE_ORIGIN ON
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_options(transmission_server PRIVATE
+    -O3 -mcpu=native
+    -Wall -Wextra
+    -Wno-unused-parameter -Wno-unused-variable -Wno-deprecated-declarations
+)
+
+# ============================================================================
+# 资源文件复制
+# ============================================================================
+add_custom_command(TARGET transmission_server POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/Communicate_DB.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/stuqss.css
+        $<TARGET_FILE_DIR:transmission_server>/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Images
+        $<TARGET_FILE_DIR:transmission_server>/Images
+    COMMENT "Copying resources to build directory"
+)
+
+# ============================================================================
+# 构建信息输出
+# ============================================================================
+message(STATUS "========================================")
+message(STATUS "✅ Project Configuration Summary")
+message(STATUS "========================================")
+message(STATUS "Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}")
+message(STATUS "OpenCV: ${OpenCV_VERSION}")
+message(STATUS "PCL: ${PCL_VERSION}")
+message(STATUS "VTK: ${VTK_VERSION}")
+message(STATUS "Zivid SDK: ${ZIVID_VERSION}")
+message(STATUS "librealsense2: ${REALSENSE2_VERSION} (${REALSENSE2_FOUND})")
+message(STATUS "Hikvision SDK: ${HIKVISION_SDK_ROOT}")
+message(STATUS "ARM64 Platform: ${ARM64}")
+message(STATUS "========================================")
+

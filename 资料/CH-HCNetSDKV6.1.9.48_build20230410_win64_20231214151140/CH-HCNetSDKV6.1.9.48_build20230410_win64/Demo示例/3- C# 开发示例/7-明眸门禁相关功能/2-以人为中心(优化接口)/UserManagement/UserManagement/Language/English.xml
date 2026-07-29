@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserManagement Language="English">
+    <Form>
+        <Name>UserManagement</Name>
+        <Controls>
+          <Control name="btnLogin" text="Login"/>
+          <Control name="label1" text="User Management"/>
+          <Control name="label3" text="Right Plan:"/>
+          <Control name="label4" text="Employee No:"/>
+          <Control name="label5" text="Name:"/>
+          <Control name="label7" text="Set User Need"/>
+          <Control name="label8" text="Set/Get/Delete User Need"/>
+          <Control name="label9" text="Set Card Need"/>
+          <Control name="btnSet" text="Set"/>
+          <Control name="btnGet" text="Get"/>
+          <Control name="btnDelete" text="Delete"/>
+          <Control name="label10" text="Set User To Device"/>
+          <Control name="label11" text="Get Device User"/>
+          <Control name="label12" text="Delete Device User"/>
+        </Controls>
+    </Form>
+    <Form>
+        <Name>AddDevice</Name>
+        <Controls>
+          <Control name="label1" text="Login Device"/>
+          <Control name="label2" text="Device Address"/>
+          <Control name="label4" text="User Name"/>
+          <Control name="label3" text="Port"/>
+          <Control name="label5" text="Password"/>
+          <Control name="btnAdd" text="Add"/>
+          <Control name="btnCancel" text="Cancel"/>
+        </Controls>
+    </Form>
+</UserManagement>

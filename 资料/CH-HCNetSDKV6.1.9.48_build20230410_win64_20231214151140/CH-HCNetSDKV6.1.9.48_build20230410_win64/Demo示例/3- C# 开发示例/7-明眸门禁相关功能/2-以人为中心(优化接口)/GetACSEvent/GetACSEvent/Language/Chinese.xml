@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<GetACSEvent Language="Chinese">
+  <Form>
+    <Name>GetACSEvent</Name>
+    <Controls>
+      <Control name="btnLogin" text="登录"/>
+      <Control name="label1" text="获取门禁事件"/>
+      <Control name="label2" text="主类型："/>
+      <Control name="label3" text="次类型："/>
+      <Control name="label5" text="开始时间："/>
+      <Control name="label4" text="结束时间："/>
+      <Control name="btnSearch" text="搜索"/>
+      <Control name="label9" text="姓名："/>
+      <Control name="label8" text="工号："/>
+      <Control name="label6" text="卡号："/>
+      <Control name="label7" text="时间："/>
+    </Controls>
+  </Form>
+  <Form>
+    <Name>AddDev</Name>
+    <Controls>
+      <Control name="label1" text="登录设备"/>
+      <Control name="label2" text="IP地址"/>
+      <Control name="label4" text="用户名"/>
+      <Control name="label3" text="端口号"/>
+      <Control name="label5" text="密码"/>
+      <Control name="btnAdd" text="登录"/>
+      <Control name="btnCancel" text="取消"/>
+    </Controls>
+  </Form>
+</GetACSEvent>

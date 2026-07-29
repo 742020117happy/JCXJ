@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/c_Transmission_Server">
+        <file>Images/icon.ico</file>
+        <file>Images/Logo.jpg</file>
+        <file>Communicate_DB.json</file>
+    </qresource>
+</RCC>

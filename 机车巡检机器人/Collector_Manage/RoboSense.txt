@@ -1,0 +1,3111 @@
+========================================================================
+Project: Collector_Manage
+Export Time: Thu Jun 18 10:00:40 AM CST 2026
+Total Files: 13
+========================================================================
+
+==================== HEADER FILES (.h) ====================
+
+########################################################################
+FILE: ./E1R_DIFOP.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+#include "Scan_Client.h"
+
+class c_E1R_DIFOP  : public c_Object
+{
+	Q_OBJECT
+
+public:
+	explicit c_E1R_DIFOP(QObject *parent = nullptr);
+	~c_E1R_DIFOP() override;
+
+public slots:
+	void Init();
+	void Connect();
+	void Disconnect();
+
+signals:
+	void Connect_DIFOP(QString ip, int port);
+	void Disconnect_Device();
+
+private:
+	QThread* m_DIFOP_thread;
+	c_Scan_Client *m_DIFOP_client;
+
+private slots:
+	void Connect_DIFOP_Done();
+	void Disconnect_DIFOP_Done();
+	void onDIFOPData(QByteArray data, QString device_ip, quint16 device_port);
+};
+
+
+
+########################################################################
+FILE: ./E1R_MSOP.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+#include "Scan_Client.h"
+
+
+class c_E1R_MSOP  : public c_Object
+{
+	Q_OBJECT
+
+public:
+	explicit c_E1R_MSOP(QObject *parent = nullptr);
+	~c_E1R_MSOP() override;
+
+public slots:
+	void Init();
+	void Connect();
+	void Disconnect();
+
+signals:
+	void Connect_Msop(QString ip, int port);
+	void Disconnect_Device();
+	void MSOP_Scan(QVector<pcl::PointXYZI> points);
+
+private:
+	QThread* m_MSOP_thread;
+	c_Scan_Client* m_MSOP_client;
+
+	QVector<pcl::PointXYZI> m_buffer;
+
+private slots:
+	void Connect_Msop_Done();
+	void Disconnect_Msop_Done();
+	void onMsopData(QByteArray data, QString device_ip, quint16 device_port);
+
+};
+
+
+########################################################################
+FILE: ./Fr_Light.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_Fr_Light : public QWidget {
+	Q_OBJECT
+
+public:
+	enum State {
+		Default,
+		Error,
+		Working,
+		Null
+	};
+	explicit c_Fr_Light(QWidget * parent = nullptr);
+	virtual ~c_Fr_Light();
+
+	public slots:
+	void Set_Working();
+	void Set_Default();
+	void Set_Error();
+	void Set_Null();
+	void Set_State(const bool state);
+	void Set_Radius(int value);
+	bool Get_State();
+
+signals:
+	void Working_State(bool state);
+	void Default_State(bool state);
+	void Error_State(bool state);
+
+protected:
+	void paintEvent(QPaintEvent *);
+
+private:
+	int m_Radius = 50;
+	State m_State = Default;
+	QColor m_Default_Color;
+	QColor m_Error_Color;
+	QColor m_Working_Color;
+	QColor m_Null_Color;
+};
+
+
+########################################################################
+FILE: ./RoboSense.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+#include "E1R_MSOP.h"
+#include "E1R_DIFOP.h"
+#include "ui_c_RoboSense.h"
+
+class c_RoboSense : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit c_RoboSense(QStringList info, QWidget* parent = nullptr);
+    virtual ~c_RoboSense();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;  
+    void keyPressEvent(QKeyEvent* event) override;
+    void showEvent(QShowEvent* event) override;
+
+private slots:
+    void readMessage(QString cmd);
+    void System_Scan();
+
+    void Write_Communicate_DB(QString key, int value);//дϵͳ����
+    void Write_Communicate_DB(QString key, QString value);//дϵͳ����	
+    void Write_Communicate_DB(QString key, double value);//дϵͳ����
+
+    void VTK_Init();
+    void RoboSense_Init();
+    void RoboSense_DB();
+    void RoboSense_Delete();
+
+    void MSOP_Scan(QVector<pcl::PointXYZI> points);
+
+private:
+    Ui::c_RoboSenseClass ui;
+    bool m_Scan = true;
+    bool m_vtkInitialized = false;
+    bool m_first_Scan = true;
+    QString m_DB_Path = "C:/ZividDebugLogs";
+
+    c_E1R_MSOP* m_E1R_MSOP;
+    QThread* m_E1R_MSOP_thread;
+
+    c_E1R_DIFOP* m_E1R_DIFOP;
+    QThread* m_E1R_DIFOP_thread;
+
+    int m_Safe_Distance;
+    int m_Safe_Num;
+    double m_max_point_1;
+    double m_max_point_2;
+    double m_max_point_3;
+    double m_min_point_1;
+    double m_min_point_2;
+    double m_min_point_3;
+
+    float m_roi_distance = 0;
+    int m_roi_point_count = 0;
+
+    QFile m_file;
+    QSocketNotifier *m_pNotifier;
+    char  m_arrRecv[128];
+
+    vtkNew<vtkRenderer> m_renderer;
+    vtkNew<vtkGenericOpenGLRenderWindow> m_renderWindow;
+    pcl::PointCloud<pcl::PointXYZI>::Ptr m_cloud;
+    pcl::PointCloud<pcl::PointXYZI>::Ptr m_Roi;
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> m_viewer;
+};
+
+
+
+########################################################################
+FILE: ./Scan_Client.h
+########################################################################
+
+﻿#pragma once
+#include "Variable.h"
+
+class c_Scan_Client :  public c_Object
+{
+	Q_OBJECT
+public:
+	explicit c_Scan_Client(QObject *parent = nullptr);
+	~c_Scan_Client() override;
+
+public slots:
+	void Init();//子线程初始化
+	void Connect_Device(QString ip, int port);
+	void Disconnect_Device();
+
+signals:
+	void Connect_Done();
+	void Disconnect_Done();
+	void Read_Done(QByteArray msg, QString device_ip, quint16 device_port);
+	void Connect_Loop();
+
+private:
+	QUdpSocket* m_Socket;
+	int m_Port;
+};
+
+
+
+########################################################################
+FILE: ./Variable.h
+########################################################################
+
+﻿#pragma once 
+
+#include <math.h>
+#include <time.h>
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstdio>
+#include <fcntl.h>
+#include <memory>
+#include <unistd.h>
+
+#include <QApplication>
+#include <QByteArray>
+#include <QCloseEvent>
+#include <QColor>
+#include <QDateTime>
+#include <QDebug>
+#include <QDir>
+#include <QSize>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileDialog>
+#include <QHostAddress>
+#include <QImage>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeyEvent>
+#include <QMainWindow>
+#include <QMap>
+#include <QMessageBox>
+#include <QMetaType>
+#include <QMutex>
+#include <QObject>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPaintDevice> 
+#include <QPen>       
+#include <QProcess>
+#include <QRegularExpression>
+#include <QScopedPointer>
+#include <QSettings>
+#include <QSharedMemory>
+#include <QSocketNotifier>
+#include <QStandardPaths>
+#include <QStackedWidget>
+#include <QString>
+#include <QTextStream>
+#include <QDataStream>
+#include <QThread>
+#include <QTimer>
+#include <QUuid>
+#include <QVariant>
+#include <QVector>
+#include <QWidget>
+#include <QSocketNotifier>
+
+#include <QAbstractSocket>
+#include <QNetworkAccessManager>
+#include <QNetworkInterface>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QUdpSocket> 
+#include <QUrlQuery>
+#include <QtNetwork>
+#include <QtWebSockets/qwebsocket.h>
+#include <QtWebSockets/qwebsocketserver.h>
+#include <QConicalGradient>
+#include <QPolarChart>
+#include <QScatterSeries>
+#include <QtCharts>
+
+#include <QtConcurrent/QtConcurrent>
+
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkRenderingOpenGL2);   
+VTK_MODULE_INIT(vtkInteractionStyle);  
+
+#include <vtkRenderer.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <QVTKOpenGLNativeWidget.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/common/common.h>
+#include <boost/thread/thread.hpp>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/crop_box.h>  
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/frustum_culling.h>
+#include <pcl/segmentation/sac_segmentation.h> 
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/common/common.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/search/kdtree.h>  
+#include <pcl/surface/convex_hull.h>
+
+#include <boost/thread/thread.hpp>
+
+#include "librealsense2/rs.hpp"
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <Zivid/Zivid.h>
+#include <Zivid/Camera.h>
+
+#include <HCNetSDK.h>
+#include <LinuxPlayM4.h>
+
+using namespace std;
+using namespace pcl;
+using namespace rs2;
+using namespace cv;
+using namespace Zivid;
+
+#if defined(_MSC_VER)
+    #define PACKED_STRUCT __pragma(pack(push, 1)) struct
+    #define PACKED_END __pragma(pack(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+    #if defined(__aarch64__) || defined(__arm64__)
+        #define PACKED_STRUCT struct __attribute__((packed, aligned(1)))
+        #define PACKED_END
+    #else
+        #define PACKED_STRUCT struct __attribute__((packed))
+        #define PACKED_END
+    #endif
+#else
+    #error "Unsupported compiler - Jetson Thor requires GCC/Clang"
+#endif
+
+PACKED_STRUCT s_Timestamp {
+    /* 0-5字节: 秒计数（6字节大端序） */
+    uint8_t seconds[6];
+    /* 6-9字节: 微秒计数（4字节大端序） */
+    uint8_t microseconds[4];
+}PACKED_END;
+// MSOP帧头结构体（32字节）
+PACKED_STRUCT s_MSOPHeader {
+    /* 0-3字节: 同步头（4字节，固定值 0x55AA5AA5） */
+    uint32_t sync;
+    /* 4-5字节: 包序列号（2字节） */
+    uint16_t pktCnt;
+    /* 6-7字节: 协议版本号（2字节） */
+    uint16_t ver;
+    /* 8字节: 回波模式（1字节） */
+    uint8_t returnMode;
+    /* 9字节: 时间同步模式（1字节） */
+    uint8_t timeMode;
+    /* 10-19字节: 时间戳 */
+    s_Timestamp timesTamp;
+    /* 20字节: 帧同步状态（1字节） */
+    uint8_t frameSync;
+    /* 21-29字节: 预留字段（9字节） */
+    uint8_t res0[9];
+    /* 30字节: 雷达类型标识（1字节） */
+    uint8_t lidarType;
+    /* 31字节: 芯片温度原始值（1字节） */
+    int8_t lidarTmp;
+}PACKED_END;
+// MSOP数据块结构体（12字节）
+PACKED_STRUCT s_DataBlock {
+    /* 0-1字节: 时间偏移量（2字节，无符号） */
+    uint16_t timeOffset;
+    /* 2-3字节: 径向距离（2字节，无符号） */
+    uint16_t radius;
+    /* 4-5字节: 单位方向向量X分量（2字节，有符号） */
+    int16_t dirVectorX;
+    /* 6-7字节: 单位方向向量Y分量（2字节，有符号） */
+    int16_t dirVectorY;
+    /* 8-9字节: 单位方向向量Z分量（2字节，有符号） */
+    int16_t dirVectorZ;
+    /* 10字节: 反射强度（1字节，无符号） */
+    uint8_t intensity;
+    /* 11字节: 点属性（1字节，使用联合体解析） */
+    uint8_t pointAttr;
+}PACKED_END;
+// MSOP帧尾结构体（16字节）
+PACKED_STRUCT s_MSOPTrailer {
+    /* 0-3字节: 预留字段（4字节） */
+    uint8_t res1[4];
+    /* 4-5字节: 数据长度（2字节，固定值 0x04B0 = 1200） */
+    uint16_t dataLength;
+    /* 6-7字节: 计数器（2字节） */
+    uint16_t counter;
+    /* 8-11字节: 数据ID（4字节，固定值 0x00000E5C） */
+    uint32_t dataId;
+    /* 12-15字节: CRC32校验码（4字节） */
+    uint32_t crc32;
+}PACKED_END;
+// MSOP完整MSOP包结构体（1200字节定长）
+PACKED_STRUCT s_MSOPPacket {
+    s_MSOPHeader header;
+    s_DataBlock blocks[96];
+    s_MSOPTrailer trailer;
+}PACKED_END;
+// DIFOP帧头结构体 (8字节) - 位于包偏移0~7字节
+PACKED_STRUCT s_DIFOPHeader {
+    /* [0-3] 主识别头 (4字节) */
+    uint32_t sync1;
+    /* [4-7] 次识别头 (4字节) */
+    uint32_t sync2;
+}PACKED_END;
+// 网络地址结构体 (辅助类型) - 用于IP/MAC地址封装
+PACKED_STRUCT s_IPv4Address {
+    uint8_t bytes[4];
+}PACKED_END;
+PACKED_STRUCT s_MACAddress {
+    uint8_t bytes[6];
+}PACKED_END;
+// 固件版本结构体 (3字节) - 位于包偏移16~18字节
+PACKED_STRUCT s_FirmwareVersion {
+    uint8_t major;           // 主版本号
+    uint8_t minor;           // 次版本号
+    uint8_t patch;           // 修订版本号
+}PACKED_END;
+// 完整DIFOP包结构体 (256字节定长) - 严格对应手册4.3.2节
+PACKED_STRUCT s_DIFOPPacket {
+    /* [0-7] DIFOP帧头 (8字节) */
+    s_DIFOPHeader header;
+    /* [8-15] 预留字段 (8字节) */
+    uint8_t res0[8];
+    /* [16-18] 固件版本号 (3字节) */
+    s_FirmwareVersion swVersion;
+    /* [19] 预留字段 (1字节) */
+    uint8_t res1;
+    /* [20-25] 设备序列号 (6字节) - ASCII编码 */
+    uint8_t sn[6];              // 例如: "E1R001"
+    /* [26-43] 预留字段 (18字节) */
+    uint8_t res2[18];
+    /* [44-47] 本地IP地址 (4字节) - 雷达本机IP */
+    s_IPv4Address localIp;
+    /* [48-51] 子网掩码 (4字节) */
+    s_IPv4Address netMask;
+    /* [52-57] MAC地址 (6字节) */
+    s_MACAddress macAddress;
+    /* [58-61] MSOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address msopRemoteIp;
+    /* [62-63] MSOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t msopLocalPort;
+    /* [64-65] MSOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t msopRemotePort;
+    /* [66-69] DIFOP远程IP (4字节) - 上位机IP */
+    s_IPv4Address difopRemoteIp;
+    /* [70-71] DIFOP本地端口 (2字节) - 雷达发送端口 */
+    uint16_t difopLocalPort;
+    /* [72-73] DIFOP远程端口 (2字节) - 上位机接收端口 */
+    uint16_t difopRemotePort;
+    /* [74-98] 预留字段 (25字节) */
+    uint8_t res3[25];
+    /* [99] 帧率设置 (1字节) */
+    uint8_t frequencySetting; // 0x0A = 10Hz (E1R默认)
+    /* [100] 回波模式 (1字节) - 与MSOP协议一致 */
+    uint8_t returnMode;       // 0x04 = StrongestWave (默认)
+    /* [101] 时间同步模式 (1字节) */
+    uint8_t timeSyncMode;     // 0x00=Internal, 0x02=E2E L2, 0x03=gPTP
+    /* [102] 时间同步状态 (1字节) */
+    uint8_t timeSyncStatus;   // 0x00=failed, 0x01=success, 0x02=timeout
+    /* [103-112] 时间状态 (10字节) - 与MSOP Timestamp格式相同 */
+    s_Timestamp timeStatus;
+    /* [113] 物理层工作模式 (1字节) */
+    uint8_t phyMode;          // 0x00=auto, 0x01=master, 0x02=slave
+    /* [114-255] 预留字段 (142字节) */
+    uint8_t res4[142];
+}PACKED_END;
+
+//EIR雷达
+struct s_RoboSense_DB {
+    bool MSOP_connected = false;
+    bool DIFOP_connected = false;
+    bool device_Status = false;
+
+    QString device_name;
+
+    QString Local_Ip;
+    int Local_MSOP_Port;
+    int Local_DIFOP_Port;
+    QString E1R_IP;
+    int  E1R_MSOP_Port;
+    int E1R_DIFOP_Port;
+
+    int8_t lidarTmp;
+};
+//D555相机
+struct s_RealSense_DB {
+    bool device_connected = false; //相机连接状态
+    bool device_Status = false;
+    QString device_name;
+    QString serial; //相机序列号
+
+    QString Local_Ip;
+    int Local_Port;
+
+    QString Device_IP;
+    int  Device_Port;
+};
+//Zivid相机
+struct s_Zivid_Camera_DB {
+    bool camera_connected = false;    //相机连接状态
+    QString device_name;
+    QString camera_serial;    //相机序列号
+
+    QString server_ip;
+    quint16 server_port;
+
+    float aperture;         //光圈
+    int exposure_time;      //曝光时间(μs)
+    float gain;             //增益
+
+    qint64 settingTime = 0;        //捕获耗时
+    qint64 captureTime = 0;        //捕获耗时
+    qint64 save2DTime = 0;        //捕获耗时
+    qint64 save3DTime = 0;        //捕获耗时
+  
+    QString image_name;            //基础路径
+    QString save_path;     //当前保存路径
+
+    QString system_status;         //系统状态
+    QDateTime last_operation_time; //最后操作时间
+};
+//服务
+struct s_Server_DB {
+    bool server_connected = false;    //连接状态
+    QString camera_num;  //相机编号
+    QString track;       // 股道号
+    QString date;        // 年月日
+    QString time;       // 时分
+    QString trainType;  // 车型车号
+    QString taskID;     // 任务编号
+    QString basePath;   // 保存路径
+};
+// 服务状态数据库结构
+struct s_Transmission_DB {
+	bool Tran = false;// 传输状态
+	bool Connected = false;// 连接状态
+	bool Start = false;// 开始状态
+	bool Finish = true;// 完成状态
+	bool Cancel = false;// 取消状态
+	bool Error = false;
+	QString device_name = "机车巡检机器人图像采集-上传软件-v1.0";  // 设备名称
+	QString Server_Ip = "192.168.0.1";// 服务器IP
+	int Server_Port = 8888;// 服务器端口
+    QString Client_Ip;
+	int Client_Port;
+	QString Save_Path;    
+    QStringList buffer;
+	QStringList Tran_buffer;
+	QStringList Retran_buffer;
+	QStringList Received_Buffer; 
+};
+
+//DIFOP解析联合体
+union s_DIFOPPacketUnion {
+    /* 原始字节数组 (256字节) - 用于接收UDP数据 */
+    uint8_t raw[256];
+    /* 结构化视图 - 与raw共享同一内存区域 */
+    s_DIFOPPacket data;
+};
+
+// MSOP数据解析联合体
+union s_MSOPPacketUnion {
+    /* 成员1: 原始字节数组（1200字节）- 用于接收网络数据 */
+    uint8_t raw[1200];
+    /* 成员2: 结构化视图 - 与raw共享同一块内存 */
+    s_MSOPPacket data;
+};
+
+class c_Object : public QObject
+{
+    Q_OBJECT
+public:
+    explicit c_Object(QObject* parent = nullptr);
+    virtual ~c_Object();
+
+  	union dataConverter {
+		float floatValue;     // 浮点数
+		quint32 DWord;
+		struct {
+			quint16 low16Bits;
+			quint16 high16Bits;
+		}Word;
+	};
+
+    void BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits);
+	void FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits);
+	void IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits);
+	void BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits);
+
+    bool QtPing(const QString ip);
+    bool msleep(const int mSec);
+    QString TCP_Status(int State);
+    QString Modbus_Status(int State);
+    QString CanOpen(int State);
+    QString Hikvision_Status(DWORD state);
+
+signals:
+    void Status(QString state);
+
+};
+
+class c_Variable : public c_Object
+{
+    Q_OBJECT
+public:
+    static c_Variable& getInstance();
+    static s_DIFOPPacketUnion g_DIFOP;
+    static s_RoboSense_DB g_RoboSense;
+    static QJsonObject g_Communicate_DB;      
+
+    void writeMessage(int style, QString message);
+
+private:
+    explicit c_Variable(QObject* parent = nullptr);
+    virtual ~c_Variable();
+
+    c_Variable(const c_Variable& other) = delete;
+    c_Variable& operator=(const c_Variable& other) = delete;
+
+    static QMutex g_mutex;
+    static QScopedPointer<c_Variable> g_instance;
+    friend struct QScopedPointerDeleter<c_Variable>;          
+};
+
+
+==================== SOURCE FILES (.cpp) ====================
+
+########################################################################
+FILE: ./E1R_DIFOP.cpp
+########################################################################
+
+﻿#include "E1R_DIFOP.h"
+
+c_E1R_DIFOP::c_E1R_DIFOP(QObject *parent): c_Object(parent)
+{
+	
+}
+
+c_E1R_DIFOP::~c_E1R_DIFOP()
+{
+	if (m_DIFOP_thread->isRunning()) {
+		m_DIFOP_thread->requestInterruption();
+		m_DIFOP_thread->quit();
+		m_DIFOP_thread->wait();
+	}
+}
+
+void c_E1R_DIFOP::Init()
+{
+	
+	m_DIFOP_thread = new QThread;
+	m_DIFOP_client = new c_Scan_Client;
+	m_DIFOP_client->moveToThread(m_DIFOP_thread);
+
+
+	QObject::connect(m_DIFOP_thread, &QThread::started, m_DIFOP_client, &c_Scan_Client::Init);
+	QObject::connect(m_DIFOP_thread, &QThread::finished, m_DIFOP_client, &c_Scan_Client::deleteLater);
+	QObject::connect(m_DIFOP_client, &c_Scan_Client::Status, this, [=](QString msg) {
+		emit Status("DIFOP:" + msg);
+	});
+
+	QObject::connect(m_DIFOP_client, &c_Scan_Client::Read_Done, this, &c_E1R_DIFOP::onDIFOPData);
+	QObject::connect(m_DIFOP_client, &c_Scan_Client::Connect_Loop, this, &c_E1R_DIFOP::Connect);
+	QObject::connect(this, &c_E1R_DIFOP::Connect_DIFOP, m_DIFOP_client, &c_Scan_Client::Connect_Device);
+	QObject::connect(this, &c_E1R_DIFOP::Disconnect_Device, m_DIFOP_client, &c_Scan_Client::Disconnect_Device);
+
+	QObject::connect(m_DIFOP_client, &c_Scan_Client::Connect_Done, this, &c_E1R_DIFOP::Connect_DIFOP_Done);
+	QObject::connect(m_DIFOP_client, &c_Scan_Client::Disconnect_Done, this, &c_E1R_DIFOP::Disconnect_DIFOP_Done);
+
+	m_DIFOP_thread->start();
+	c_E1R_DIFOP::Connect();
+}
+void c_E1R_DIFOP::Connect()
+{
+	emit Connect_DIFOP(c_Variable::getInstance().g_RoboSense.Local_Ip, c_Variable::getInstance().g_RoboSense.Local_DIFOP_Port);
+}
+void c_E1R_DIFOP::Disconnect()
+{
+	emit Disconnect_Device();
+}
+
+
+void c_E1R_DIFOP::Connect_DIFOP_Done()
+{
+	c_Variable::getInstance().g_RoboSense.DIFOP_connected = true;
+}
+
+void c_E1R_DIFOP::Disconnect_DIFOP_Done()
+{
+	c_Variable::getInstance().g_RoboSense.DIFOP_connected = false;
+}
+
+//捕获雷达信息
+void c_E1R_DIFOP::onDIFOPData(QByteArray data, QString device_ip, quint16 device_port)
+{
+
+	if (device_ip != c_Variable::getInstance().g_RoboSense.E1R_IP) {
+		emit Status("onDIFOPData雷达地址错误");
+		return;
+	}
+	if (device_port != c_Variable::getInstance().g_RoboSense.E1R_DIFOP_Port) {
+		emit Status("onDIFOPData雷达端口错误");
+		return;
+	}
+	if (data.size() < 256) {
+		emit Status("onDIFOPData雷达数据错误");
+		return;
+	}
+
+	std::memcpy(c_Variable::getInstance().g_DIFOP.raw, data.constData(), data.size());
+
+	c_Variable::getInstance().g_RoboSense.device_Status = !c_Variable::getInstance().g_RoboSense.device_Status;
+}
+
+
+
+
+########################################################################
+FILE: ./E1R_MSOP.cpp
+########################################################################
+
+﻿#include "E1R_MSOP.h"
+
+c_E1R_MSOP::c_E1R_MSOP(QObject *parent): c_Object(parent)
+{
+	
+}
+
+c_E1R_MSOP::~c_E1R_MSOP()
+{
+	if (m_MSOP_thread->isRunning()) {
+		m_MSOP_thread->requestInterruption();
+		m_MSOP_thread->quit();
+		m_MSOP_thread->wait();
+	}
+}
+void c_E1R_MSOP::Init()
+{
+	m_MSOP_thread = new QThread;
+	m_MSOP_client = new c_Scan_Client;
+	m_MSOP_client->moveToThread(m_MSOP_thread);
+
+	QObject::connect(m_MSOP_thread, &QThread::started, m_MSOP_client, &c_Scan_Client::Init);
+	QObject::connect(m_MSOP_thread, &QThread::finished, m_MSOP_client, &c_Scan_Client::deleteLater);
+	QObject::connect(m_MSOP_client, &c_Scan_Client::Status, this, [=](QString msg){
+			emit Status("MSOP:" + msg);
+	});
+
+	QObject::connect(m_MSOP_client, &c_Scan_Client::Read_Done, this, &c_E1R_MSOP::onMsopData);
+	QObject::connect(m_MSOP_client, &c_Scan_Client::Connect_Loop, this, &c_E1R_MSOP::Connect);
+	QObject::connect(this, &c_E1R_MSOP::Connect_Msop, m_MSOP_client, &c_Scan_Client::Connect_Device);
+	QObject::connect(this, &c_E1R_MSOP::Disconnect_Device, m_MSOP_client, &c_Scan_Client::Disconnect_Device);
+
+	QObject::connect(m_MSOP_client, &c_Scan_Client::Connect_Done, this, &c_E1R_MSOP::Connect_Msop_Done);
+	QObject::connect(m_MSOP_client, &c_Scan_Client::Disconnect_Done, this, &c_E1R_MSOP::Disconnect_Msop_Done);
+
+	m_MSOP_thread->start();
+	c_E1R_MSOP::Connect();
+}
+void c_E1R_MSOP::Connect()
+{
+	emit Connect_Msop(c_Variable::getInstance().g_RoboSense.Local_Ip, c_Variable::getInstance().g_RoboSense.Local_MSOP_Port);
+}
+void c_E1R_MSOP::Disconnect()
+{
+	emit Disconnect_Device();
+}
+void c_E1R_MSOP::Connect_Msop_Done()
+{
+	c_Variable::getInstance().g_RoboSense.MSOP_connected = true;
+}
+void c_E1R_MSOP::Disconnect_Msop_Done()
+{
+	c_Variable::getInstance().g_RoboSense.MSOP_connected = false;
+}
+void c_E1R_MSOP::onMsopData(QByteArray data, QString device_ip, quint16 device_port)
+{
+	if (device_ip != c_Variable::getInstance().g_RoboSense.E1R_IP) {
+		emit Status(QString("onMsopData 雷达地址错误: %1 (期望 %2)")
+			.arg(device_ip).arg(c_Variable::getInstance().g_RoboSense.E1R_IP));
+		return;
+	}
+	if (device_port != c_Variable::getInstance().g_RoboSense.E1R_MSOP_Port) {
+		emit Status(QString("onMsopData 雷达端口错误: %1 (期望 %2)")
+			.arg(device_port).arg(c_Variable::getInstance().g_RoboSense.E1R_MSOP_Port));
+		return;
+	}
+	if (data.size() != 1200) { 
+		emit Status(QString("onMsopData 雷达数据长度错误: %1 (期望 1200)").arg(data.size()));
+		return;
+	}
+	s_MSOPPacketUnion MSOP;
+
+	std::memcpy(MSOP.raw, data.constData(), data.size());	
+
+	quint32 syncValue = qFromBigEndian<quint32>(MSOP.data.header.sync);
+	if (syncValue != 0x55AA5AA5U) {
+		emit Status(QString("onMsopData 雷达数据帧头错误: 0x%1 (期望 0x55AA5AA5)")
+			.arg(syncValue, 8, 16, QChar('0')).toUpper());
+		return;
+	}
+
+	c_Variable::getInstance().g_RoboSense.lidarTmp = qFromBigEndian<qint8>(MSOP.data.header.lidarTmp) - 80;
+
+	quint16 pktCnt = qFromBigEndian<quint16>(MSOP.data.header.pktCnt);
+
+	if (pktCnt == 0 && !m_buffer.isEmpty()) {
+		emit MSOP_Scan(m_buffer);
+		m_buffer.clear();
+	}
+	for (int i=0; i < 96; ++i){
+
+		if (MSOP.data.blocks[i].pointAttr == 2 ) {continue;}
+
+		quint16 radius = qFromBigEndian<quint16>(MSOP.data.blocks[i].radius);
+		float distance = static_cast<float>(radius) * 5.0f;
+
+		qint16 dirVectorX = qFromBigEndian<qint16>(MSOP.data.blocks[i].dirVectorX);
+		qint16 dirVectorY = qFromBigEndian<qint16>(MSOP.data.blocks[i].dirVectorY);
+		qint16 dirVectorZ = qFromBigEndian<qint16>(MSOP.data.blocks[i].dirVectorZ);
+		qint8 intensity = qFromBigEndian<qint8>(MSOP.data.blocks[i].intensity);
+		float dirX = static_cast<float>(dirVectorX) / 32768.0f;
+		float dirY = static_cast<float>(dirVectorY) / 32768.0f;
+		float dirZ = static_cast<float>(dirVectorZ) / 32768.0f;
+		float dirI = static_cast<float>(intensity);
+
+		float x = distance * dirX;
+		float y = distance * dirY;
+		float z = distance * dirZ;
+
+		if (100.f > x || x > 30000.0f) { continue; }
+
+		m_buffer.append(pcl::PointXYZI{ x, y, z, dirI });
+	}
+}
+
+
+########################################################################
+FILE: ./Fr_Light.cpp
+########################################################################
+
+﻿#include "Fr_Light.h"
+
+c_Fr_Light::c_Fr_Light(QWidget * parent) :QWidget(parent)
+{
+	m_Working_Color = QColor("green");
+	m_Default_Color = QColor("red");
+	m_Error_Color = QColor("yellow");
+	m_Null_Color = QColor("gray");
+}
+
+c_Fr_Light::~c_Fr_Light()
+{
+	
+}
+
+void c_Fr_Light::Set_Working()
+{
+	if (m_State == Working) { return; }//如果状态未改变则立即退出
+	m_State = Working;
+	update();
+	emit Working_State(true);
+}
+bool c_Fr_Light::Get_State()
+{
+	if (m_State == Working) { return true; }
+	else { return false; }
+}
+void c_Fr_Light::Set_Default()
+{
+	if (m_State == Default) { return; }	  //如果状态未改变则立即退出
+	m_State = Default;
+	update();
+	emit Default_State(true);
+}
+void c_Fr_Light::Set_Error()
+{
+	if (m_State == Error) { return; }	   //如果状态未改变则立即退出
+	m_State = Error;
+	update();
+	emit Error_State(true);
+}
+void c_Fr_Light::Set_Null()
+{
+	if (m_State == Null){ return; }
+	m_State = Null;
+	update();
+}
+void c_Fr_Light::Set_State(const bool state)
+{
+	if (state) {
+		Set_Working();
+	}
+	else {
+		Set_Default();
+	}
+}
+void c_Fr_Light::Set_Radius(int value)
+{
+	m_Radius = value;
+	update();
+}
+void c_Fr_Light::paintEvent(QPaintEvent*) {
+	int side = qMin(width(), height());
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.translate(width() / 2, height() / 2);
+	painter.scale(side / 100.0, side / 100.0);
+	QColor color;
+	switch (m_State) {
+	case Default:
+		color = m_Default_Color;
+		break;
+	case Working:
+		color = m_Working_Color;
+		break;
+	case Error:
+		color = m_Error_Color;
+		break;
+	default:
+		color = m_Null_Color;
+		break;
+	}
+	QRadialGradient radial(0, 0, m_Radius, 0, 0);    //设置圆的原点和焦点在中心,半径50
+	radial.setSpread(QGradient::PadSpread);
+	radial.setColorAt(1, color);
+	painter.setPen(Qt::transparent);
+	painter.setBrush(radial);
+	painter.drawEllipse(-50, -50, 100, 100);
+}
+
+########################################################################
+FILE: ./main.cpp
+########################################################################
+
+﻿#include "RoboSense.h"
+#include <QApplication>
+#include <QVector>
+#include <pcl/point_types.h>
+
+Q_DECLARE_METATYPE(QVector<pcl::PointXYZI>)
+Q_DECLARE_METATYPE(s_Timestamp)
+Q_DECLARE_METATYPE(s_MSOPHeader)
+Q_DECLARE_METATYPE(s_DataBlock)
+Q_DECLARE_METATYPE(s_MSOPTrailer)
+Q_DECLARE_METATYPE(s_MSOPPacket)
+Q_DECLARE_METATYPE(s_DIFOPHeader)
+Q_DECLARE_METATYPE(s_IPv4Address)
+Q_DECLARE_METATYPE(s_MACAddress)
+Q_DECLARE_METATYPE(s_FirmwareVersion)
+Q_DECLARE_METATYPE(s_DIFOPPacket)
+Q_DECLARE_METATYPE(s_RoboSense_DB)
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+
+    qRegisterMetaType<QVector<pcl::PointXYZI>>("QVector<pcl::PointXYZI>");
+    qRegisterMetaType<s_Timestamp>("s_Timestamp");
+    qRegisterMetaType<s_MSOPHeader>("s_MSOPHeader");
+    qRegisterMetaType<s_DataBlock>("s_DataBlock");
+    qRegisterMetaType<s_MSOPTrailer>("s_MSOPTrailer");
+    qRegisterMetaType<s_MSOPPacket>("s_MSOPPacket");
+    qRegisterMetaType<s_DIFOPHeader>("s_DIFOPHeader");
+    qRegisterMetaType<s_IPv4Address>("s_IPv4Address");
+    qRegisterMetaType<s_MACAddress>("s_MACAddress");
+    qRegisterMetaType<s_FirmwareVersion>("s_FirmwareVersion");
+    qRegisterMetaType<s_DIFOPPacket>("s_DIFOPPacket");
+    qRegisterMetaType<s_RoboSense_DB>("s_RoboSense_DB");
+
+    c_RoboSense w(a.arguments());
+
+    return a.exec();
+}
+
+
+########################################################################
+FILE: ./RoboSense.cpp
+########################################################################
+
+﻿#include "RoboSense.h"
+
+c_RoboSense::c_RoboSense(QStringList info, QWidget* parent) : QWidget(parent)
+{
+    ui.setupUi(this);
+
+    m_renderWindow->SetUseOffScreenBuffers(false);
+    m_renderWindow->SetDoubleBuffer(true); 
+    m_renderWindow->SetMultiSamples(0);   
+    ui.VTK->renderWindow()->SetUseOffScreenBuffers(false);
+
+    {
+        QFile File;
+        File.setFileName(QDir::currentPath() + "/stuqss.css");
+        File.open(QIODevice::ReadOnly);
+        QString strQss = File.readAll();
+        this->setStyleSheet(strQss);
+        File.close();
+    }
+    if (!info.isEmpty() && info.size() > 1) {
+        c_Variable::getInstance().g_RoboSense.device_name = info.at(1);
+        this->setWindowFlags(Qt::Widget);
+        this->setAttribute(Qt::WA_NativeWindow);
+        this->setAttribute(Qt::WA_DontCreateNativeAncestors, false);
+        this->setWindowFlags(Qt::FramelessWindowHint);
+        this->setWindowTitle(c_Variable::getInstance().g_RoboSense.device_name);
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/" + c_Variable::getInstance().g_RoboSense.device_name + ".json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        QByteArray Data = File.readAll();
+        QJsonParseError parseError;  
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError); 
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+    }
+    else {
+        QFile File;
+        m_DB_Path = QDir::currentPath() + "/RoboSense.json";
+        File.setFileName(m_DB_Path);
+        File.open(QFile::ReadOnly | QIODevice::Text);
+        QByteArray Data = File.readAll();
+        QJsonParseError parseError;  
+        QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);  
+        if (parseError.error == QJsonParseError::NoError) {
+            c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+        }
+        File.close();
+
+    }
+
+    m_file.open(stdin, QIODevice::ReadOnly | QIODevice::Text);
+    m_pNotifier = new QSocketNotifier(m_file.handle(), QSocketNotifier::Read, this);
+
+    QObject::connect(m_pNotifier, &QSocketNotifier::activated, this, [=](int iHandle){
+        if(m_file.handle() == iHandle){
+            int iRet = read(m_file.handle(), m_arrRecv, sizeof(m_arrRecv));
+            m_arrRecv[iRet] = 0;
+            c_RoboSense::readMessage(QString("%1").arg(m_arrRecv));
+        }
+    });
+
+    c_Variable::getInstance().writeMessage(1, QString("Run&%1").arg(this->winId()));
+
+    this->show();
+}
+
+c_RoboSense::~c_RoboSense(){}
+
+void c_RoboSense::readMessage(QString message)
+{
+    c_Variable::getInstance().writeMessage(2, message);
+    if (message == "Connect") { emit ui.btnConnect->clicked(); }
+    if (message == "Disconnect") { emit ui.btnDisconnect->clicked(); }
+    if (message == "Close_Device") { this->close(); }
+    if (message.split("&", Qt::SkipEmptyParts).isEmpty()) { return; }
+}
+
+void c_RoboSense::VTK_Init()
+{
+    QOpenGLContext* ctx = QOpenGLContext::currentContext();
+    if (!ctx || !ctx->isValid()) {
+        c_Variable::getInstance().writeMessage(2, "ERROR: OpenGL context invalid!");
+        QTimer::singleShot(100, this, &c_RoboSense::VTK_Init);  // 重试
+        return;
+    }
+
+    // 禁用自动重渲染（交互时手动控制）
+    m_renderWindow->SetAlphaBitPlanes(0);           // 禁用Alpha缓冲节省带宽
+    m_renderWindow->SetMultiSamples(0);             // 禁用MSAA抗锯齿（大幅提升性能）
+    
+    m_renderWindow->AddRenderer(m_renderer);
+    ui.VTK->setRenderWindow(m_renderWindow);
+
+    m_viewer.reset(new pcl::visualization::PCLVisualizer(
+        m_renderer, m_renderWindow, "viewer", false));
+    m_viewer->setupInteractor(ui.VTK->interactor(), ui.VTK->renderWindow());
+
+    m_viewer->setBackgroundColor(0.05f, 0.05f, 0.05f);
+    m_viewer->initCameraParameters();
+    m_viewer->setCameraPosition(
+        -1500,   // X: 相机在雷达后方1.5米
+        0.0f,    // Y: 相机居中
+        0.0f,    // Z: 相机高度
+        0.0f,    // viewX: 焦点X=0
+        0.0f,    // viewY: 焦点Y=0
+        0.0f,    // viewZ: 焦点Z=0
+        0.0f,    // upX: 上方向X=0
+        0.0f,    // upY: 上方向Y=0
+        1.0f     // upZ: 上方向Z=1（向上）
+    );
+
+    m_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
+    m_Roi.reset(new pcl::PointCloud<pcl::PointXYZI>);
+
+    pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI>
+        color_handler(m_cloud, "intensity");
+    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZI>
+        roi_color_handler(m_Roi, 255, 0, 0);
+
+    m_viewer->addPointCloud<pcl::PointXYZI>(m_cloud, color_handler, "cloud");
+    m_viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud");
+
+    m_viewer->addPointCloud<pcl::PointXYZI>(m_Roi, roi_color_handler, "Roi");
+    m_viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Roi");
+
+    m_viewer->spinOnce(1, true);  // PCL推荐方式（触发VTK事件循环）
+    m_renderWindow->Render();     // 直接渲染
+    ui.VTK->update();             // 刷新Qt窗口
+
+    m_vtkInitialized = true;
+    QTimer::singleShot(100, this, &c_RoboSense::RoboSense_Init);
+    QTimer::singleShot(200, this, &c_RoboSense::System_Scan);
+}
+void c_RoboSense::System_Scan()
+{
+    
+    ui.btnConnect->setEnabled(!c_Variable::getInstance().g_RoboSense.DIFOP_connected
+        || !c_Variable::getInstance().g_RoboSense.MSOP_connected);
+
+    ui.btnDisconnect->setEnabled(c_Variable::getInstance().g_RoboSense.DIFOP_connected
+        && c_Variable::getInstance().g_RoboSense.MSOP_connected);
+
+    QString SW_Version = QString("%1.%2.%3")
+        .arg(c_Variable::getInstance().g_DIFOP.data.swVersion.major)
+        .arg(c_Variable::getInstance().g_DIFOP.data.swVersion.minor)
+        .arg(c_Variable::getInstance().g_DIFOP.data.swVersion.patch);
+    ui.SW_Version->setText(SW_Version.isEmpty() ? "N/A" : SW_Version);
+
+
+    QString sn = QString("%1-%2-%3-%4-%5-%6")
+        .arg(c_Variable::getInstance().g_DIFOP.data.sn[0], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.sn[1], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.sn[2], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.sn[3], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.sn[4], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.sn[5], 2, 16, QChar('0')).toUpper();
+    ui.SN->setText(sn.isEmpty() ? "N/A" : sn);
+
+    QString mac = QString("%1-%2-%3-%4-%5-%6")
+        .arg(c_Variable::getInstance().g_DIFOP.data.macAddress.bytes[0], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.macAddress.bytes[1], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.macAddress.bytes[2], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.macAddress.bytes[3], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.macAddress.bytes[4], 2, 16, QChar('0')).toUpper()
+        .arg(c_Variable::getInstance().g_DIFOP.data.macAddress.bytes[5], 2, 16, QChar('0')).toUpper();
+    ui.MAC_Address->setText(mac.isEmpty() ? "N/A" : mac);
+
+    quint8 freq = c_Variable::getInstance().g_DIFOP.data.frequencySetting;
+    ui.FrequecySetting->setText(freq == 0x00 ? "10 Hz" : QString("%1 Hz").arg(freq, 2, 16, QChar('0')).toUpper());
+
+    QString returnMode;
+    switch (c_Variable::getInstance().g_DIFOP.data.returnMode) {
+    case 0x00: returnMode = "FarthestWave"; break;
+    case 0x04: returnMode = "StrongestWave (Default)"; break;
+    case 0x07: returnMode = "NearestWave"; break;
+    case 0x08: returnMode = "2ndStrongestWave"; break;
+    case 0x09: returnMode = "StrongestFarthestWave"; break;
+    case 0x0A: returnMode = "NearestFarthestWave"; break;
+    case 0x0B: returnMode = "Strongest2ndStrongestWave"; break;
+    default: returnMode = QString("Unknown (0x%1)").arg(c_Variable::getInstance().g_DIFOP.data.returnMode, 2, 16, QChar('0'));
+    }
+    ui.ReturnMode->setText(returnMode);
+
+    QString timeSync;
+    switch (c_Variable::getInstance().g_DIFOP.data.timeSyncStatus) {
+    case 0x00:
+        timeSync = "Failed";
+        break;
+    case 0x01:
+        timeSync = "Success";
+        break;
+    case 0x02:
+        timeSync = "Timeout";
+        break;
+    default:
+        timeSync = "Unknown";
+    }
+    ui.TimeSyncStatus->setText(timeSync);
+
+    QString phyMode;
+    switch (c_Variable::getInstance().g_DIFOP.data.phyMode) {
+    case 0x00: phyMode = "Auto-negotiation"; break;
+    case 0x01: phyMode = "Master (1000BASE-T1)"; break;
+    case 0x02: phyMode = "Slave (1000BASE-T1)"; break;
+    default: phyMode = "Auto";
+    }
+    ui.PHYMode->setText(phyMode);
+
+    ui.LidarTemp->setText(QString("%1 °C").arg(c_Variable::getInstance().g_RoboSense.lidarTmp));
+
+    quint64 seconds = 0;
+    for (int i = 0; i < 6; ++i) {
+        seconds = (seconds << 8) | c_Variable::getInstance().g_DIFOP.data.timeStatus.seconds[i];
+    }
+    quint32 microseconds = 0;
+    for (int i = 0; i < 4; ++i) {
+        microseconds = (microseconds << 8) | c_Variable::getInstance().g_DIFOP.data.timeStatus.microseconds[i];
+    }
+    QDateTime timestamp = QDateTime::fromSecsSinceEpoch(seconds);
+    ui.LastUpdate->setText(timestamp.toString("yyyy-MM-dd hh:mm:ss") +
+        QString(".%1").arg(microseconds / 1000, 3, 10, QChar('0')));
+
+    ui.device_Status->Set_State(c_Variable::getInstance().g_RoboSense.device_Status);
+
+    ui.DIFOP_Status->Set_State(c_Variable::getInstance().g_RoboSense.DIFOP_connected);
+    ui.MSOP_Status->Set_State(c_Variable::getInstance().g_RoboSense.MSOP_connected);
+
+    ui.roi_distance->setText(QString::number(m_roi_distance));
+    ui.roi_num->setText(QString::number(m_roi_point_count));
+
+    if(m_roi_distance < m_Safe_Distance && m_roi_distance > m_Safe_Num){
+        ui.is_Obstacle->Set_Working();
+    }else{
+        ui.is_Obstacle->Set_Default();
+    }
+    
+
+    QTimer::singleShot(100, this, [this]() {
+        if (m_Scan) System_Scan();
+        });
+}
+void c_RoboSense::RoboSense_Init()
+{
+    c_Variable::getInstance().writeMessage(2, "开始初始化雷达");
+
+	m_E1R_MSOP = new c_E1R_MSOP;
+    m_E1R_MSOP_thread = new QThread;
+
+    m_E1R_DIFOP = new c_E1R_DIFOP;
+    m_E1R_DIFOP_thread = new QThread;
+
+
+	QObject::connect(m_E1R_MSOP_thread, &QThread::started, m_E1R_MSOP, &c_E1R_MSOP::Init);
+    QObject::connect(m_E1R_MSOP_thread, &QThread::finished, m_E1R_MSOP, &c_E1R_MSOP::deleteLater);
+
+    QObject::connect(m_E1R_DIFOP_thread, &QThread::started, m_E1R_DIFOP, &c_E1R_DIFOP::Init);
+    QObject::connect(m_E1R_DIFOP_thread, &QThread::finished, m_E1R_DIFOP, &c_E1R_DIFOP::deleteLater);
+
+
+    QObject::connect(m_E1R_MSOP, &c_E1R_MSOP::Status, this, [=](QString cmd) {
+        c_Variable::getInstance().writeMessage(2, cmd);
+    });
+
+    QObject::connect(m_E1R_DIFOP, &c_E1R_DIFOP::Status, this, [=](QString cmd) {
+        c_Variable::getInstance().writeMessage(2, cmd);
+	});
+
+    QObject::connect(ui.btnConnect, &QPushButton::clicked, m_E1R_MSOP, &c_E1R_MSOP::Connect);
+    QObject::connect(ui.btnDisconnect, &QPushButton::clicked, m_E1R_MSOP, &c_E1R_MSOP::Disconnect);
+
+    QObject::connect(ui.btnConnect, &QPushButton::clicked, m_E1R_DIFOP, &c_E1R_DIFOP::Connect);
+    QObject::connect(ui.btnDisconnect, &QPushButton::clicked, m_E1R_DIFOP, &c_E1R_DIFOP::Disconnect);
+
+    QObject::connect(m_E1R_MSOP, &c_E1R_MSOP::MSOP_Scan, this, &c_RoboSense::MSOP_Scan);
+   
+    RoboSense_DB();
+
+    m_E1R_DIFOP_thread->start();
+    m_E1R_MSOP_thread->start();
+}
+void c_RoboSense::RoboSense_DB()
+{
+    QObject::connect(ui.Local_Ip, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_RoboSense.Local_Ip = value;
+        Write_Communicate_DB("Local_Ip", value);
+        });
+    QObject::connect(ui.Local_MSOP_Port, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_RoboSense.Local_MSOP_Port = value.toInt();
+        Write_Communicate_DB("Local_MSOP_Port", value.toInt());
+        });
+    QObject::connect(ui.Local_DIFOP_Port, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_RoboSense.Local_DIFOP_Port = value.toInt();
+        Write_Communicate_DB("Local_DIFOP_Port", value.toInt());
+        });
+    QObject::connect(ui.E1R_IP, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_RoboSense.E1R_IP = value;
+        Write_Communicate_DB("E1R_IP", value);
+        });
+    QObject::connect(ui.E1R_MSOP_Port, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_RoboSense.E1R_MSOP_Port = value.toInt();
+        Write_Communicate_DB("E1R_MSOP_Port", value.toInt());
+        });
+    QObject::connect(ui.E1R_DIFOP_Port, &QLineEdit::textChanged, this, [=](QString value) {
+        c_Variable::getInstance().g_RoboSense.E1R_DIFOP_Port = value.toInt();
+        Write_Communicate_DB("E1R_DIFOP_Port", value.toInt());
+        });
+
+    QObject::connect(ui.Safe_Distance, &QLineEdit::textChanged, this, [=](QString value) {
+        m_Safe_Distance = value.toInt();
+        Write_Communicate_DB("Safe_Distance", m_Safe_Distance);
+        });
+    QObject::connect(ui.Safe_Num, &QLineEdit::textChanged, this, [=](QString value) {
+        m_Safe_Num = value.toInt();
+        Write_Communicate_DB("Safe_Num", m_Safe_Num);
+        });
+    QObject::connect(ui.max_point_1, &QLineEdit::textChanged, this, [=](QString data) {
+        m_max_point_1 = data.toDouble();
+        Write_Communicate_DB("max_point_1", m_max_point_1);
+        });
+    QObject::connect(ui.max_point_2, &QLineEdit::textChanged, this, [=](QString data) {
+        m_max_point_2 = data.toDouble();
+        Write_Communicate_DB("max_point_2", m_max_point_2);
+        });
+    QObject::connect(ui.max_point_3, &QLineEdit::textChanged, this, [=](QString data) {
+        m_max_point_3 = data.toDouble();
+        Write_Communicate_DB("max_point_3", m_max_point_3);
+        });
+    QObject::connect(ui.min_point_1, &QLineEdit::textChanged, this, [=](QString data) {
+        m_min_point_1 = data.toDouble();
+        Write_Communicate_DB("min_point_1", m_min_point_1);
+        });
+    QObject::connect(ui.min_point_2, &QLineEdit::textChanged, this, [=](QString data) {
+        m_min_point_2 = data.toDouble();
+        Write_Communicate_DB("min_point_2", m_min_point_2);
+        });
+    QObject::connect(ui.min_point_3, &QLineEdit::textChanged, this, [=](QString data) {
+        m_min_point_3 = data.toDouble();
+        Write_Communicate_DB("min_point_3", m_min_point_3);
+        });
+
+    ui.Local_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("Local_Ip").toString());
+    ui.Local_MSOP_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Local_MSOP_Port").toInt()));
+    ui.Local_DIFOP_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Local_DIFOP_Port").toInt()));
+    ui.E1R_IP->setText(c_Variable::getInstance().g_Communicate_DB.value("E1R_IP").toString());
+    ui.E1R_MSOP_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("E1R_MSOP_Port").toInt()));
+    ui.E1R_DIFOP_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("E1R_DIFOP_Port").toInt()));
+
+    ui.Safe_Distance->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Safe_Distance").toInt()));
+    ui.Safe_Num->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Safe_Num").toInt()));
+
+    ui.max_point_1->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("max_point_1").toDouble()));
+    ui.max_point_2->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("max_point_2").toDouble()));
+    ui.max_point_3->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("max_point_3").toDouble()));
+
+    ui.min_point_1->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("min_point_1").toDouble()));
+    ui.min_point_2->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("min_point_2").toDouble()));
+    ui.min_point_3->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("min_point_3").toDouble()));
+} 
+void c_RoboSense::RoboSense_Delete()
+{
+    if (m_E1R_DIFOP_thread->isRunning()) {
+        m_E1R_DIFOP_thread->requestInterruption();
+        m_E1R_DIFOP_thread->quit();
+        m_E1R_DIFOP_thread->wait();
+    }
+    if (m_E1R_MSOP_thread->isRunning()) {
+        m_E1R_MSOP_thread->requestInterruption();
+        m_E1R_MSOP_thread->quit();
+        m_E1R_MSOP_thread->wait();
+    }
+}
+void c_RoboSense::MSOP_Scan(QVector<pcl::PointXYZI> points)
+{
+    if (points.isEmpty()) return;
+    m_cloud->clear();
+    m_cloud->resize(points.size());
+    m_cloud->width = points.size();
+    m_cloud->height = 1;
+    m_cloud->is_dense = false;
+
+    std::memcpy(m_cloud->points.data(), points.constData(),
+        points.size() * sizeof(pcl::PointXYZI));
+
+    Eigen::Vector4f min_point(
+        m_min_point_1,
+        m_min_point_2,
+        m_min_point_3,
+        1);
+
+    Eigen::Vector4f max_point(
+        m_max_point_1,
+        m_max_point_2,
+        m_max_point_3,
+        1);
+
+    m_Roi->points.clear();
+    pcl::CropBox<pcl::PointXYZI> crop;//创建裁剪框对象
+    crop.setInputCloud(m_cloud);//设置输入点云
+    crop.setMin(min_point);//设置裁剪框的最小点
+    crop.setMax(max_point);//设置裁剪框的最大点
+    crop.filter(*m_Roi);//执行裁剪过滤
+
+    float roi_distance = 0;
+    int roi_point_count = 0;
+    float distance = 0;
+
+    // 计算ROI内障碍物的距离
+    for (const pcl::PointXYZI& point : m_Roi->points)
+    {
+        // 计算点到原点的距离
+        distance = qAbs(point.x);
+        if (distance > 100.0 && distance < 10000.0) {
+            // 更新最小距离
+            roi_distance = roi_distance + distance;
+            roi_point_count++;
+        }
+    }
+    if (roi_point_count > m_Safe_Num) {
+        roi_distance = roi_distance / roi_point_count;
+    }
+    if (roi_point_count <= m_Safe_Num) {
+        roi_distance = 30000.0;
+    }
+    m_roi_distance = roi_distance;
+    m_roi_point_count = roi_point_count;
+
+    pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI>
+        color_handler(m_cloud, "intensity");
+    m_viewer->updatePointCloud<pcl::PointXYZI>(m_cloud, color_handler, "cloud");
+
+    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZI>
+        roi_color_handler(m_Roi, 255, 0, 0);
+    m_viewer->updatePointCloud<pcl::PointXYZI>(m_Roi, roi_color_handler, "Roi");
+
+    if (m_first_Scan) {
+        m_viewer->setCameraPosition(
+            -1500,   // X: 相机在雷达后方1.5米
+            0.0f,    // Y: 相机居中
+            0.0f,    // Z: 相机高度
+            0.0f,    // viewX: 焦点X=0
+            0.0f,    // viewY: 焦点Y=0
+            0.0f,    // viewZ: 焦点Z=0
+            0.0f,    // upX: 上方向X=0
+            0.0f,    // upY: 上方向Y=0
+            1.0f     // upZ: 上方向Z=1（向上）
+        );
+        m_first_Scan = false;
+    }
+
+    m_viewer->spinOnce(1, true);  // PCL推荐方式（触发VTK事件循环）
+    m_renderWindow->Render();     // 直接渲染
+    ui.VTK->update();             // 刷新Qt窗口
+}
+void c_RoboSense::Write_Communicate_DB(QString key, int value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_RoboSense::Write_Communicate_DB(QString key, QString value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+    
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_RoboSense::Write_Communicate_DB(QString key, double value)
+{
+    c_Variable::getInstance().g_Communicate_DB.insert(key, value);
+
+    QFile File;
+    File.setFileName(m_DB_Path);
+
+	if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	return;
+	}
+	
+    QJsonDocument DB_Doc;
+    DB_Doc.setObject(c_Variable::getInstance().g_Communicate_DB);
+
+    File.write(DB_Doc.toJson());
+    File.close();
+}
+void c_RoboSense::closeEvent(QCloseEvent* event) {
+    // 释放资源
+    m_Scan = false;
+    RoboSense_Delete();
+    c_Variable::getInstance().writeMessage(1, "Stop");
+    // 允许关闭
+    event->accept();
+}
+void c_RoboSense::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_F6) {
+        QFile File;
+        File.setFileName(QDir::currentPath() + "/stuqss.css");
+       
+	    if (!File.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    	    return;
+	    }
+	
+        QString strQss = File.readAll();
+        this->setStyleSheet(strQss);
+
+        File.close();
+    }
+
+    QWidget::keyPressEvent(event);
+}
+void c_RoboSense::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    if (m_vtkInitialized) return;
+    QTimer::singleShot(100, this, &c_RoboSense::VTK_Init);
+}
+
+
+########################################################################
+FILE: ./Scan_Client.cpp
+########################################################################
+
+﻿#include "Scan_Client.h"
+
+c_Scan_Client::c_Scan_Client(QObject *parent) : c_Object(parent)
+{
+
+}
+
+c_Scan_Client::~c_Scan_Client()
+{
+	c_Scan_Client::Disconnect_Device();
+    m_Socket->close();
+	m_Socket->deleteLater();
+}
+
+void c_Scan_Client::Init()
+{
+    //实列化
+    m_Socket = new QUdpSocket;
+    //如果，UDP，状态改变，执行，本线程，状态改变函数
+    QObject::connect(m_Socket, &QUdpSocket::stateChanged, this, [=](QAbstractSocket::SocketState state){
+        int status = 0;
+        switch (state) {
+        case QAbstractSocket::UnconnectedState:
+            status = 23;  
+            break;
+        case  QAbstractSocket::HostLookupState:
+            status = 24;
+            break;
+        case  QAbstractSocket::ConnectingState:
+            status = 25;
+            break;
+        case  QAbstractSocket::ConnectedState:
+            status = 26;
+            break;
+        case  QAbstractSocket::BoundState:
+            status = 27;
+            emit Connect_Done();
+            break;
+        case  QAbstractSocket::ClosingState:
+            status = 28;
+            break;
+        case  QAbstractSocket::ListeningState:
+            status = 29;
+            break;
+        default:
+            status = 30;
+            break;
+        }
+        emit Status(c_Object::TCP_Status(status));
+    });
+    //错误诊断
+    QObject::connect(m_Socket, &QUdpSocket::errorOccurred, this, [=](QAbstractSocket::SocketError socketError){
+            emit Status(c_Object::TCP_Status(socketError));
+    });
+	//绑定读函数
+	QObject::connect(m_Socket, &QUdpSocket::readyRead, this, [=](){
+        if (m_Socket->hasPendingDatagrams()) {
+            QByteArray dataGram;
+            dataGram.resize(static_cast<int>(m_Socket->pendingDatagramSize()));
+            QHostAddress device_ip;
+            quint16 device_port;
+
+            qint64 len = m_Socket->readDatagram(dataGram.data(), dataGram.size(), &device_ip, &device_port);
+            //如果消息不为空则发送消息到主线程
+            if (len > 0) {
+                emit Read_Done(dataGram, device_ip.toString(), device_port);
+            }
+        }
+	});
+}
+
+void c_Scan_Client::Connect_Device(QString ip, int port)
+{
+    //如果已连接则返回
+    if(m_Socket->state() == QAbstractSocket::BoundState){	
+		return;
+    }
+    //绑定主机、监听信号
+	m_Port = port;
+	if(!m_Socket->bind(QHostAddress(ip), port)){
+        QTimer::singleShot(6000, this, &c_Scan_Client::Connect_Loop);
+	}else{
+        emit Connect_Done();
+        emit Status("监听" + ip + ":" + QString::number(port));
+	}
+}
+
+void c_Scan_Client::Disconnect_Device()
+{
+	if(!m_Socket){
+        emit Disconnect_Done();
+		return;
+    }
+	if (m_Socket->state() != QAbstractSocket::BoundState) {
+        emit Disconnect_Done();
+		return;
+	}
+	else {
+		m_Socket->close();
+        emit Disconnect_Done();
+	}
+}
+
+
+
+
+########################################################################
+FILE: ./Variable.cpp
+########################################################################
+
+﻿#include "Variable.h"
+
+
+c_Object::c_Object(QObject* parent) : QObject(parent)
+{
+
+}
+c_Object::~c_Object()
+{
+   
+}
+bool c_Object::msleep(const int mSec)
+{
+    QEventLoop loop;
+    QTimer::singleShot(mSec, &loop, &QEventLoop::quit);
+    loop.exec();
+    return true;
+}
+bool c_Object::QtPing(const QString ip)
+{
+    QProcess cmd;
+    QStringList arguments;
+    
+    // 1. 参数配置
+    // -c 1: 只发 1 个包
+    // -W 2: 超时 2 秒 (防止网络不通时挂起太久)
+    // -s 1: 包大小 (保持你原有的设置)
+    arguments << "-c" << "1" << "-W" << "2" << "-s" << "1" << ip;
+
+    // 2. 启动进程 (直接传参，不调用 shell)
+    cmd.start("ping", arguments);
+
+    // 3. 等待结束 
+    // 总超时 = Ping 超时 * 次数 + 缓冲。这里设为 3000ms 足够覆盖 -W 2
+    if (!cmd.waitForFinished(3000)) {
+        cmd.kill(); // 如果超时，强制杀死进程
+        emit Status(ip + " Ping 超时");
+        return false;
+    }
+
+    // 4. 获取结果 (使用 exitCode 判断，比解析字符串更可靠)
+    int exitCode = cmd.exitCode();
+    // 可选：打印日志调试
+
+    if (exitCode == 0) {
+        emit Status(ip + " Ping 通");
+        return true;
+    } else {
+        emit Status(ip + " Ping 不通");
+        return false;
+    }
+}
+QString c_Object::TCP_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "连接被对等方拒绝（或超时）";
+	case 1:return "远程主机关闭了连接。请注意，客户端套接字（即此套接字）将在发送远程关闭通知后关闭";
+	case 2:return "找不到主机地址";
+	case 3:return "套接字操作失败，因为应用程序缺少所需的权限";
+	case 4:return "本地系统资源不足（例如，套接字过多）";
+	case 5:return "套接字操作超时";
+	case 6:return "数据报大于操作系统的限制（可低至8192字节）";
+	case 7:return "网络发生错误（例如，网络电缆意外插拔）";
+	case 8:return "为QAbstractSocket:：bind（）指定的地址已在使用中，并被设置为独占";
+	case 9:return "为QAbstractSocket:：bind（）指定的地址不属于主机";
+	case 10:return "本地操作系统不支持请求的套接字操作（例如，缺少IPv6支持）";
+	case 11:return "仅由QAbstractSocketEngine使用，上次尝试的操作尚未完成（仍在后台进行）";
+	case 12:return "套接字正在使用代理，代理需要身份验证";
+	case 13:return "SSL/TLS握手失败，因此连接已关闭（仅在QSslSocket中使用）";
+	case 14:return "无法联系代理服务器，因为与该服务器的连接被拒绝";
+	case 15:return "与代理服务器的连接意外关闭（在与最终对等方建立连接之前）";
+	case 16:return "与代理服务器的连接超时，或者代理服务器在身份验证阶段停止响应。";
+	case 17:return "找不到使用setProxy（）设置的代理地址（或应用程序代理）";
+	case 18:return "与代理服务器的连接协商失败，因为无法理解来自代理服务器的响应";
+	case 19:return "当套接字处于不允许的状态时，尝试了一个操作";
+	case 20:return "正在使用的SSL库报告了一个内部错误。这可能是由于库的安装错误或配置错误造成的";
+	case 21:return "提供了无效数据（证书、密钥、密码等），其使用导致SSL库中出现错误";
+	case 22:return "发生临时错误（例如，操作将被阻塞，套接字为非阻塞）";
+	case 23:return "套接字未连接";
+	case 24:return "套接字正在执行主机名查找";
+	case 25:return "套接字已开始建立连接";
+	case 26:return "建立了一个连接";
+	case 27:return "套接字绑定到一个地址和端口";
+	case 28:return "套接字即将关闭（数据可能仍在等待写入）";
+	case 29:return "套接字监听状态（仅供内部使用）";
+	case -1:return "发生了一个无法识别的错误";
+	default:return "无状态";
+	}
+}
+QString c_Object::Modbus_Status(int State)
+{
+	switch (State)
+	{
+	case 0:return "已连接";
+	case 1:return "读取操作期间发生错误";
+	case 2:return "写入操作期间发生错误";
+	case 3:return "尝试打开后端时出错";
+	case 4:return "尝试设置配置参数时出错";
+	case 5:return "I/O期间发生超时。I/O操作未在给定的时间范围内完成";
+	case 6:return "发生Modbus特定协议错误";
+	case 7:return "由于设备断开连接，回复被中止";
+	case 8:return "发生未知错误";
+	case 9:return "设备已断开连接";
+	case 10:return "正在连接设备";
+	case 11:return "设备正在关闭";
+	default:return "无状态";
+	}
+}
+QString c_Object::CanOpen(int State)
+{
+	switch (State) {
+	case 0x0000:return "正常";
+	case 0x0001:return "DCBUS 过压";
+	case 0x0002:return "DCBUS 欠压";
+	case 0x0004:return "电机过流";
+	case 0x0008:return "编码器故障";
+	case 0x0010:return "控制电源欠压";
+	case 0x0020:return "驱动过热";
+	case 0x0040:return "电机过热";
+	case 0x0080:return "电机过载报警";
+	case 0x0100:return "霍尔信号异常";
+	case 0x0200:return "编码器短线故障";
+	case 0x0400:return "电机过速";
+	case 0x0800:return "指令超差错误";
+	case 0x1000:return "存储参数校验错误";
+	case 0x2000:return "功率模块过流（硬件）";
+	case 0x4000:return "电机制动过载错误";
+	case 0x8001:return "电机自学习错误";
+	case 0x8002:return "电流检测基准错误";
+	case 0x8004:return "电机缺相报警";
+	case 0x8005:return "通讯超时";
+	default:return "未知错误";
+	}
+}
+QString c_Object::Hikvision_Status(DWORD state)
+{
+    switch (state){
+    case EXCEPTION_EXCHANGE:return "用户交互时异常";
+    case EXCEPTION_AUDIOEXCHANGE:return "语音对讲异常";
+    case EXCEPTION_ALARM:return "报警异常";
+    case EXCEPTION_PREVIEW:return "网络预览异常";
+    case EXCEPTION_SERIAL:return "透明通道异常";
+    case EXCEPTION_RECONNECT:return "预览时重连";
+    case EXCEPTION_ALARMRECONNECT:return "报警时重连";
+    case EXCEPTION_SERIALRECONNECT:return "透明通道重连";
+    case SERIAL_RECONNECTSUCCESS:return "透明通道重连成功";
+    case EXCEPTION_PLAYBACK:return "回放异常";
+    case EXCEPTION_DISKFMT:return "硬盘格式化";
+    case EXCEPTION_PASSIVEDECODE:return "被动解码异常";
+    case EXCEPTION_EMAILTEST:return "邮件测试异常";
+    case EXCEPTION_BACKUP:return "备份异常";
+    case PREVIEW_RECONNECTSUCCESS:return "预览时重连成功";
+    case ALARM_RECONNECTSUCCESS:return "报警时重连成功";
+    case RESUME_EXCHANGE:return "用户交互恢复";
+    case NETWORK_FLOWTEST_EXCEPTION:return "网络流量检测异常";
+    case EXCEPTION_PICPREVIEWRECONNECT:return "图片预览重连";
+    case PICPREVIEW_RECONNECTSUCCESS:return "图片预览重连成功";
+    case EXCEPTION_PICPREVIEW:return "图片预览异常";
+    case EXCEPTION_MAX_ALARM_INFO:return "报警信息缓存已达上限";
+    case EXCEPTION_LOST_ALARM:return "报警丢失";
+    case EXCEPTION_PASSIVETRANSRECONNECT:return "被动转码重连";
+    case PASSIVETRANS_RECONNECTSUCCESS:return "被动转码重连成功";
+    case EXCEPTION_PASSIVETRANS:return "被动转码异常";
+    case SUCCESS_PUSHDEVLOGON:return "推模式设备注册成功";
+    case EXCEPTION_RELOGIN:return "用户重登陆";
+    case RELOGIN_SUCCESS:return "用户重登陆成功";
+    case EXCEPTION_PASSIVEDECODE_RECONNNECT:return "被动解码重连";
+    case EXCEPTION_CLUSTER_CS_ARMFAILED:return "集群报警异常";
+    case EXCEPTION_RELOGIN_FAILED:return "重登陆失败，停止重登陆";
+    case EXCEPTION_PREVIEW_RECONNECT_CLOSED:return "关闭预览重连功能";
+    case EXCEPTION_ALARM_RECONNECT_CLOSED:return "关闭报警重连功能";
+    case EXCEPTION_SERIAL_RECONNECT_CLOSED:return "关闭透明通道重连功能";
+    case EXCEPTION_PIC_RECONNECT_CLOSED:return "关闭回显重连功能";
+    case EXCEPTION_PASSIVE_DECODE_RECONNECT_CLOSED:return "关闭被动解码重连功能";
+    case EXCEPTION_PASSIVE_TRANS_RECONNECT_CLOSED:return "关闭被动转码重连功能 ";
+    case EXCEPTION_VIDEO_DOWNLOAD:return "录像下载异常";
+    default:return "未知异常";
+    }
+}
+
+void c_Object::BitToFloat(float& floatValue, quint16 first16Bits, quint16 second16Bits)
+{
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = second16Bits;
+	unionConverter.Word.low16Bits = first16Bits;
+	// 返回浮点数
+	floatValue = unionConverter.floatValue;
+}
+void c_Object::FloatToBit(float floatValue, quint16& first16Bits, quint16& second16Bits)
+{
+	// 使用联合来存储浮点数和其对应的32位整数表示
+	dataConverter unionConverter;
+	unionConverter.floatValue = floatValue;
+	// 提取两个16位值的位信息
+	second16Bits = unionConverter.Word.high16Bits;
+	first16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::IntToBit(quint32 intValue, quint16& high16Bits, quint16& low16Bits) {
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.DWord = intValue;
+	// 提取两个16位值的位信息
+	high16Bits = unionConverter.Word.high16Bits;
+	low16Bits = unionConverter.Word.low16Bits;
+}
+void c_Object::BitToInt(quint32& intValue, quint16 high16Bits, quint16 low16Bits)
+{
+	// 使用位操作将32位整数拆分为两个16位整数
+	dataConverter unionConverter;
+	unionConverter.Word.high16Bits = high16Bits;
+	unionConverter.Word.low16Bits = low16Bits;
+	intValue = unionConverter.DWord;
+}
+
+QMutex c_Variable::g_mutex;
+QScopedPointer<c_Variable> c_Variable::g_instance;
+
+s_DIFOPPacketUnion c_Variable::g_DIFOP;
+s_RoboSense_DB c_Variable::g_RoboSense;
+QJsonObject c_Variable::g_Communicate_DB;
+
+c_Variable::c_Variable(QObject* parent) : c_Object(parent)
+{
+  
+}
+c_Variable::~c_Variable()
+{
+   
+}
+c_Variable& c_Variable::getInstance()
+{
+    if (g_instance.isNull()) {
+        QMutexLocker locker(&g_mutex);
+        if (g_instance.isNull()) {
+            g_instance.reset(new c_Variable());
+        }
+    }
+    return *g_instance.data();
+}
+void c_Variable::writeMessage(int style, QString message)
+{
+    msleep(10);
+	if (style == 1)
+    {
+        QTextStream stream(stdout);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stdout);
+    }
+    if (style == 2)
+    {
+        QTextStream stream(stderr);
+        stream.setCodec("UTF-8");
+        stream << message << Qt::endl;
+        fflush(stderr);
+    }
+}
+
+
+==================== QDesigner FILES (.ui) ====================
+
+########################################################################
+FILE: ./c_RoboSense.ui
+########################################################################
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>c_RoboSenseClass</class>
+ <widget class="QWidget" name="c_RoboSenseClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>786</width>
+    <height>668</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_4">
+   <item row="0" column="0">
+    <widget class="QFrame" name="statusFrame">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="leftMargin">
+       <number>6</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>6</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>DIFOP:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="c_Fr_Light" name="DIFOP_Status" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>MSOP:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="c_Fr_Light" name="MSOP_Status" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_15">
+        <property name="text">
+         <string>Heartbeat:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="c_Fr_Light" name="device_Status" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnConnect">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Connect</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnDisconnect">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Disconnect</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>通讯参数</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>  E1R IP:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="E1R_IP">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>Local IP:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="Local_Ip">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_16">
+          <property name="text">
+           <string>  E1R DIFOP Port:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="E1R_DIFOP_Port">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>Local MSOP Port:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="Local_MSOP_Port">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>  E1R MSOP Port:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="E1R_MSOP_Port">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Local DIFOP Port:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="Local_DIFOP_Port">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="groupBoxDIFOP">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>设备参数</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>  Firmware:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="SW_Version">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>         SN:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="SN">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>MAC Address:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="MAC_Address">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Frame Rate:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="FrequecySetting">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_14">
+        <item>
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Return Mode:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="ReturnMode">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_15">
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>   PHY Mode:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="PHYMode">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_12">
+        <item>
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string> Time Sync:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="TimeSyncStatus">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_13">
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string> Radar Temp:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="LidarTemp">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_16">
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Last Update:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="LastUpdate">
+          <property name="styleSheet">
+           <string notr="true">background-color: #f0f0f0;</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="groupBox_49">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>避障ROI</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0" colspan="3">
+       <layout class="QHBoxLayout" name="horizontalLayout_17">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_19">
+          <item>
+           <widget class="QLabel" name="label_198">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>障碍检测：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="c_Fr_Light" name="is_Obstacle" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_143"/>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="roi_distance">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_25">
+            <property name="text">
+             <string>&lt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Safe_Distance">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_397">
+          <item>
+           <widget class="QLabel" name="label_22">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>有效点云：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="roi_num">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Safe_Num">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_398">
+        <item>
+         <widget class="QLabel" name="label_107">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>纵深选限：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="max_point_1">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_399">
+        <item>
+         <widget class="QLabel" name="label_109">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>水平左限：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="max_point_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_400">
+        <item>
+         <widget class="QLabel" name="label_111">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>垂直高限：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="max_point_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_402">
+        <item>
+         <widget class="QLabel" name="label_113">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>纵深近限：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="min_point_1">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_403">
+        <item>
+         <widget class="QLabel" name="label_129">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>水平右限：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="min_point_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_404">
+        <item>
+         <widget class="QLabel" name="label_132">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>垂直低限：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="min_point_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QVTKOpenGLNativeWidget" name="VTK">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>c_Fr_Light</class>
+   <extends>QWidget</extends>
+   <header>Fr_Light.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QVTKOpenGLNativeWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header>QVTKOpenGLNativeWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
+
+==================== Cmake FILES (.txt) ====================
+
+########################################################################
+FILE: ./CMakeLists.txt
+########################################################################
+
+cmake_minimum_required(VERSION 3.16)
+project(RoboSense_Manage VERSION 1.0.0 LANGUAGES C CXX CUDA)
+
+# ============================================================================
+# 策略与平台检测
+# ============================================================================
+if(POLICY CMP0144)
+    cmake_policy(SET CMP0144 OLD)
+endif()
+
+# 检测ARM64平台
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(ARM64 TRUE)
+    message(STATUS "✅ Detected ARM64 Linux platform (Jetson)")
+endif()
+
+# ============================================================================
+# 构建配置
+# ============================================================================
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES 120 CACHE STRING "CUDA Architectures" FORCE)
+endif()
+
+if(DEFINED ENV{CUDA_HOME})
+    set(CUDA_HOME $ENV{CUDA_HOME})
+    set(CMAKE_CUDA_COMPILER ${CUDA_HOME}/bin/nvcc)
+endif()
+if(DEFINED ENV{OpenCV_DIR})
+    set(OpenCV_DIR $ENV{OpenCV_DIR})
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PCL_NO_MPI ON)
+
+# ============================================================================
+# 查找依赖包（含完善版librealsense2配置）
+# ============================================================================
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network PrintSupport Charts WebSockets Concurrent OpenGL)
+find_package(OpenCV REQUIRED)
+find_package(Zivid REQUIRED COMPONENTS Core Visualization)
+find_package(PCL 1.14 REQUIRED COMPONENTS common io visualization filters kdtree search sample_consensus)
+find_package(VTK 9.1 REQUIRED COMPONENTS CommonCore CommonDataModel FiltersCore RenderingCore RenderingOpenGL2 GUISupportQt)
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# ============================================================================
+# librealsense2 配置（完善版）
+# ============================================================================
+# 优先使用 find_package（现代CMake方式）
+find_package(realsense2 QUIET)
+if(realsense2_FOUND)
+    message(STATUS "✅ librealsense2 found via find_package: ${realsense2_VERSION}")
+    set(REALSENSE2_FOUND TRUE)
+    set(REALSENSE2_INCLUDE_DIRS ${realsense2_INCLUDE_DIRS})
+    set(REALSENSE2_LIBRARIES realsense2::realsense2)  # 使用导入目标
+else()
+    # 回退到 pkg-config（传统方式）
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(REALSENSE2 QUIET realsense2)
+        if(REALSENSE2_FOUND)
+            message(STATUS "✅ librealsense2 found via pkg-config: ${REALSENSE2_VERSION}")
+            # 修复pkg-config路径（Jetson常见问题）
+            if(ARM64 AND NOT REALSENSE2_INCLUDE_DIRS)
+                set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            endif()
+        else()
+            message(WARNING "⚠️  librealsense2 not found (optional feature disabled)")
+        endif()
+    else()
+        message(WARNING "⚠️  pkg-config not found, cannot search for librealsense2")
+    endif()
+endif()
+
+# 验证librealsense2路径（Jetson关键修复）
+if(REALSENSE2_FOUND AND ARM64)
+    if(NOT EXISTS "${REALSENSE2_INCLUDE_DIRS}/librealsense2/rs.hpp")
+        # 尝试备用路径
+        if(EXISTS "/usr/include/librealsense2/rs.hpp")
+            set(REALSENSE2_INCLUDE_DIRS "/usr/include/librealsense2")
+            message(STATUS "🔧 Fixed librealsense2 include path: ${REALSENSE2_INCLUDE_DIRS}")
+        endif()
+    endif()
+endif()
+
+# ============================================================================
+# 海康SDK路径配置
+# ============================================================================
+set(HIKVISION_SDK_ROOT "/opt/hikvision_sdk_arm64" CACHE PATH "Path to Hikvision SDK for ARM64")
+set(HIKVISION_INC_PATH "${HIKVISION_SDK_ROOT}/incCn")
+set(HIKVISION_LIB_PATH "${HIKVISION_SDK_ROOT}/MakeAll")
+set(HIKVISION_COMP_PATH "${HIKVISION_SDK_ROOT}/MakeAll/HCNetSDKCom")
+
+if(NOT EXISTS "${HIKVISION_INC_PATH}")
+    message(FATAL_ERROR "❌ Hikvision SDK include directory not found at ${HIKVISION_INC_PATH}")
+endif()
+if(NOT EXISTS "${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+    message(FATAL_ERROR "❌ Hikvision SDK core library not found at ${HIKVISION_LIB_PATH}/libhcnetsdk.so")
+endif()
+
+# ============================================================================
+# 包含目录（严格顺序 + librealsense2修复）
+# ============================================================================
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+    ${HIKVISION_INC_PATH}
+    ${PCL_INCLUDE_DIRS}
+    ${VTK_INCLUDE_DIRS}
+    ${ZIVID_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${REALSENSE2_INCLUDE_DIRS} 
+)
+
+# ============================================================================
+# 源文件
+# ============================================================================
+set(SOURCES
+     main.cpp
+     E1R_DIFOP.cpp  
+     E1R_MSOP.cpp  
+     Fr_Light.cpp  
+     RoboSense.cpp  
+     Scan_Client.cpp  
+     Variable.cpp
+     c_RoboSense.ui 
+     RoboSense.qrc 
+)
+
+set(HEADERS
+     E1R_DIFOP.h    
+     E1R_MSOP.h    
+     Fr_Light.h    
+     RoboSense.h      
+     Scan_Client.h    
+     Variable.h
+)
+
+# ============================================================================
+# 创建可执行文件
+# ============================================================================
+add_executable(robosense_manage ${SOURCES} ${HEADERS})
+
+# ============================================================================
+# 链接库（含librealsense2完善配置）
+# ============================================================================
+target_link_libraries(robosense_manage PRIVATE
+    # Qt5
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport
+    Qt5::Charts Qt5::WebSockets Qt5::Concurrent Qt5::OpenGL
+    
+    # Zivid
+    Zivid::Core Zivid::Visualization
+    
+    # OpenCV
+    ${OpenCV_LIBS}
+    
+    # PCL + VTK
+    ${PCL_LIBRARIES}
+    ${VTK_LIBRARIES}
+    
+    # Boost
+    ${Boost_LIBRARIES}
+    
+    # ============================================================================
+    # librealsense2（完善配置）
+    # ============================================================================
+    ${REALSENSE2_LIBRARIES}  # 自动处理导入目标或库列表
+    
+    # ============================================================================
+    # 海康SDK（严格按文档顺序）
+    # ============================================================================
+    ${HIKVISION_LIB_PATH}/libhcnetsdk.so
+    ${HIKVISION_LIB_PATH}/libHCCore.so
+    ${HIKVISION_LIB_PATH}/libhpr.so
+    ${HIKVISION_LIB_PATH}/libPlayCtrl.so
+    ${HIKVISION_LIB_PATH}/libSuperRender.so
+    ${HIKVISION_LIB_PATH}/libAudioRender.so
+    ${HIKVISION_COMP_PATH}/libHCCoreDevCfg.so
+    ${HIKVISION_COMP_PATH}/libHCPreview.so
+    ${HIKVISION_COMP_PATH}/libHCPlayBack.so
+    ${HIKVISION_COMP_PATH}/libHCVoiceTalk.so
+    ${HIKVISION_COMP_PATH}/libHCAlarm.so
+    ${HIKVISION_COMP_PATH}/libHCDisplay.so
+    ${HIKVISION_COMP_PATH}/libHCIndustry.so
+    ${HIKVISION_COMP_PATH}/libHCGeneralCfgMgr.so
+    ${HIKVISION_COMP_PATH}/libStreamTransClient.so
+    ${HIKVISION_COMP_PATH}/libSystemTransform.so
+    ${HIKVISION_COMP_PATH}/libanalyzedata.so
+    ${HIKVISION_COMP_PATH}/libAudioIntercom.so
+    ${HIKVISION_COMP_PATH}/libiconv.so.2
+)
+
+# ============================================================================
+# RPATH与编译优化
+# ============================================================================
+set_target_properties(robosense_manage PROPERTIES
+    BUILD_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    INSTALL_RPATH "${HIKVISION_LIB_PATH}:${HIKVISION_COMP_PATH}"
+    BUILD_RPATH_USE_ORIGIN ON
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    CUDA_SEPARABLE_COMPILATION ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_options(robosense_manage PRIVATE
+    -O3 -mcpu=native
+    -Wall -Wextra
+    -Wno-unused-parameter -Wno-unused-variable -Wno-deprecated-declarations
+)
+
+# ============================================================================
+# 资源文件复制
+# ============================================================================
+add_custom_command(TARGET robosense_manage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/Communicate_DB.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/stuqss.css
+        $<TARGET_FILE_DIR:robosense_manage>/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Images
+        $<TARGET_FILE_DIR:robosense_manage>/Images
+    COMMENT "Copying resources to build directory"
+)
+
+# ============================================================================
+# 构建信息输出
+# ============================================================================
+message(STATUS "========================================")
+message(STATUS "✅ Project Configuration Summary")
+message(STATUS "========================================")
+message(STATUS "Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
+message(STATUS "Platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}")
+message(STATUS "OpenCV: ${OpenCV_VERSION}")
+message(STATUS "PCL: ${PCL_VERSION}")
+message(STATUS "VTK: ${VTK_VERSION}")
+message(STATUS "Zivid SDK: ${ZIVID_VERSION}")
+message(STATUS "librealsense2: ${REALSENSE2_VERSION} (${REALSENSE2_FOUND})")
+message(STATUS "Hikvision SDK: ${HIKVISION_SDK_ROOT}")
+message(STATUS "ARM64 Platform: ${ARM64}")
+

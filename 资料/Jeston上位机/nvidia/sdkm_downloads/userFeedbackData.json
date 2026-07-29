@@ -1,0 +1,28 @@
+{
+  "Username": "User not logged in yet",
+  "Date": "2026-02-13 12:09:05",
+  "Feedback_Type": "GA Fail Feedback",
+  "Comment": "COMP NV_L4T_JETSON_LINUX_OPENRM_WINDOWS_FLASH_COMP#38.2.1 Failed. Command error code: 2001,\n__________________________________________________________________________________________________\nFile: ;\nStep: ;\nDetails: info: sudo WSL=1 ./nvsdkmanager_flash.sh --storage nvme0n1p1 --nv-auto-config --username nvidia \ninfo: user entered nvme0n1p1 --nv-auto-config --username nvidia \ninfo: *** Checking ONLINE mode ... OK. \ninfo: *** Checking target board connection ...1 connections found. \nerror: *** Reading ECID ... *** Error: Unsupported Tegra SoC ID 0x0 found. \ninfo: FUSELEVEL=0 hwchipid=0x0 bootauth= \nerror: *** ERROR: Parsing boardid failed; \nImageVersion: ;\n__________________________________________________________________________________________________\nFeedback Report ID: vfo42ydf",
+  "SDKMClientVersion": "2.4.0.13235",
+  "Include_System_Info": true,
+  "Attach_Additional_Files": true,
+  "targetDeviceImageVersion": "",
+  "flashInfo": {
+    "compSelection": "first_time",
+    "dialogAction": "one_shot",
+    "dialogErrors": [],
+    "commandOption": "--storage nvme0n1p1",
+    "result": "failure"
+  },
+  "Product": "Jetson",
+  "Target": "Jetson AGX Thor Developer Kit",
+  "SDKVersion": "JetPack 7.0 (rev. 1)",
+  "Processor": "Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz",
+  "Memory_Space": "31.88 GB",
+  "Operating_System": "windows10",
+  "Operating_System_Details": {
+    "name": "Windows 10 Pro",
+    "hostOSString": "windows10"
+  },
+  "Architecture": "x86_64"
+}

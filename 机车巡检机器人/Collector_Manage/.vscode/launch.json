@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🐛 Debug Collector_Manage",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/collector_manage",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/bin",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/opt/hikvision_sdk_arm64/MakeAll:/opt/hikvision_sdk_arm64/MakeAll/HCNetSDKCom"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "🔨 build-all",
+            "visualizerFile": "/home/nvidia/.config/Code/User/workspaceStorage/ef4f8fc3c8e55480cfd7f760e26f77d7/tonka3000.qtvsctools/qt.natvis.xml"
+        }
+    ]
+}
